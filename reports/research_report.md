@@ -145,6 +145,14 @@ Ubuntu with an NVIDIA RTX 5060 (CUDA 12.8) — see `environment_report.md`.
 
 ## 14. Results
 
+Two datasets, reported separately per the dataset card's policy of never merging a
+pipeline-validation result with a physics-relevant one into a single table. Read
+Section 14.2 for the dataset this project's actual scientific conclusions should be
+drawn from — 14.1 is retained because it's what validated the pipeline in the first
+place (Gate 2), not because its numbers mean anything physically.
+
+### 14.1 Synthetic development dataset (pipeline validation only)
+
 Full experiment matrix (8 experiments: FP32 baseline, PTQ×3, QAT×3, and one FP32 run
 with the hls4ml backend enabled), on the synthetic development dataset:
 
@@ -160,7 +168,7 @@ with the hls4ml backend enabled), on the synthetic development dataset:
 | EXP_008_FP32_HLS4ML | FP32 | — (hls4ml csim) | 0.9853 | 0.9853 | 0.9918 | 0.0480 | 0.473 |
 
 (Full machine-readable table: [results_summary.csv](../results_summary.csv); same table
-rendered: [reports/tables/quantization_results.md](tables/quantization_results.md).)
+rendered: [reports/tables/quantization_results_synthetic.md](tables/quantization_results_synthetic.md).)
 
 **Accuracy vs. precision (PTQ).** PTQ accuracy degrades monotonically and gently as
 precision drops: FP32 0.9853 → INT8 0.9850 (−0.03 pp) → INT6 0.9843 (−0.10 pp) → INT4
@@ -195,7 +203,71 @@ bit-width within each method (FP32 0.048 MB → INT8 0.0126 MB → INT6 0.0097 M
 PTQ and QAT produce identical size estimates at a given precision since both quantize
 the same architecture.
 
+### 14.2 Real dataset: hls4ml LHC jet tagging (the result that matters)
+
+Architecture `hidden_dims: [64, 32, 32]` (4,389 parameters) deliberately mirrors the
+reference dense network from the original hls4ml paper on this exact dataset, as a
+sanity check: the FP32 baseline below (74.95% accuracy) lands within 1 percentage
+point of that paper's own reported baseline for the same architecture on the same
+data, which is strong evidence the pipeline (data handling, training, evaluation) is
+implemented correctly — not just "runs without crashing."
+
+Staged validation (per the project's risk-management plan, run before the full matrix):
+
+| Stage | Config | Subset size | Accuracy | ROC-AUC (macro) |
+|---|---|---:|---:|---:|
+| 1: pipeline validation | `jet_validate_10k.yaml` | 10,000 | 0.5507 | 0.8235 |
+| 2: training validation | `jet_validate_50k.yaml` | 50,000 | 0.7381 | 0.9237 |
+
+Stage 1 used only 8 epochs (by design, to validate the pipeline runs end-to-end, not
+to converge) — 55% accuracy against a 20% random baseline for 5 classes, with
+ROC-AUC 0.82, confirms the pipeline is learning real signal before any time is spent
+on larger runs. Stage 2's 73.8% accuracy at 50k events, close to the eventual 100k
+result below, gave confidence to proceed to the full matrix.
+
+**Full experiment matrix, 100,000 events** (FP32 baseline, PTQ×3, QAT×3):
+
+| Experiment | Precision | Method | Accuracy | F1 (macro) | ROC-AUC (macro) |
+|---|---|---|---:|---:|---:|
+| EXP_012_JET_FP32 | FP32 | — | 0.7495 | 0.7527 | 0.9335 |
+| EXP_013_JET_INT8_PTQ | INT8 | PTQ | 0.7503 | 0.7535 | 0.9333 |
+| EXP_014_JET_INT6_PTQ | INT6 | PTQ | 0.7501 | 0.7533 | 0.9323 |
+| EXP_015_JET_INT4_PTQ | INT4 | PTQ | 0.6507 | 0.6473 | 0.8832 |
+| EXP_016_JET_INT8_QAT | INT8 | QAT | 0.7523 | 0.7555 | 0.9344 |
+| EXP_017_JET_INT6_QAT | INT6 | QAT | 0.7517 | 0.7550 | 0.9336 |
+| EXP_018_JET_INT4_QAT | INT4 | QAT | 0.7291 | 0.7324 | 0.9232 |
+
+**This is the central finding of this project, and it is qualitatively different from
+the synthetic-dataset result in 14.1.** On real physics data, INT8 and INT6 PTQ are
+essentially lossless (+0.08 pp and +0.06 pp — within noise of the FP32 baseline), but
+**INT4 PTQ collapses by 9.9 percentage points** (74.95% → 65.07%) and ROC-AUC drops
+from 0.933 to 0.883. This is a genuine precision cliff, not the gentle monotonic
+degradation seen on the synthetic dataset — confirming the synthetic result in 14.1
+understated real quantization sensitivity, almost certainly because that task was too
+easy (near-ceiling accuracy, wide margins) for 4-bit rounding error to flip any
+decisions. The real jet-tagging task, with five overlapping physics classes (note W/Z
+confusion in the confusion matrices), has much narrower decision margins, and INT4's
+~16-level weight/activation quantization is coarse enough to meaningfully blur them.
+
+**QAT substantially recovers the INT4 cliff, but does not fully close it.**
+INT4-QAT reaches 72.91% accuracy — a 7.8 percentage-point recovery from INT4-PTQ's
+65.07%, closing roughly 79% of the 9.9 pp gap to the FP32 baseline — but still lands
+2.0 pp below FP32 (74.95%) and below INT8/INT6-QAT (~75.2%, both of which essentially
+match or marginally exceed FP32, consistent with INT8/INT6 already being
+near-lossless before any fine-tuning). **This is a materially different, more
+qualified answer to Secondary Research Question 2 than the synthetic dataset gave.**
+On the synthetic task (Section 14.1), QAT fully recovered — even slightly exceeded —
+FP32 accuracy at every precision including INT4. On real data, QAT recovers *most* of
+a genuine accuracy cliff but leaves a real residual gap at the most aggressive
+precision tested. The correct general statement, based on both datasets together, is:
+QAT reliably closes small-to-moderate PTQ accuracy gaps, and substantially — but not
+necessarily completely — closes large ones; whether it closes a gap *fully* appears to
+depend on how severe the underlying precision cliff is, which itself depends on task
+difficulty and decision-margin width, not on the quantization method alone.
+
 ## 15. Pareto Analysis
+
+### 15.1 Synthetic development dataset
 
 Pareto frontier computed algorithmically (`find_pareto_frontier`, non-dominated-set
 identification — no manual model selection) over (accuracy↑, model_size_mb↓) across all
@@ -211,8 +283,8 @@ seven training-matrix experiments:
 | EXP_006_INT6_QAT | INT6 | QAT | 0.9863 | 0.0097 | **Yes** |
 | EXP_007_INT4_QAT | INT4 | QAT | 0.9857 | 0.0068 | **Yes** |
 
-(Figure: [reports/figures/pareto_accuracy_vs_size.png](figures/pareto_accuracy_vs_size.png);
-full data: [reports/tables/pareto_accuracy_vs_size.csv](tables/pareto_accuracy_vs_size.csv).)
+(Figure: [reports/figures/pareto_accuracy_vs_size_synthetic.png](figures/pareto_accuracy_vs_size_synthetic.png);
+full data: [reports/tables/pareto_accuracy_vs_size_synthetic.csv](tables/pareto_accuracy_vs_size_synthetic.csv).)
 
 Only QAT-INT6 and QAT-INT4 are non-dominated. QAT-INT8 is dominated by QAT-INT6: they
 tie on accuracy (0.9863) but QAT-INT6 is smaller — so there is no reason, on this
@@ -221,6 +293,35 @@ configuration is dominated by at least one QAT configuration at equal-or-smaller
 with equal-or-higher accuracy. The frontier's practical reading: **QAT-INT6 is the
 best accuracy/size trade-off found in this experiment matrix**, with QAT-INT4
 available as a smaller-footprint alternative at a small (0.06 pp) accuracy cost.
+
+### 15.2 Real dataset: hls4ml LHC jet tagging
+
+| Experiment | Precision | Method | Accuracy | Size (MB) | Pareto-optimal |
+|---|---|---|---:|---:|:---:|
+| EXP_012_JET_FP32 | FP32 | — | 0.7495 | 0.0167 | No |
+| EXP_013_JET_INT8_PTQ | INT8 | PTQ | 0.7503 | 0.0045 | No |
+| EXP_014_JET_INT6_PTQ | INT6 | PTQ | 0.7501 | 0.0035 | No |
+| EXP_015_JET_INT4_PTQ | INT4 | PTQ | 0.6507 | 0.0025 | No |
+| EXP_016_JET_INT8_QAT | INT8 | QAT | 0.7523 | 0.0045 | **Yes** |
+| EXP_017_JET_INT6_QAT | INT6 | QAT | 0.7517 | 0.0035 | **Yes** |
+| EXP_018_JET_INT4_QAT | INT4 | QAT | 0.7291 | 0.0025 | **Yes** |
+
+(Figure: [reports/figures/pareto_accuracy_vs_size_hls4ml_lhc_jets_hlf.png](figures/pareto_accuracy_vs_size_hls4ml_lhc_jets_hlf.png);
+full data: [reports/tables/pareto_accuracy_vs_size_hls4ml_lhc_jets_hlf.csv](tables/pareto_accuracy_vs_size_hls4ml_lhc_jets_hlf.csv).
+Staged-validation runs, EXP_010/EXP_011, are excluded from this analysis — see
+`hep_quant.reporting.generate_report`'s docstring for why.)
+
+Here, all three QAT configurations are Pareto-optimal, and the FP32 baseline and all
+three PTQ configurations are dominated. This is a cleaner, more decisive frontier than
+the synthetic dataset's: on real data, QAT strictly dominates both FP32 and PTQ at
+every tested precision — even INT4-QAT, despite not fully closing the gap to FP32 in
+absolute accuracy (Section 14.2), is Pareto-optimal because nothing in this matrix
+matches its combination of small size and recovered accuracy. INT4-PTQ is the clearest
+loser on this frontier: worse accuracy than everything except nothing, at only
+marginally smaller size than INT6-PTQ's already-dominated point. **The practical
+reading for real deployment: if INT4 precision is required by a resource budget, QAT is
+not optional — PTQ at INT4 on this task is sufficiently worse that only
+fine-tuning-aware quantization is viable.**
 
 ## 16. Reproducibility
 

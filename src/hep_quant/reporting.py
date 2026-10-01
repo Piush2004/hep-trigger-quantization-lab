@@ -75,6 +75,18 @@ def generate_report(
     figures_dir: str = "reports/figures",
     tables_dir: str = "reports/tables",
 ) -> pd.DataFrame:
+    """Write the combined results CSV, then per-dataset tables/plots.
+
+    Plots and Pareto analysis are generated SEPARATELY for each distinct
+    `dataset` value and filename-tagged with it (e.g.
+    `pareto_accuracy_vs_size_hls4ml_lhc_jets_hlf.png`). This project uses more
+    than one dataset (a synthetic pipeline-validation set and the real
+    hls4ml jet-tagging benchmark), with very different accuracy scales and
+    physical meaning — a single combined plot would visually conflate them,
+    which is exactly the silent-merging the project's dataset card policy
+    forbids. The combined CSV is fine as a single file since every row already
+    carries an explicit `dataset` column.
+    """
     Path(figures_dir).mkdir(parents=True, exist_ok=True)
     Path(tables_dir).mkdir(parents=True, exist_ok=True)
 
@@ -86,30 +98,49 @@ def generate_report(
         logger.warning("No completed experiments found; skipping plots/tables.")
         return df
 
+    # Staged validation runs (e.g. EXP_010_JET_VALIDATE_10K) are deliberately
+    # under-trained pipeline/training sanity checks at a smaller data subset
+    # -- not comparable points in the precision-comparison matrix they
+    # preceded. They stay in results_summary.csv (the full raw record of
+    # everything that ran) but are excluded here so they don't get plotted
+    # or Pareto-ranked alongside the actual experiment matrix, which would
+    # misleadingly make e.g. a 10k/8-epoch FP32 run look "dominated" by a
+    # 100k/30-epoch PTQ run on an unrelated axis (training budget).
+    comparable_df = df[~df["experiment_id"].str.contains("VALIDATE", na=False)]
+
+    datasets = sorted(d for d in comparable_df["dataset"].dropna().unique())
+    for dataset in datasets:
+        subset = comparable_df[comparable_df["dataset"] == dataset]
+        _generate_dataset_report(subset, dataset, figures_dir, tables_dir)
+
+    return df
+
+
+def _generate_dataset_report(df: pd.DataFrame, dataset: str, figures_dir: str, tables_dir: str) -> None:
     markdown_table = df[
         ["experiment_id", "precision", "method", "accuracy", "f1", "roc_auc", "model_size_mb", "inference_latency_ms"]
     ].to_markdown(index=False, floatfmt=".4f")
-    with open(Path(tables_dir) / "quantization_results.md", "w") as f:
-        f.write("# Quantization Results Summary\n\n" + markdown_table + "\n")
+    with open(Path(tables_dir) / f"quantization_results_{dataset}.md", "w") as f:
+        f.write(f"# Quantization Results Summary — {dataset}\n\n" + markdown_table + "\n")
 
     try:
-        plot_model_size_vs_precision(df, Path(figures_dir) / "model_size_vs_precision.png")
+        plot_model_size_vs_precision(df, Path(figures_dir) / f"model_size_vs_precision_{dataset}.png")
     except Exception as exc:
-        logger.warning(f"Could not generate model-size plot: {exc}")
+        logger.warning(f"Could not generate model-size plot for {dataset}: {exc}")
 
     try:
-        plot_latency_vs_accuracy(df, Path(figures_dir) / "latency_vs_accuracy.png")
+        plot_latency_vs_accuracy(df, Path(figures_dir) / f"latency_vs_accuracy_{dataset}.png")
     except Exception as exc:
-        logger.warning(f"Could not generate latency-vs-accuracy plot: {exc}")
+        logger.warning(f"Could not generate latency-vs-accuracy plot for {dataset}: {exc}")
 
     pareto_df = df.dropna(subset=["accuracy", "model_size_mb"])
     if len(pareto_df) >= 2:
         mask = find_pareto_frontier(pareto_df, maximize=["accuracy"], minimize=["model_size_mb"])
         plot_pareto_frontier(
             pareto_df, "model_size_mb", "accuracy", mask,
-            str(Path(figures_dir) / "pareto_accuracy_vs_size.png"),
+            str(Path(figures_dir) / f"pareto_accuracy_vs_size_{dataset}.png"),
             x_label="Estimated model size (MB)", y_label="Accuracy",
         )
-        pareto_df.assign(pareto_optimal=mask).to_csv(Path(tables_dir) / "pareto_accuracy_vs_size.csv", index=False)
-
-    return df
+        pareto_df.assign(pareto_optimal=mask).to_csv(
+            Path(tables_dir) / f"pareto_accuracy_vs_size_{dataset}.csv", index=False
+        )

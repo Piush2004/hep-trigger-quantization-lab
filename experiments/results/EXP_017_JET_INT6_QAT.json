@@ -1,0 +1,116 @@
+{
+  "experiment_id": "EXP_017_JET_INT6_QAT",
+  "timestamp": "2026-10-01T05:31:08.280908+00:00",
+  "config": {
+    "seed": 42,
+    "dataset": {
+      "name": "hls4ml_lhc_jets_hlf",
+      "path": null,
+      "subset_size": 100000,
+      "n_features": 16,
+      "n_samples": 20000,
+      "n_classes": 2,
+      "val_fraction": 0.15,
+      "test_fraction": 0.15,
+      "source": "openml",
+      "openml_name": "hls4ml_lhc_jets_hlf",
+      "openml_version": 1
+    },
+    "model": {
+      "type": "mlp",
+      "hidden_dims": [
+        64,
+        32,
+        32
+      ],
+      "dropout": 0.1,
+      "activation": "relu"
+    },
+    "training": {
+      "epochs": 30,
+      "batch_size": 1024,
+      "learning_rate": 0.001,
+      "weight_decay": 0.0001,
+      "early_stopping_patience": 6,
+      "device": "auto"
+    },
+    "quantization": {
+      "method": "qat",
+      "precision": "int6",
+      "calibration_batches": 20
+    },
+    "hardware": {
+      "backend": "unavailable",
+      "board": "pynq-z2",
+      "clock_period_ns": 5,
+      "reuse_factor": 1,
+      "strategy": "latency"
+    },
+    "experiment": {
+      "name": "jet_int6_qat",
+      "id": "EXP_017_JET_INT6_QAT"
+    }
+  },
+  "reproducibility": {
+    "seed": 42,
+    "system": {
+      "python_version": "3.11.16 (main, Sep 29 2026, 14:59:26) [Clang 22.1.3 ]",
+      "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+      "processor": "",
+      "torch_version": "2.11.0+cu128",
+      "cuda_available": false,
+      "cuda_version": null,
+      "gpu_name": null,
+      "git_commit": "c235062d6b51749fd2d6bcb7cbc30d86d971be66"
+    }
+  },
+  "metrics": {
+    "test": {
+      "accuracy": 0.7517333333333334,
+      "precision": 0.7671215575220811,
+      "recall": 0.7513624211875893,
+      "f1": 0.7549829467425285,
+      "roc_auc": 0.9335836472813698,
+      "pr_auc": 0.8145053161419231,
+      "averaging": "macro"
+    },
+    "model_size": {
+      "estimated_size_mb": 0.003551483154296875,
+      "total_params": 4389,
+      "is_estimated": true
+    },
+    "latency": {
+      "device": "cpu",
+      "mean_ms_per_sample": 0.7170693199441303,
+      "p95_ms": 1.1041091002425674
+    }
+  },
+  "model_info": {
+    "architecture": "mlp",
+    "hidden_dims": [
+      64,
+      32,
+      32
+    ],
+    "n_parameters": 4389,
+    "method": "qat",
+    "precision": "int6"
+  },
+  "hardware": {
+    "backend": "unavailable",
+    "status": "unavailable",
+    "resource_source": "hls4ml unavailable: backend explicitly set to 'unavailable' in config",
+    "measurement_tier": "unavailable",
+    "latency_estimate_ns": null,
+    "initiation_interval": null,
+    "lut": null,
+    "dsp": null,
+    "bram": null,
+    "ff": null,
+    "notes": [
+      "backend explicitly set to 'unavailable' in config"
+    ]
+  },
+  "status": "completed",
+  "error": null
+}

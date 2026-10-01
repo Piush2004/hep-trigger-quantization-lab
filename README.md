@@ -92,8 +92,32 @@ before interpreting model-size or latency numbers.
 
 ## Results
 
-On the synthetic development dataset (8-experiment matrix: FP32, PTQ×3, QAT×3, +1
-hls4ml csim run):
+### Real dataset: hls4ml LHC jet tagging (5-class) — the result that matters
+
+100,000-event experiment matrix. FP32 baseline (74.95% accuracy) lands within 1 pp of
+the original hls4ml paper's own published baseline for this exact architecture on this
+exact dataset — a strong sanity check that the pipeline is implemented correctly.
+
+| Precision | Method | Accuracy | ROC-AUC (macro) | Model size (MB) |
+|---|---|---:|---:|---:|
+| FP32 | — | 0.7495 | 0.9335 | 0.0167 |
+| INT8 | PTQ | 0.7503 | 0.9333 | 0.0045 |
+| INT6 | PTQ | 0.7501 | 0.9323 | 0.0035 |
+| **INT4** | **PTQ** | **0.6507** | **0.8832** | 0.0025 |
+| INT8 | QAT | 0.7523 | 0.9344 | 0.0045 |
+| INT6 | QAT | 0.7517 | 0.9336 | 0.0035 |
+| INT4 | QAT | 0.7291 | 0.9232 | 0.0025 |
+
+**INT4 PTQ collapses by 9.9 percentage points** — a genuine precision cliff, not a
+gentle degradation. **QAT recovers most but not all of it** (65.07% → 72.91%, still
+2.0 pp below FP32). All three QAT configurations are Pareto-optimal; PTQ and FP32 are
+all dominated
+([figure](reports/figures/pareto_accuracy_vs_size_hls4ml_lhc_jets_hlf.png)). See
+[reports/research_report.md §14.2](reports/research_report.md) for the full discussion,
+and [reports/dataset_card.md](reports/dataset_card.md) for dataset provenance/license
+(OpenML `hls4ml_lhc_jets_hlf`, CC BY, DOI 10.5281/zenodo.3602260).
+
+### Synthetic development dataset (pipeline validation only — no physics meaning)
 
 | Precision | Method | Accuracy | Model size (MB) | Latency (ms/sample, software) |
 |---|---|---:|---:|---:|
@@ -105,15 +129,18 @@ hls4ml csim run):
 | **INT6** | **QAT** | **0.9863** | **0.0097** | 4.947 |
 | INT4 | QAT | 0.9857 | 0.0068 | 4.151 |
 
-**QAT-INT6 is the algorithmically-identified Pareto-optimal accuracy/size trade-off**
-([reports/figures/pareto_accuracy_vs_size.png](reports/figures/pareto_accuracy_vs_size.png)).
-Notably, latency gets *worse*, not better, at lower precision — this is a real
-measurement, not a mistake: it's the cost of simulating quantization in float32
-(see [docs/quantization.md](docs/quantization.md)), not a deployment speedup, which
-would require real integer hardware kernels or FPGA synthesis.
+On this easier synthetic task PTQ barely degrades even at INT4 and QAT fully recovers
+at every precision — contrast this with the real dataset above, where INT4 shows a
+real cliff. This gap between the two datasets is itself a finding (see the research
+report's Discussion): the synthetic task understated real quantization sensitivity.
 
-Full data: [results_summary.csv](results_summary.csv),
-[reports/tables/quantization_results.md](reports/tables/quantization_results.md).
+Notably, latency gets *worse*, not better, at lower precision on both datasets — this
+is a real measurement, not a mistake: it's the cost of simulating quantization in
+float32 (see [docs/quantization.md](docs/quantization.md)), not a deployment speedup,
+which would require real integer hardware kernels or FPGA synthesis.
+
+Full data: [results_summary.csv](results_summary.csv) (every experiment, one `dataset`
+column distinguishing them — never silently merged).
 Full discussion: [reports/research_report.md](reports/research_report.md).
 
 ## How to run

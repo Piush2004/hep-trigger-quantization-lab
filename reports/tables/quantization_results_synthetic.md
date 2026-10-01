@@ -1,4 +1,4 @@
-# Quantization Results Summary
+# Quantization Results Summary — synthetic
 
 | experiment_id         | precision   | method   |   accuracy |     f1 |   roc_auc |   model_size_mb |   inference_latency_ms |
 |:----------------------|:------------|:---------|-----------:|-------:|----------:|----------------:|-----------------------:|
