@@ -28,12 +28,17 @@ class ModelSizeReport:
 
 
 def count_parameters(model: nn.Module) -> tuple[int, int, int]:
-    """Return (total_params, weight_params, bias_params) across all nn.Linear layers."""
+    """Return (total_params, weight_params, bias_params).
+
+    Matches by parameter name suffix ("weight"/"bias") rather than module type
+    (`isinstance(m, nn.Linear)`), so this also counts fully-connected layers
+    that aren't literally `nn.Linear` — e.g. `QATLinear`
+    (hep_quant.quantization.qat), which stores its weight/bias as plain
+    `nn.Parameter` attributes rather than wrapping `nn.Linear`.
+    """
     total = sum(p.numel() for p in model.parameters())
-    weight_params = sum(m.weight.numel() for m in model.modules() if isinstance(m, nn.Linear))
-    bias_params = sum(
-        m.bias.numel() for m in model.modules() if isinstance(m, nn.Linear) and m.bias is not None
-    )
+    weight_params = sum(p.numel() for name, p in model.named_parameters() if name.endswith("weight"))
+    bias_params = sum(p.numel() for name, p in model.named_parameters() if name.endswith("bias"))
     return total, weight_params, bias_params
 
 

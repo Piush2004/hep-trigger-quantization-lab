@@ -16,7 +16,8 @@ pytest-cov
 #   pip install torch --index-url https://download.pytorch.org/whl/cpu
 #   uv pip install --python .venv torch --index-url https://download.pytorch.org/whl/cu128
 
-# Optional, hardware-aware analysis (Gate 6). May be unavailable on Windows;
-# see docs/hardware.md for the fallback path if installation fails.
-# hls4ml
-# qkeras
+# Optional, hardware-aware analysis (Gate 6). Installs cleanly on Linux/WSL2
+# (verified: hls4ml 1.3.0) but may not on native Windows; the pipeline falls
+# back to UnavailableBackend if this import fails — see docs/hardware.md.
+hls4ml
+# qkeras  # not currently used; hls4ml 1.3.0's PyTorch frontend is used instead

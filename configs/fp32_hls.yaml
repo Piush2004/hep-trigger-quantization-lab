@@ -1,0 +1,16 @@
+defaults: base.yaml
+
+experiment:
+  name: fp32_hls4ml
+  id: EXP_008_FP32_HLS4ML
+
+quantization:
+  method: none
+  precision: fp32
+
+hardware:
+  backend: hls4ml
+  board: pynq-z2
+  clock_period_ns: 5
+  reuse_factor: 1
+  strategy: latency

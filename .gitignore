@@ -31,6 +31,7 @@ hls4ml_prj*/
 Thumbs.db
 .vscode/
 .idea/
+.claude/
 
 # secrets
 .env

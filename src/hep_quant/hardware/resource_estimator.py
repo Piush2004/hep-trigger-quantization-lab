@@ -18,6 +18,7 @@ metrics + whatever hardware fields are available, using None/"N/A" otherwise).
 """
 from __future__ import annotations
 
+import copy
 import shutil
 from dataclasses import dataclass, field
 
@@ -114,17 +115,21 @@ class HLSBackend(HardwareBackend):
         try:
             import hls4ml
 
+            # hls4ml introspects weight tensors via NumPy, which requires CPU
+            # tensors; the model may have been trained/evaluated on CUDA, so
+            # convert a CPU copy rather than require (or mutate) the caller's
+            # model device.
+            cpu_model = copy.deepcopy(model).cpu()
+
             precision_str = f"ap_fixed<{bits + 6},{6}>" if precision != "fp32" else "ap_fixed<32,16>"
-            config = {
-                "Model": {
-                    "Precision": precision_str,
-                    "ReuseFactor": hardware_cfg.get("reuse_factor", 1),
-                    "Strategy": hardware_cfg.get("strategy", "Latency"),
-                }
-            }
+            config = hls4ml.utils.config_from_pytorch_model(
+                cpu_model,
+                input_shape=(cpu_model.input_dim,),
+                default_precision=precision_str,
+                default_reuse_factor=hardware_cfg.get("reuse_factor", 1),
+            )
             hls_model = hls4ml.converters.convert_from_pytorch_model(
-                model,
-                input_shape=[None, model.input_dim],
+                cpu_model,
                 hls_config=config,
                 output_dir="experiments/hls4ml_prj",
                 backend="Vivado",

@@ -2,11 +2,20 @@
 
 ## Current status
 
-`hardware.backend` defaults to `unavailable` in `configs/base.yaml`. Every experiment
-run through the default configs reports hardware fields (`lut`, `dsp`, `bram`, `ff`,
-`latency_estimate_ns`) as `None`/`N/A`, with `resource_source` explicitly stating why.
-This is a deliberate, documented limitation — not a bug — per the project's policy of
-never inventing numbers the toolchain didn't actually produce.
+`hardware.backend` defaults to `unavailable` in `configs/base.yaml` (`UnavailableBackend`),
+so by default every experiment reports hardware fields (`lut`, `dsp`, `bram`, `ff`,
+`latency_estimate_ns`) as `None`/`N/A`, with `resource_source` stating why.
+
+For experiments that opt in with `hardware.backend: hls4ml` (see `configs/fp32_hls.yaml`),
+**hls4ml 1.3.0 is installed and working in this environment**: `HLSBackend` performs a
+real `hls4ml.converters.convert_from_pytorch_model` conversion of the trained MLP and
+compiles it for **C-simulation** (`status: "csim"`), verified against the actual
+trained-shape model in `tests/test_hardware.py::test_hls_backend_converts_and_csims_real_model`
+and recorded as a real experiment in `experiments/results/EXP_008_FP32_HLS4ML.json`.
+LUT/DSP/BRAM/FF resource counts are still `None` even in this successful path, because
+those numbers come only from Vivado/Vitis HLS synthesis (see below) — conversion and
+C-simulation validate that the model structure is HLS-compatible and numerically
+correct, not how many FPGA resources it would consume.
 
 ## Why
 

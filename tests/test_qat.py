@@ -7,6 +7,7 @@ from hep_quant.data.loader import load_synthetic
 from hep_quant.data.preprocessing import Preprocessor
 from hep_quant.data.splits import split_dataset
 from hep_quant.models.mlp import MLPClassifier
+from hep_quant.quantization.analysis import count_parameters, estimate_model_size
 from hep_quant.quantization.qat import QATActivation, QATLinear, prepare_qat_model
 from hep_quant.training.evaluation import evaluate_model
 from hep_quant.training.trainer import Trainer
@@ -63,6 +64,24 @@ def test_qat_model_evaluates_with_finite_metrics(precision):
     qat_model = prepare_qat_model(model, precision)
     result = evaluate_model(qat_model, X_test, y_test, device="cpu")
     assert 0.0 <= result.metrics.accuracy <= 1.0
+
+
+@pytest.mark.parametrize("precision", ["int8", "int6", "int4"])
+def test_qat_model_size_matches_fp32_parameter_count(precision):
+    """Regression test: QATLinear isn't an nn.Linear instance, so a naive
+    isinstance-based parameter counter silently reports 0 weight params for
+    QAT models (caught via EXP_005_INT8_QAT reporting estimated_size_mb=0.0)."""
+    model, *_ = _make_trained_model_and_data()
+    qat_model = prepare_qat_model(model, precision)
+
+    fp32_total, fp32_weights, fp32_bias = count_parameters(model)
+    qat_total, qat_weights, qat_bias = count_parameters(qat_model)
+    assert qat_total == fp32_total
+    assert qat_weights == fp32_weights
+    assert qat_bias == fp32_bias
+
+    size_report = estimate_model_size(qat_model, precision)
+    assert size_report.estimated_size_mb > 0
 
 
 def test_qat_activation_tracks_range_only_in_training_mode():
