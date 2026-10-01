@@ -1,0 +1,9 @@
+defaults: jet_base.yaml
+
+experiment:
+  name: jet_int6_ptq
+  id: EXP_014_JET_INT6_PTQ
+
+quantization:
+  method: ptq
+  precision: int6

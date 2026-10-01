@@ -1,0 +1,14 @@
+# Stage 2: training validation at a mid-size subset -- confirms convergence
+# behavior and timing before the full experiment matrix.
+defaults: jet_base.yaml
+
+experiment:
+  name: jet_validate_50k
+  id: EXP_011_JET_VALIDATE_50K
+
+dataset:
+  subset_size: 50000
+
+training:
+  epochs: 15
+  early_stopping_patience: 5

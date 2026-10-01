@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 
 from hep_quant.config import apply_overrides, load_config
-from hep_quant.data.loader import load_dataset
+from hep_quant.data.loader import load_dataset, load_openml
 from hep_quant.data.preprocessing import Preprocessor
 from hep_quant.data.splits import check_no_leakage, split_dataset
 from hep_quant.experiments.registry import ExperimentRegistry, create_experiment_record
@@ -51,13 +51,22 @@ def run_experiment(
 
     try:
         dataset_cfg = cfg["dataset"]
-        ds = load_dataset(
-            dataset_cfg.get("path"),
-            n_samples=dataset_cfg.get("n_samples", 20000),
-            n_features=dataset_cfg.get("n_features", 16),
-            n_classes=dataset_cfg.get("n_classes", 2),
-            seed=seed,
-        )
+        source = dataset_cfg.get("source", "synthetic")
+        if source == "openml":
+            ds = load_openml(
+                name=dataset_cfg.get("openml_name", "hls4ml_lhc_jets_hlf"),
+                version=dataset_cfg.get("openml_version", 1),
+                subset_size=dataset_cfg.get("subset_size"),
+                seed=seed,
+            )
+        else:
+            ds = load_dataset(
+                dataset_cfg.get("path"),
+                n_samples=dataset_cfg.get("n_samples", 20000),
+                n_features=dataset_cfg.get("n_features", 16),
+                n_classes=dataset_cfg.get("n_classes", 2),
+                seed=seed,
+            )
         ds.validate()  # raises loudly on NaN/Inf/shape issues
 
         splits = split_dataset(
@@ -107,13 +116,18 @@ def run_experiment(
         plot_training_curves(history.to_dict(), Path(figures_dir) / f"{experiment_id}_training_curves.png")
 
         eval_result = evaluate_model(model, X_test, splits.y_test, device=device)
-        if eval_result.metrics.roc_auc is not None:
+        # ROC/PR *curve* plots are binary-only (roc_curve/precision_recall_curve
+        # need a single positive-class probability vector); multiclass still
+        # gets its macro ROC-AUC/PR-AUC scalars in metrics_out, just not these
+        # two curve figures. See hep_quant.training.metrics docstring.
+        if eval_result.metrics.roc_auc is not None and n_classes == 2:
             fpr, tpr, _ = roc_curve_points(eval_result.y_true, eval_result.y_prob)
             plot_roc_curve(fpr, tpr, eval_result.metrics.roc_auc, Path(figures_dir) / f"{experiment_id}_roc.png")
             precision_c, recall_c, _ = pr_curve_points(eval_result.y_true, eval_result.y_prob)
             plot_pr_curve(precision_c, recall_c, eval_result.metrics.pr_auc, Path(figures_dir) / f"{experiment_id}_pr.png")
         cm = confusion_matrix(eval_result.y_true, eval_result.y_pred)
-        plot_confusion_matrix(cm, [str(c) for c in range(n_classes)], Path(figures_dir) / f"{experiment_id}_confusion.png")
+        class_labels = ds.class_names if ds.class_names else [str(c) for c in range(n_classes)]
+        plot_confusion_matrix(cm, class_labels, Path(figures_dir) / f"{experiment_id}_confusion.png")
 
         size_report = estimate_model_size(model, precision)
         latency_report = benchmark_inference_latency(model, input_dim=X_train.shape[1], device=device)

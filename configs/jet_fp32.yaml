@@ -1,0 +1,9 @@
+defaults: jet_base.yaml
+
+experiment:
+  name: jet_fp32_baseline
+  id: EXP_012_JET_FP32
+
+quantization:
+  method: none
+  precision: fp32

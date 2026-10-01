@@ -1,0 +1,26 @@
+# Base config for the real hls4ml LHC jet-tagging dataset (5-class).
+# See reports/dataset_card.md for full provenance/license/citation.
+defaults: base.yaml
+
+dataset:
+  name: hls4ml_lhc_jets_hlf
+  source: openml
+  openml_name: hls4ml_lhc_jets_hlf
+  openml_version: 1
+  subset_size: 100000   # staged: overridden to 10000 / 50000 for pipeline/training validation
+  val_fraction: 0.15
+  test_fraction: 0.15
+
+model:
+  type: mlp
+  hidden_dims: [64, 32, 32]
+  dropout: 0.1
+  activation: relu
+
+training:
+  epochs: 30
+  batch_size: 1024
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  early_stopping_patience: 6
+  device: auto

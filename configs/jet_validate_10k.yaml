@@ -1,0 +1,15 @@
+# Stage 1: pipeline validation on a small stratified subset.
+# Purpose: confirm the real-dataset path (fetch -> validate -> split -> train ->
+# evaluate) runs end-to-end correctly before spending time on larger runs.
+defaults: jet_base.yaml
+
+experiment:
+  name: jet_validate_10k
+  id: EXP_010_JET_VALIDATE_10K
+
+dataset:
+  subset_size: 10000
+
+training:
+  epochs: 8
+  early_stopping_patience: 4

@@ -1,0 +1,9 @@
+defaults: jet_base.yaml
+
+experiment:
+  name: jet_int4_ptq
+  id: EXP_015_JET_INT4_PTQ
+
+quantization:
+  method: ptq
+  precision: int4

@@ -1,67 +1,115 @@
 # Dataset Card
 
-## Status: development subset (synthetic) — real HEP dataset experiment pending
+## Status: two datasets used, for two different purposes — read this before citing any number
 
-Per the project's data-fabrication policy, this card documents exactly what data was
-used to produce the results in this repository: a **synthetic classification
-dataset**, not a real ATLAS/CMS dataset. This section will be updated once a real HEP
-dataset is integrated (see "Real dataset integration plan" below); until then, every
-result in `results_summary.csv` and `reports/research_report.md` is explicitly labeled
-as a development-validation result, not a physics result.
+This project uses **two** datasets, and conflating them would be a scientific-honesty
+failure, so this card is explicit about which is which:
 
-## Why synthetic, not ATLAS JetSet / CMS HiggsToBB directly
+1. **Synthetic development dataset** (`hep_quant.data.synthetic`) — used only to
+   validate the engineering pipeline (Gate 2) before touching real data. Every result
+   produced from it is a pipeline-validation result, never a physics claim.
+2. **hls4ml LHC jet-tagging dataset** (OpenML `hls4ml_lhc_jets_hlf`) — a real,
+   citable, physics-motivated benchmark used by the actual HEP/FPGA-trigger research
+   community. This is the dataset this project's physics-relevant conclusions should
+   be drawn from. **It is Monte Carlo-simulated jet data (Pythia8 + Delphes), not
+   recorded ATLAS/CMS detector data** — see "What 'real' means here" below; this
+   distinction matters and is not the same thing as "synthetic" in sense #1 above.
 
-Downloading and validating a multi-GB public HEP dataset (e.g. the ATLAS Open Data
-jet-tagging sets, or CMS Higgs-to-bb benchmark data used in HLS4ML-style trigger
-studies) was out of scope for the time available in this build session, and doing it
-hastily risked exactly the kind of silent correctness problem this project is
-structured to avoid (Gate 2 explicitly requires validating the engineering pipeline on
-a synthetic dataset *before* touching real data). The loader (`hep_quant.data.loader`)
-already supports HDF5/CSV/Parquet, which covers the common distribution formats for
-these datasets, so switching to a real dataset is a configuration change
-(`dataset.path` in a YAML config), not a code change.
+---
 
-## Synthetic dataset specification
+## Dataset 2: hls4ml LHC jet-tagging dataset (primary, Phase 2 onward)
+
+| Field | Value |
+|---|---|
+| Name | `hls4ml_lhc_jets_hlf` |
+| Source | OpenML (data_id 42468), mirrored from Zenodo |
+| DOI | [10.5281/zenodo.3602260](https://doi.org/10.5281/zenodo.3602260) |
+| Creators | Maurizio Pierini, Javier Duarte, Nhan Tran, Marat Freytsis, Vladimir Loncar |
+| Associated publication | ["Fast inference of deep neural networks in FPGAs for particle physics"](https://iopscience.iop.org/article/10.1088/1748-0221/13/07/P07027), JINST 13 (2018) P07027 — the original hls4ml paper |
+| License | CC BY (Creative Commons Attribution) — this card + `CITATION.cff` constitute the attribution |
+| Download mechanism | `sklearn.datasets.fetch_openml("hls4ml_lhc_jets_hlf", version=1)`, wrapped in `hep_quant.data.loader.load_openml`; cached locally under `data/raw/openml_cache/` (gitignored) |
+| Total instances | ~880,000 jets (per OpenML/Zenodo documentation) |
+| Features | 16 physics-motivated jet-substructure observables: `zlogz`, `c1_b0_mmdt`, `c1_b1_mmdt`, `c1_b2_mmdt`, `c2_b1_mmdt`, `c2_b2_mmdt`, `d2_b1_mmdt`, `d2_b2_mmdt`, `d2_a1_b1_mmdt`, `d2_a1_b2_mmdt`, `m2_b1_mmdt`, `m2_b2_mmdt`, `n2_b1_mmdt`, `n2_b2_mmdt`, `mass_mmdt`, `multiplicity` |
+| Target | `class`, 5-way: gluon (`g`), light quark (`q`), top quark (`t`), W boson (`w`), Z boson (`z`) |
+| Class balance | Approximately balanced across the 5 classes per the dataset's documentation; verified empirically for each subsample via `validate_dataset` (see `tests/test_openml_loader.py::test_load_openml_stratified_subsample_preserves_balance`) |
+| Missing values | None expected (verified via `validate_dataset`'s NaN/Inf check on every load) |
+| Train/val/test split | 70/15/15, **stratified** (5-way), seed=42 — stratification matters more here than for the synthetic binary case, since macro-averaged multiclass metrics are sensitive to per-class representation in each split |
+| Preprocessing | Same as the synthetic path: per-feature standardization fit on the training split only |
+| Subsampling | Stratified (class-proportional), not a plain truncation — see `load_openml`'s `subset_size` parameter. Used for the staged validation sequence below |
+
+### What "real" means here
+
+This is **Monte Carlo-simulated** jet data (particles generated with Pythia8, detector
+response modeled with Delphes), not data recorded by a physical ATLAS/CMS detector.
+This is the correct and standard thing for this kind of study: jet-flavor ground truth
+(is this jet "really" from a top quark vs. a gluon?) is not directly observable in
+recorded collision data at all — it can only be established via simulation truth-
+matching. The real HEP/FPGA-trigger literature (including the original hls4ml papers)
+uses exactly this kind of simulated-with-truth-labels dataset for this reason. Calling
+it "real" (as opposed to this project's own `make_classification`-based synthetic
+dataset) means: produced by the actual particle-physics simulation community, with
+physically meaningful features and labels, published and cited in the field — not that
+it was recorded by a detector during a live LHC run.
+
+### Staged validation sequence (Phase 2)
+
+Per the project's risk-management plan, this dataset is validated in three stages
+before committing to a full experiment matrix, so a dataset-side problem is caught
+cheaply rather than after hours of compute:
+
+| Stage | Config | Subset size | Purpose |
+|---|---|---:|---|
+| 1 | `configs/jet_validate_10k.yaml` | 10,000 | Pipeline validation: fetch → validate → split → train → evaluate runs end-to-end without error |
+| 2 | `configs/jet_validate_50k.yaml` | 50,000 | Training validation: confirms convergence behavior and per-epoch timing at a more realistic scale |
+| 3 | `configs/jet_fp32.yaml` + `configs/jet_int{8,6,4}{,_qat}.yaml` | 100,000 | The actual experiment matrix (FP32 baseline, PTQ×3, QAT×3) |
+
+Results from each stage are recorded separately (`EXP_010`/`EXP_011` for stages 1–2,
+`EXP_012`–`EXP_018` for stage 3) and never silently merged with the synthetic-dataset
+results (`EXP_001`–`EXP_009`) in a single "this is the result" table — see
+`results_summary.csv`'s `dataset` column, which always says which dataset produced
+each row.
+
+---
+
+## Dataset 1: synthetic development dataset (historical / pipeline-validation only)
+
+Retained from Phase 1 for the pipeline tests that still validate against it
+(`tests/test_data.py`, `tests/test_pipeline.py`, etc.) — fast, deterministic, no
+network dependency, so it stays the right tool for engineering tests even now that a
+real dataset is integrated.
 
 | Field | Value |
 |---|---|
 | Generator | `sklearn.datasets.make_classification`, wrapped in `hep_quant.data.synthetic.generate_synthetic_dataset` |
 | Source | Procedurally generated (not downloaded); deterministic given a seed |
 | License | N/A (synthetic, no license needed) |
-| File format | In-memory NumPy arrays (no on-disk artifact by default) |
 | Default size | 20,000 samples × 16 features (configurable via `configs/base.yaml`) |
-| Target variable | Binary class label `{0, 1}` (configurable to multi-class) |
-| Classes | 2 (binary), with `n_clusters_per_class=2` and `class_sep=1.2` for moderate separability — intended to loosely resemble the separability profile of a HEP signal/background classification task, NOT a physics-accurate simulation |
-| Class balance | Balanced by construction (`make_classification` default), verified by `validate_dataset` |
-| Missing values | None (synthetic, numerically clean by construction); the loader's NaN/Inf checks are tested against this guarantee in `tests/test_data.py` |
-| Duplicate rows | Checked at validation time; expected count is 0 for the sample sizes used here |
-| Train/val/test split | 70/15/15, stratified, seed=42 (see `hep_quant.data.splits.split_dataset`) |
-| Preprocessing | Per-feature standardization (zero mean, unit variance), fit on the training split only |
+| Target variable | Binary class label `{0, 1}` |
+| Classes | 2, `n_clusters_per_class=2`, `class_sep=1.2` — loosely resembles a signal/background separability profile, NOT a physics-accurate simulation |
+| Train/val/test split | 70/15/15, stratified, seed=42 |
 | Known leakage risks | None by construction — `check_no_leakage` verifies zero row-level overlap between splits on every run |
 
-## Real dataset integration plan
-
-To integrate a real HEP dataset (e.g. ATLAS Open Data or CMS Open Data jet-tagging
-sets):
-
-1. Download the dataset (HDF5/CSV/Parquet) into `data/raw/` (gitignored — not committed).
-2. Point `configs/base.yaml`'s `dataset.path` at the file; `hep_quant.data.loader.load_dataset`
-   dispatches on file extension automatically.
-3. Re-run `python -m hep_quant validate-data --config configs/base.yaml` and confirm it
-   passes before training anything.
-4. Update this dataset card's specification table with the real dataset's provenance,
-   citation, license, and feature schema.
-5. Re-run the full experiment matrix; results produced from real data must be clearly
-   distinguished from the synthetic-validation results already in this repository
-   (e.g. a separate `results_summary_real.csv`), per the project's scientific-honesty
-   policy — they are never merged into one table silently.
-
-## Potential bias (synthetic data, explicitly)
+### Potential bias (synthetic data, explicitly)
 
 `make_classification`'s informative/redundant feature structure is a convenient,
 well-understood testbed for validating a classification pipeline, but it has no
-physical meaning: there is no detector response model, no realistic feature
-correlation structure from kinematics, and no class-conditional noise model
-resembling real trigger backgrounds. Any accuracy/F1/ROC-AUC numbers reported on this
-dataset describe how well the *pipeline* works, not how well a HEP trigger classifier
-would perform on real collision data.
+physical meaning: no detector response model, no realistic feature correlation
+structure from kinematics, no class-conditional noise model resembling real trigger
+backgrounds. Accuracy/F1/ROC-AUC numbers from this dataset (`EXP_001`–`EXP_009`)
+describe how well the *pipeline* works, not how well a HEP trigger classifier performs
+on physically meaningful data — that question is what Dataset 2 answers.
+
+---
+
+## Known limitations of the real-dataset integration (be precise about these)
+
+- **No real detector data.** See "What 'real' means here" above — this is simulation,
+  not recorded collisions. A genuinely detector-level validation (e.g. actual ATLAS/CMS
+  Open Data with real reconstructed events) is a further step beyond this project's
+  current scope.
+- **High-level features only.** The 16 features are already-reconstructed jet
+  substructure observables, not raw detector hits or low-level kinematics — this
+  dataset does not test a model's ability to learn directly from raw data.
+- **One dataset, one task.** Generalization across different HEP classification tasks
+  (e.g. a genuinely different physics process) is not established by this one dataset,
+  however standard it is for this specific trigger/FPGA use case.

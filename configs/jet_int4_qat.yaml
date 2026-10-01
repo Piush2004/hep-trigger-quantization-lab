@@ -1,0 +1,9 @@
+defaults: jet_base.yaml
+
+experiment:
+  name: jet_int4_qat
+  id: EXP_018_JET_INT4_QAT
+
+quantization:
+  method: qat
+  precision: int4
