@@ -1,0 +1,9 @@
+defaults: base.yaml
+
+experiment:
+  name: fp32_baseline
+  id: EXP_001_FP32_MLP
+
+quantization:
+  method: none
+  precision: fp32

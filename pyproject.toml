@@ -1,0 +1,33 @@
+[project]
+name = "hep-quant"
+version = "0.1.0"
+description = "Research platform for benchmarking quantized neural networks for real-time HEP triggering"
+requires-python = ">=3.11,<3.12"
+readme = "README.md"
+license = { text = "MIT" }
+
+dependencies = [
+    "numpy",
+    "pandas",
+    "scikit-learn",
+    "matplotlib",
+    "seaborn",
+    "pyyaml",
+    "h5py",
+    "torch",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-cov"]
+hardware = ["hls4ml"]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

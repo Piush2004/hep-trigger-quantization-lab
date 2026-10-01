@@ -1,0 +1,41 @@
+# Base configuration shared by all experiments.
+# Precision-specific configs (fp32.yaml, int8.yaml, ...) set `defaults: base.yaml`
+# and override only what differs.
+
+seed: 42
+
+dataset:
+  name: synthetic
+  path: null            # set to a real dataset path to override the synthetic generator
+  subset_size: null     # null = use all available samples
+  n_features: 16
+  n_samples: 20000
+  n_classes: 2
+  val_fraction: 0.15
+  test_fraction: 0.15
+
+model:
+  type: mlp
+  hidden_dims: [128, 64, 32]
+  dropout: 0.1
+  activation: relu
+
+training:
+  epochs: 40
+  batch_size: 512
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  early_stopping_patience: 8
+  device: auto           # auto | cpu | cuda
+
+quantization:
+  method: none            # none | ptq | qat
+  precision: fp32          # fp32 | int8 | int6 | int4
+  calibration_batches: 20
+
+hardware:
+  backend: unavailable     # hls4ml | unavailable
+  board: pynq-z2
+  clock_period_ns: 5
+  reuse_factor: 1
+  strategy: latency

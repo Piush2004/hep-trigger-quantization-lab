@@ -1,0 +1,9 @@
+defaults: base.yaml
+
+experiment:
+  name: int8_ptq
+  id: EXP_002_INT8_PTQ
+
+quantization:
+  method: ptq
+  precision: int8

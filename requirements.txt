@@ -1,0 +1,21 @@
+# Core (installed into the Docker image, or locally via:
+#   uv pip install --python .venv -r requirements.txt)
+numpy
+pandas
+scikit-learn
+matplotlib
+seaborn
+pyyaml
+h5py
+pytest
+pytest-cov
+
+# PyTorch is intentionally NOT listed here — install it separately with the
+# index matching your target (CPU wheel inside Docker, CUDA wheel natively):
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+#   uv pip install --python .venv torch --index-url https://download.pytorch.org/whl/cu128
+
+# Optional, hardware-aware analysis (Gate 6). May be unavailable on Windows;
+# see docs/hardware.md for the fallback path if installation fails.
+# hls4ml
+# qkeras

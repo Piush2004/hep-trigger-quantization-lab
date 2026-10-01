@@ -1,0 +1,9 @@
+defaults: base.yaml
+
+experiment:
+  name: int4_ptq
+  id: EXP_004_INT4_PTQ
+
+quantization:
+  method: ptq
+  precision: int4

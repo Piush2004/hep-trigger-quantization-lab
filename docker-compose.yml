@@ -1,0 +1,8 @@
+services:
+  hep-quant:
+    build: .
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    tty: true
+    stdin_open: true
