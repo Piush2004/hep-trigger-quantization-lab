@@ -72,16 +72,26 @@ def plot_confusion_matrix(cm: np.ndarray, class_names: list[str], out_path: str 
 
 
 def plot_metric_vs_precision(df, metric_col: str, out_path: str | Path, ylabel: str | None = None) -> None:
+    """Line plot of `metric_col` across precisions, one line per method.
+
+    Multiple rows can share a precision (e.g. "int8" appears for both PTQ and
+    QAT), so sorting is done per-method-group by precision order rather than
+    via a single reindex over the whole (non-unique) precision column.
+    """
     fig, ax = plt.subplots(figsize=(6, 4))
     order = ["fp32", "int8", "int6", "int4"]
-    df_sorted = df.set_index("precision").reindex([p for p in order if p in df["precision"].values]).reset_index()
-    for method in df_sorted["method"].unique() if "method" in df_sorted.columns else [None]:
-        subset = df_sorted[df_sorted["method"] == method] if method else df_sorted
+    order_index = {p: i for i, p in enumerate(order)}
+
+    methods = df["method"].unique() if "method" in df.columns else [None]
+    for method in methods:
+        subset = df[df["method"] == method] if method else df
+        subset = subset.sort_values(by="precision", key=lambda col: col.map(order_index))
         ax.plot(subset["precision"], subset[metric_col], marker="o", label=method or metric_col)
+
     ax.set_xlabel("Quantization precision")
     ax.set_ylabel(ylabel or metric_col)
     ax.set_title(f"{ylabel or metric_col} vs Precision")
-    if "method" in df_sorted.columns and df_sorted["method"].nunique() > 1:
+    if "method" in df.columns and df["method"].nunique() > 1:
         ax.legend()
     fig.tight_layout()
     fig.savefig(out_path, dpi=150)

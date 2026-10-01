@@ -3,7 +3,7 @@
 **Status:** results below are from the synthetic development dataset (see Section 7 /
 `reports/dataset_card.md`). This is a development-validation benchmark of the
 engineering pipeline, not a physics result — the real-dataset experiment is pending
-(Section 16).
+(Section 19).
 
 ## 1. Abstract
 
@@ -13,11 +13,17 @@ latency, and (where tooling permits) estimated FPGA resource usage, for a compac
 neural network classifier in the style of a real-time high-energy physics (HEP)
 trigger. We build a reproducible pipeline — data validation, a configurable MLP
 baseline, calibrated fake-quantization at INT8/INT6/INT4, QAT fine-tuning, and a
-hardware-aware analysis layer with an explicit software-only fallback — and report an
-algorithmic Pareto frontier across precision, accuracy, and model size rather than a
-single "quantization works" claim. On the synthetic development dataset used here, PTQ
-preserves accuracy well down to INT8 and degrades measurably at INT4; QAT results are
-reported where completed (Section 14).
+hardware-aware analysis layer with a real (not mocked) hls4ml conversion/C-simulation
+path and an explicit software-only fallback — and report an algorithmic Pareto frontier
+across precision, accuracy, and model size rather than a single "quantization works"
+claim. On the synthetic development dataset used here (a 12,578-parameter MLP), PTQ
+accuracy degrades gently from FP32 (98.53%) to INT4 (98.33%, −0.20 pp); QAT recovers
+this loss at every precision tested, and the Pareto frontier identifies QAT-INT6 as the
+best accuracy/size trade-off. A notable methodological finding: simulated
+fake-quantization measurably *increases* software inference latency relative to FP32
+(no real integer kernel speedup is available in this software-only setup) — a result we
+report explicitly to avoid the common misreading that smaller numerical precision
+implies faster software inference.
 
 ## 2. Introduction
 
@@ -120,9 +126,14 @@ at a reduced learning rate.
 ## 12. Hardware-Aware Evaluation
 
 See [docs/hardware.md](../docs/hardware.md). `hardware.backend: unavailable` by default
-in this environment (no Vivado/Vitis HLS installed); all hardware fields in the results
-below are therefore `N/A` with a documented reason, not an estimate presented as a
-measurement.
+in this environment (no Vivado/Vitis HLS installed); all hardware fields for the seven
+training-matrix experiments (Section 14) are therefore `N/A` with a documented reason,
+not an estimate presented as a measurement. One additional experiment (EXP_008, same
+FP32 model, Section 14) opted into `hardware.backend: hls4ml`: hls4ml 1.3.0 successfully
+converted the trained model and compiled it for C-simulation (`status: csim`),
+confirming the model is HLS-compatible — but LUT/DSP/BRAM/FF fields are `N/A` there too,
+since csim validates functional correctness, not resource usage, which requires Vivado
+synthesis this environment doesn't have.
 
 ## 13. Experimental Setup
 
@@ -134,16 +145,82 @@ Ubuntu with an NVIDIA RTX 5060 (CUDA 12.8) — see `environment_report.md`.
 
 ## 14. Results
 
-[RESULT TO BE GENERATED — see results_summary.csv and reports/tables/quantization_results.md
-for the generated table once `python -m hep_quant report` has run against the complete
-experiment matrix (FP32, PTQ×3, QAT×3).]
+Full experiment matrix (8 experiments: FP32 baseline, PTQ×3, QAT×3, and one FP32 run
+with the hls4ml backend enabled), on the synthetic development dataset:
+
+| Experiment | Precision | Method | Accuracy | F1 | ROC-AUC | Model size (MB, estimated for quantized) | Latency (ms/sample, software) |
+|---|---|---|---:|---:|---:|---:|---:|
+| EXP_001_FP32_MLP | FP32 | — | 0.9853 | 0.9853 | 0.9918 | 0.0480 | 0.445 |
+| EXP_002_INT8_PTQ | INT8 | PTQ | 0.9850 | 0.9850 | 0.9918 | 0.0126 | 2.099 |
+| EXP_003_INT6_PTQ | INT6 | PTQ | 0.9843 | 0.9843 | 0.9917 | 0.0097 | 2.159 |
+| EXP_004_INT4_PTQ | INT4 | PTQ | 0.9833 | 0.9833 | 0.9918 | 0.0068 | 1.821 |
+| EXP_005_INT8_QAT | INT8 | QAT | 0.9863 | 0.9863 | 0.9915 | 0.0126 | 5.497 |
+| EXP_006_INT6_QAT | INT6 | QAT | 0.9863 | 0.9863 | 0.9913 | 0.0097 | 4.947 |
+| EXP_007_INT4_QAT | INT4 | QAT | 0.9857 | 0.9856 | 0.9917 | 0.0068 | 4.151 |
+| EXP_008_FP32_HLS4ML | FP32 | — (hls4ml csim) | 0.9853 | 0.9853 | 0.9918 | 0.0480 | 0.473 |
+
+(Full machine-readable table: [results_summary.csv](../results_summary.csv); same table
+rendered: [reports/tables/quantization_results.md](tables/quantization_results.md).)
+
+**Accuracy vs. precision (PTQ).** PTQ accuracy degrades monotonically and gently as
+precision drops: FP32 0.9853 → INT8 0.9850 (−0.03 pp) → INT6 0.9843 (−0.10 pp) → INT4
+0.9833 (−0.20 pp). On this dataset/architecture, even INT4 PTQ loses less than a
+quarter of a percentage point of accuracy versus FP32 — this task is not strongly
+precision-sensitive at this model size, which is itself a finding (see Discussion).
+
+**QAT recovers, and slightly exceeds, the PTQ accuracy loss.** QAT at every precision
+(0.9863 / 0.9863 / 0.9857 for INT8/INT6/INT4) matches or exceeds the FP32 baseline's
+0.9853, and is strictly higher than the corresponding PTQ accuracy at every precision
+tested. This answers Secondary Research Question 2 affirmatively for this task: QAT
+not only recovers PTQ's accuracy loss here, it slightly improves on the FP32 baseline,
+plausibly because the additional fine-tuning epochs act as extra training on top of an
+already-converged model rather than purely a quantization-recovery effect — this
+dataset is small and well-separated, so some of the QAT "gain" may be noise rather than
+a robust effect (see Limitations).
+
+**Latency does NOT improve with lower precision — it gets worse.** This is the most
+important methodological result in this report: INT8/INT6/INT4 (PTQ and QAT alike) are
+all slower per-sample than FP32, by roughly 4–12x. This is a direct, expected
+consequence of the simulated fake-quantization approach documented in Section 10 — the
+extra round()/clamp() operations inserted at every weight and activation add real
+compute, with none of the integer-kernel speedup real hardware INT8 execution would
+provide. **Latency in this report measures the cost of simulating quantization in
+software, not the deployment speedup quantization is meant to achieve** — that question
+belongs to the hardware-aware analysis (Section 12), which on this environment only
+reaches HLS conversion/C-simulation, not synthesis-level latency numbers.
+
+**Model size scales exactly as expected.** Estimated size drops linearly with
+bit-width within each method (FP32 0.048 MB → INT8 0.0126 MB → INT6 0.0097 MB → INT4
+0.0068 MB), consistent with `estimate_model_size`'s analytical formula (Section 10);
+PTQ and QAT produce identical size estimates at a given precision since both quantize
+the same architecture.
 
 ## 15. Pareto Analysis
 
-[RESULT TO BE GENERATED — see reports/figures/pareto_accuracy_vs_size.png and
-reports/tables/pareto_accuracy_vs_size.csv, generated algorithmically by
-`hep_quant.visualization.pareto.find_pareto_frontier` (non-dominated-set identification,
-no manual model selection).]
+Pareto frontier computed algorithmically (`find_pareto_frontier`, non-dominated-set
+identification — no manual model selection) over (accuracy↑, model_size_mb↓) across all
+seven training-matrix experiments:
+
+| Experiment | Precision | Method | Accuracy | Size (MB) | Pareto-optimal |
+|---|---|---|---:|---:|:---:|
+| EXP_001_FP32_MLP | FP32 | — | 0.9853 | 0.0480 | No |
+| EXP_002_INT8_PTQ | INT8 | PTQ | 0.9850 | 0.0126 | No |
+| EXP_003_INT6_PTQ | INT6 | PTQ | 0.9843 | 0.0097 | No |
+| EXP_004_INT4_PTQ | INT4 | PTQ | 0.9833 | 0.0068 | No |
+| EXP_005_INT8_QAT | INT8 | QAT | 0.9863 | 0.0126 | No |
+| EXP_006_INT6_QAT | INT6 | QAT | 0.9863 | 0.0097 | **Yes** |
+| EXP_007_INT4_QAT | INT4 | QAT | 0.9857 | 0.0068 | **Yes** |
+
+(Figure: [reports/figures/pareto_accuracy_vs_size.png](figures/pareto_accuracy_vs_size.png);
+full data: [reports/tables/pareto_accuracy_vs_size.csv](tables/pareto_accuracy_vs_size.csv).)
+
+Only QAT-INT6 and QAT-INT4 are non-dominated. QAT-INT8 is dominated by QAT-INT6: they
+tie on accuracy (0.9863) but QAT-INT6 is smaller — so there is no reason, on this
+accuracy/size trade-off alone, to prefer QAT-INT8 over QAT-INT6. Every PTQ
+configuration is dominated by at least one QAT configuration at equal-or-smaller size
+with equal-or-higher accuracy. The frontier's practical reading: **QAT-INT6 is the
+best accuracy/size trade-off found in this experiment matrix**, with QAT-INT4
+available as a smaller-footprint alternative at a small (0.06 pp) accuracy cost.
 
 ## 16. Reproducibility
 
@@ -168,8 +245,43 @@ run-to-run reproducibility.
 
 ## 18. Discussion
 
-[RESULT TO BE GENERATED — written once Section 14/15 are populated, so as not to
-discuss results before they exist, per this project's no-fabrication policy.]
+**This task, at this model size, is not strongly quantization-sensitive.** The gap
+between FP32 and INT4-PTQ accuracy (0.20 percentage points) is small relative to typical
+run-to-run training variance for a model this size. That is itself informative: a
+12,578-parameter MLP on a well-separated binary classification task has enough
+redundancy that aggressive uniform quantization barely perturbs its decision boundary.
+Whether this holds for a harder, more class-overlapping task (closer to a real trigger
+background-rejection problem) is exactly the kind of question the real-dataset
+experiment (Section 17/19) would answer — this result should not be read as "HEP
+trigger models are insensitive to quantization" in general.
+
+**QAT's apparent improvement over FP32 deserves a skeptical reading, not just an
+optimistic one.** QAT-INT8/INT6 both reach 0.9863 accuracy, 0.10 percentage points above
+the FP32 baseline's 0.9853. The mechanism is plausible — QAT fine-tunes for additional
+epochs beyond the FP32 training run, so part of the "QAT gain" may simply be extra
+optimization steps rather than a quantization-specific effect — but with a single seed
+and a test set of 3,000 synthetic samples, a 0.10 pp difference is close to what sampling
+noise alone could produce. The Pareto conclusion (QAT-INT6 is non-dominated) is robust
+to this caveat since it's a size argument first and an accuracy argument second, but the
+specific claim "QAT exceeds FP32 accuracy" is not asserted here as a general result.
+
+**The latency result is the one most worth internalizing methodologically.** It would
+be easy to mis-read a "model size shrinks with lower precision" result as "lower
+precision also runs faster," and this report's own latency numbers show the opposite
+(4–12x slower, Section 14) for exactly the reason explained in Section 10: this
+project's PTQ/QAT is simulated fake-quantization in float32, not real integer hardware
+execution. Anyone extending this project to claim a deployment speedup must do so from
+real hardware (FPGA synthesis, Section 12) or a real bit-packed integer kernel — not
+from this report's software latency numbers.
+
+**Relating back to the research questions (Section 5):** on this synthetic task, PTQ
+accuracy loss FP32→INT4 is small (RQ1); QAT fully recovers it, within the noise caveat
+above (RQ2); architecture-robustness-across-quantization (RQ3) and cross-dataset
+reproducibility (RQ7) are not yet addressed — both require the real-dataset and
+second-architecture work in Section 19; the accuracy/size Pareto frontier (RQ4) is
+answered concretely in Section 15; model-complexity-vs-quantization-sensitivity (RQ5)
+and lightweight-model-viability (RQ6) are suggested but not conclusively shown by one
+12k-parameter architecture on one dataset.
 
 ## 19. Future Work
 
@@ -184,7 +296,22 @@ discuss results before they exist, per this project's no-fabrication policy.]
 
 ## 20. Conclusion
 
-[RESULT TO BE GENERATED — pending Section 14/15.]
+This project built and validated, gate-by-gate with a two-test acceptance rule at each
+step, a reproducible pipeline for measuring the accuracy/size/latency/hardware
+trade-offs of quantizing a neural network classifier for a HEP-trigger-style task. On
+the synthetic development dataset used here: PTQ degrades accuracy gently and
+monotonically from FP32 to INT4 (−0.20 pp at worst); QAT recovers that loss at every
+precision tested; and the algorithmic Pareto analysis identifies QAT-INT6 as the best
+accuracy/size trade-off in the matrix, with QAT-INT4 as a smaller alternative at
+negligible further cost. A real hls4ml conversion and C-simulation (EXP_008) confirmed
+the trained architecture is HLS-compatible, though FPGA resource numbers remain
+unmeasured pending Vivado synthesis. The central engineering lesson —
+that simulated fake-quantization makes software inference *slower*, not faster, and
+must not be mistaken for a measured hardware speedup — is, in this project's view, as
+important a result as the accuracy numbers themselves. These findings are scoped
+explicitly to a synthetic, well-separated classification task; the project's own
+Limitations (Section 17) and Future Work (Section 19) describe exactly what would be
+needed to extend them into a physics-relevant claim.
 
 ## 21. References
 
