@@ -1,0 +1,9 @@
+defaults: base.yaml
+
+experiment:
+  name: int8_qat
+  id: EXP_005_INT8_QAT
+
+quantization:
+  method: qat
+  precision: int8

@@ -7,6 +7,7 @@ matplotlib
 seaborn
 pyyaml
 h5py
+tabulate
 pytest
 pytest-cov
 

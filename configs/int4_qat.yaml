@@ -1,0 +1,9 @@
+defaults: base.yaml
+
+experiment:
+  name: int4_qat
+  id: EXP_007_INT4_QAT
+
+quantization:
+  method: qat
+  precision: int4

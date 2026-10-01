@@ -1,0 +1,9 @@
+defaults: base.yaml
+
+experiment:
+  name: int6_qat
+  id: EXP_006_INT6_QAT
+
+quantization:
+  method: qat
+  precision: int6

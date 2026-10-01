@@ -1,0 +1,15 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "HEP-Trigger Quantization Lab"
+authors:
+  - name: "Piush Kole"
+date-released: 2026-10-01
+license: MIT
+repository-code: "local repository, not yet published"
+abstract: >
+  A reproducible research platform investigating how post-training quantization
+  and quantization-aware training affect the accuracy, model size, inference
+  latency, and estimated hardware resource requirements of neural networks for
+  real-time high-energy physics event classification. Independent research
+  project inspired by publicly available HEP/trigger literature; not an
+  official or CERN-affiliated effort.
