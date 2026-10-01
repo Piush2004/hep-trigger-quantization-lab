@@ -114,31 +114,56 @@ def load_openml(
     row ordering is not guaranteed to be shuffled or class-balanced. This is
     the mechanism behind the project's staged 10k -> 50k -> 100k+ validation
     sequence for real datasets (see configs/jet_tagging_*.yaml).
+
+    Beyond sklearn's own raw-file cache, the full parsed array is cached as a
+    `.npz` under `data_home` after the first call: `fetch_openml`'s ARFF
+    parser takes ~2-3 minutes for this ~880k-row dataset on every call (it
+    does not cache the parsed result, only the raw download), which would
+    otherwise be paid repeatedly across this project's staged 10k/50k/100k+
+    experiment runs that all load the same underlying dataset at different
+    subsample sizes.
     """
-    from sklearn.datasets import fetch_openml
     from sklearn.model_selection import train_test_split
-    from sklearn.preprocessing import LabelEncoder
 
-    Path(data_home).mkdir(parents=True, exist_ok=True)
-    bunch = fetch_openml(name=name, version=version, as_frame=True, data_home=str(data_home), parser="auto")
+    data_home = Path(data_home)
+    data_home.mkdir(parents=True, exist_ok=True)
+    parsed_cache_path = data_home / f"parsed_{name}_v{version}.npz"
 
-    feature_df = bunch.data
-    y_raw = bunch.target
-    if y_raw is None:
-        raise ValueError(f"OpenML dataset '{name}' has no default target column configured")
+    if parsed_cache_path.exists():
+        cached = np.load(parsed_cache_path, allow_pickle=False)
+        X_full, y_full = cached["X"], cached["y"]
+        feature_names = list(cached["feature_names"])
+        class_names = list(cached["class_names"])
+    else:
+        from sklearn.datasets import fetch_openml
+        from sklearn.preprocessing import LabelEncoder
 
-    encoder = LabelEncoder()
-    y = encoder.fit_transform(y_raw).astype(np.int64)
-    X = feature_df.to_numpy(dtype=np.float32)
-    feature_names = list(feature_df.columns)
+        bunch = fetch_openml(name=name, version=version, as_frame=True, data_home=str(data_home), parser="auto")
+        feature_df = bunch.data
+        y_raw = bunch.target
+        if y_raw is None:
+            raise ValueError(f"OpenML dataset '{name}' has no default target column configured")
 
-    if subset_size is not None and subset_size < len(X):
-        X, _, y, _ = train_test_split(X, y, train_size=subset_size, random_state=seed, stratify=y)
+        encoder = LabelEncoder()
+        y_full = encoder.fit_transform(y_raw).astype(np.int64)
+        X_full = feature_df.to_numpy(dtype=np.float32)
+        feature_names = list(feature_df.columns)
+        class_names = list(encoder.classes_)
+
+        np.savez_compressed(
+            parsed_cache_path,
+            X=X_full, y=y_full,
+            feature_names=np.array(feature_names), class_names=np.array(class_names),
+        )
+
+    X, y = X_full, y_full
+    if subset_size is not None and subset_size < len(X_full):
+        X, _, y, _ = train_test_split(X_full, y_full, train_size=subset_size, random_state=seed, stratify=y_full)
 
     return HEPDataset(
         X, y, feature_names,
         source=f"openml:{name}:v{version}",
-        class_names=list(encoder.classes_),
+        class_names=class_names,
     )
 
 
