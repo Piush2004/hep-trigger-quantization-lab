@@ -15,9 +15,12 @@
   metric logging), evaluation (accuracy/precision/recall/F1/ROC-AUC/PR-AUC).
 - PTQ and QAT via calibrated uniform affine fake-quantization at INT8/INT6/INT4
   (documented explicitly as simulated, not real bit-packed kernels).
-- Hardware-aware analysis abstraction: `HLSBackend` (real hls4ml 1.3.0 conversion +
-  C-simulation, verified working in this environment) and `UnavailableBackend`
-  (explicit `None`/reason fallback) — the pipeline works end-to-end on either.
+- Hardware-aware analysis abstraction, three tiers: `HLSBackend` (real hls4ml 1.3.0
+  conversion + C-simulation, `measurement_tier="simulated"`), `SoftwareEstimateBackend`
+  (parameter-count x bit-width x reuse-factor heuristic, `measurement_tier="estimated"`,
+  always available, used as the automatic fallback when hls4ml isn't usable), and
+  `UnavailableBackend` (`measurement_tier="unavailable"`) — the pipeline works
+  end-to-end on any of the three.
 - Experiment registry (self-contained traceable JSON per run), reproducibility capture
   (seed, library versions, GPU, git commit).
 - Visualization (training curves, ROC/PR, confusion matrix, size/latency-vs-precision)
@@ -59,6 +62,7 @@ resolved.
 | EXP_006_INT6_QAT | INT6 | QAT |
 | EXP_007_INT4_QAT | INT4 | QAT |
 | EXP_008_FP32_HLS4ML | FP32 | — (hls4ml backend) |
+| EXP_009_FP32_ESTIMATE | FP32 | — (software_estimate backend) |
 
 Results: `results_summary.csv`, `reports/tables/quantization_results.md`,
 `reports/figures/*.png`, full discussion in `reports/research_report.md`.
@@ -98,8 +102,10 @@ Two real bugs were found and fixed during the build (not hidden — both are in
    generating `model_size_vs_precision.png` once the QAT experiments existed. Fixed by
    sorting per method-group; covered by `tests/test_visualization.py`.
 
-No open/unresolved issues at time of writing — all three were caught, fixed, verified,
-and the affected experiments re-run.
+No open/unresolved code issues at time of writing — all three were caught, fixed,
+verified, and the affected experiments re-run. One environment issue remains open (see
+"CUDA availability regression" below) — not a code bug, and explicitly not chased down
+per instruction.
 
 ## Hardware
 
@@ -107,9 +113,19 @@ Host: Windows 11 Home, AMD Ryzen 7, 24 GB RAM, NVIDIA RTX 5060 Laptop GPU (8 GB 
 429 GB disk. Execution environment: WSL2 Ubuntu 26.04.1 LTS (not native Windows — see
 `environment_report.md` for the two environment-setup blockers that led to this
 choice: Windows Smart App Control blocking matplotlib's native extension, and a
-separately-broken Docker Desktop backend). PyTorch 2.11.0+cu128 with working CUDA
-(verified: matmul and model training both exercised the GPU). hls4ml 1.3.0 installed
+separately-broken Docker Desktop backend). PyTorch 2.11.0+cu128. hls4ml 1.3.0 installed
 and verified working for conversion + C-simulation (no Vivado for synthesis).
+
+**CUDA availability regression:** CUDA worked earlier in the build (GPU-accelerated
+training, a CUDA matmul, and a CUDA-resident hls4ml conversion all succeeded — see git
+history, e.g. `EXP_001`–`EXP_008`'s `reproducibility.system.cuda_available: true`).
+After a `wsl --shutdown` run during Docker Desktop troubleshooting, CUDA stopped
+initializing in WSL2 (`nvidia-smi` → `Failed to initialize NVML`, reproduced on both
+WSL2 and the Windows host). One bounded fix attempt (shutdown + retry) didn't resolve
+it; per explicit instruction, further NVIDIA/WSL debugging was not pursued. All
+experiments after this point (`EXP_009` onward) ran on CPU — same code path, since
+device selection is `device="auto"`, not a code change — just slower. Likely fixable
+with a full machine reboot, left to the user's discretion.
 
 ## Dataset
 
