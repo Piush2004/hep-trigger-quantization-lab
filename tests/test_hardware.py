@@ -6,7 +6,12 @@ import shutil
 import pytest
 
 from hep_quant.hardware.latency import benchmark_inference_latency
-from hep_quant.hardware.resource_estimator import HLSBackend, UnavailableBackend, get_hardware_backend
+from hep_quant.hardware.resource_estimator import (
+    HLSBackend,
+    SoftwareEstimateBackend,
+    UnavailableBackend,
+    get_hardware_backend,
+)
 from hep_quant.models.mlp import MLPClassifier
 
 
@@ -14,6 +19,7 @@ def test_unavailable_backend_reports_na_fields():
     backend = UnavailableBackend(reason="test")
     report = backend.analyze(model=None, precision="int8", hardware_cfg={})
     assert report.status == "unavailable"
+    assert report.measurement_tier == "unavailable"
     assert report.lut is None
     assert report.dsp is None
     assert "test" in report.resource_source
@@ -28,6 +34,53 @@ def test_get_hardware_backend_defaults_to_unavailable():
 def test_get_hardware_backend_unknown_name_falls_back():
     backend = get_hardware_backend({"backend": "something_bogus"})
     assert isinstance(backend, UnavailableBackend)
+
+
+def test_get_hardware_backend_software_estimate_selectable():
+    backend = get_hardware_backend({"backend": "software_estimate"})
+    assert isinstance(backend, SoftwareEstimateBackend)
+    assert backend.is_available() is True
+
+
+def test_get_hardware_backend_falls_back_to_estimate_when_hls4ml_unusable(monkeypatch):
+    """Regression/spec test: requesting hls4ml but having it unusable must fall
+    back to SoftwareEstimateBackend (a labeled estimate), not straight to
+    UnavailableBackend -- per the explicit requirement to never just give up
+    when a heuristic ballpark can honestly be reported instead."""
+    monkeypatch.setattr(HLSBackend, "is_available", lambda self: False)
+    monkeypatch.setattr(HLSBackend, "_import_error", "forced-unavailable-for-test", raising=False)
+    backend = get_hardware_backend({"backend": "hls4ml"})
+    assert isinstance(backend, SoftwareEstimateBackend)
+
+
+def test_software_estimate_backend_scales_with_precision():
+    model = MLPClassifier(input_dim=16, hidden_dims=[128, 64, 32], n_classes=2)
+    backend = SoftwareEstimateBackend()
+    assert backend.is_available()
+
+    reports = {p: backend.analyze(model, p, {"reuse_factor": 1}) for p in ("fp32", "int8", "int6", "int4")}
+    for report in reports.values():
+        assert report.measurement_tier == "estimated"
+        assert report.lut is not None and report.lut > 0
+        assert report.dsp is not None and report.dsp > 0
+        assert report.ff is not None and report.ff > 0
+
+    # Lower bit-width must produce strictly smaller LUT/FF estimates (DSP count
+    # depends only on weight count / reuse_factor, not bit-width, so it's
+    # constant across precisions in this heuristic -- only lut/ff should shrink).
+    assert reports["int8"].lut < reports["fp32"].lut
+    assert reports["int6"].lut < reports["int8"].lut
+    assert reports["int4"].lut < reports["int6"].lut
+    assert reports["int4"].ff < reports["int8"].ff < reports["fp32"].ff
+    assert reports["fp32"].dsp == reports["int8"].dsp == reports["int4"].dsp
+
+
+def test_software_estimate_backend_reuse_factor_reduces_dsp():
+    model = MLPClassifier(input_dim=16, hidden_dims=[128, 64, 32], n_classes=2)
+    backend = SoftwareEstimateBackend()
+    low_reuse = backend.analyze(model, "int8", {"reuse_factor": 1})
+    high_reuse = backend.analyze(model, "int8", {"reuse_factor": 8})
+    assert high_reuse.dsp < low_reuse.dsp
 
 
 def test_latency_benchmark_produces_finite_positive_values():
@@ -59,6 +112,7 @@ def test_hls_backend_converts_and_csims_real_model():
 
     report = backend.analyze(model, "int8", {"reuse_factor": 1})
     assert report.status in ("csim", "converted")
+    assert report.measurement_tier == "simulated"
     assert report.lut is None  # no Vivado synthesis in this environment
     assert "hls4ml" in report.resource_source
 

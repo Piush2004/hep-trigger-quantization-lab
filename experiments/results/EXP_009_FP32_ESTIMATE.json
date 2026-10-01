@@ -1,0 +1,113 @@
+{
+  "experiment_id": "EXP_009_FP32_ESTIMATE",
+  "timestamp": "2026-10-01T02:49:33.349119+00:00",
+  "config": {
+    "seed": 42,
+    "dataset": {
+      "name": "synthetic",
+      "path": null,
+      "subset_size": null,
+      "n_features": 16,
+      "n_samples": 20000,
+      "n_classes": 2,
+      "val_fraction": 0.15,
+      "test_fraction": 0.15
+    },
+    "model": {
+      "type": "mlp",
+      "hidden_dims": [
+        128,
+        64,
+        32
+      ],
+      "dropout": 0.1,
+      "activation": "relu"
+    },
+    "training": {
+      "epochs": 40,
+      "batch_size": 512,
+      "learning_rate": 0.001,
+      "weight_decay": 0.0001,
+      "early_stopping_patience": 8,
+      "device": "auto"
+    },
+    "quantization": {
+      "method": "none",
+      "precision": "fp32",
+      "calibration_batches": 20
+    },
+    "hardware": {
+      "backend": "software_estimate",
+      "board": "pynq-z2",
+      "clock_period_ns": 5,
+      "reuse_factor": 1,
+      "strategy": "latency"
+    },
+    "experiment": {
+      "name": "fp32_software_estimate",
+      "id": "EXP_009_FP32_ESTIMATE"
+    }
+  },
+  "reproducibility": {
+    "seed": 42,
+    "system": {
+      "python_version": "3.11.16 (main, Sep 29 2026, 14:59:26) [Clang 22.1.3 ]",
+      "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+      "processor": "",
+      "torch_version": "2.11.0+cu128",
+      "cuda_available": false,
+      "cuda_version": null,
+      "gpu_name": null,
+      "git_commit": "536cc92f2ba05642ab6b925a9f6b91785c7c181f"
+    }
+  },
+  "metrics": {
+    "test": {
+      "accuracy": 0.985,
+      "precision": 0.9853137516688919,
+      "recall": 0.9846564376250834,
+      "f1": 0.984984984984985,
+      "roc_auc": 0.9916022184898748,
+      "pr_auc": 0.9880049185754349
+    },
+    "model_size": {
+      "estimated_size_mb": 0.04798126220703125,
+      "total_params": 12578,
+      "is_estimated": false
+    },
+    "latency": {
+      "device": "cpu",
+      "mean_ms_per_sample": 0.07060803999479504,
+      "p95_ms": 0.131535249954595
+    }
+  },
+  "model_info": {
+    "architecture": "mlp",
+    "hidden_dims": [
+      128,
+      64,
+      32
+    ],
+    "n_parameters": 12578,
+    "method": "none",
+    "precision": "fp32"
+  },
+  "hardware": {
+    "backend": "software_estimate",
+    "status": "estimated",
+    "resource_source": "software heuristic estimate (parameter-count arithmetic, not hls4ml or Vivado)",
+    "measurement_tier": "estimated",
+    "latency_estimate_ns": null,
+    "initiation_interval": null,
+    "lut": 592896,
+    "dsp": 12352,
+    "bram": 0,
+    "ff": 402496,
+    "notes": [
+      "Heuristic: dsp=ceil(weight_params(12352)/reuse_factor(1)), lut=ceil(dsp*bits(32)*1.5), ff=total_params*bits, bram=0 (assumes a model small enough to avoid block RAM).",
+      "This is an analytical estimate, NOT hls4ml output and NOT a Vivado synthesis result \u2014 it exists so a resource ballpark is available even when hls4ml itself cannot be used, and must not be read as device-specific or validated against real synthesis."
+    ]
+  },
+  "status": "completed",
+  "error": null
+}

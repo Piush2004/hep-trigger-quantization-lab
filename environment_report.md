@@ -15,7 +15,7 @@ after hitting a hard blocker (see "Why WSL2, not native Windows" below).
 | Execution environment | WSL2 (Ubuntu 26.04.1 LTS), kernel 6.18.33.2-microsoft-standard-WSL2 |
 | Python | 3.11.16 (CPython) |
 | PyTorch | 2.11.0+cu128 |
-| CUDA available | Yes |
+| CUDA available | Intermittent — see "CUDA availability regression" below |
 | GPU | NVIDIA GeForce RTX 5060 Laptop GPU (8 GB VRAM), CUDA 12.8 toolchain |
 | CPU | AMD Ryzen 7 |
 | RAM | 24 GB (≈23.3 GiB total visible to the OS) |
@@ -78,9 +78,28 @@ PyTorch: installed separately from the CUDA 12.8 wheel index
 5060's Blackwell architecture (compute capability requires a recent CUDA toolkit;
 older stable PyTorch/CUDA combinations do not include kernels for this GPU).
 
-`hls4ml` / `qkeras` (optional, Gate 6): not installed by default — see
-[docs/hardware.md](docs/hardware.md) for status and the fallback path when
-unavailable.
+`hls4ml` (optional, Gate 6): installed (1.3.0) and verified working for conversion +
+C-simulation (`g++` also installed for the csim compile step) — see
+[docs/hardware.md](docs/hardware.md) for full status, including the
+`HLSBackend`/`SoftwareEstimateBackend`/`UnavailableBackend` three-tier design.
+`qkeras` was not needed: hls4ml 1.3.0's own PyTorch frontend
+(`convert_from_pytorch_model`) was used directly instead.
+
+## CUDA availability regression (documented, not chased down)
+
+CUDA was confirmed working early in this project (GPU-accelerated training, a CUDA
+matmul, and a CUDA-resident hls4ml conversion all succeeded — see git history). Partway
+through the session, after running `wsl --shutdown` once while troubleshooting Docker
+Desktop, CUDA inside WSL2 stopped initializing (`torch.cuda.is_available()` →`False`,
+`nvidia-smi` → `Failed to initialize NVML: N/A`, both inside WSL2 and on the Windows
+host). One bounded fix attempt was made (`wsl --shutdown` + retry), which did not
+resolve it. Per explicit instruction, further NVIDIA/WSL debugging was NOT pursued —
+all later experiments in this session ran on CPU instead, which still exercises the
+same code paths (device selection is `device="auto"` throughout, i.e. automatic, not a
+code change). This is almost certainly resolvable with a full machine reboot — WSL2's
+GPU passthrough driver stack is known to occasionally need this after certain VM
+lifecycle events — but that is left to the user to do on their own schedule, since a
+reboot has effects beyond this project.
 
 ## Known limitations
 
@@ -91,3 +110,5 @@ unavailable.
 - Reproducing this project on another machine without the same Smart App Control
   issue can simply use a native Windows/Linux/macOS venv; WSL2 is specific to this
   machine's constraints, not a hard project requirement.
+- See "CUDA availability regression" above — GPU acceleration is currently unavailable
+  in this WSL2 instance; all experiments run correctly on CPU, just slower.

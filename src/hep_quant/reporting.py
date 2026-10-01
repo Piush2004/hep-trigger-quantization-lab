@@ -15,7 +15,8 @@ logger = get_logger(__name__)
 RESULTS_COLUMNS = [
     "experiment_id", "architecture", "dataset", "precision", "method", "parameters",
     "model_size_mb", "accuracy", "precision_score", "recall", "f1", "roc_auc", "pr_auc",
-    "inference_latency_ms", "latency_unit", "lut", "dsp", "bram", "ff", "resource_source",
+    "inference_latency_ms", "latency_unit", "lut", "dsp", "bram", "ff",
+    "hardware_measurement_tier", "resource_source",
     "training_time_s", "seed", "git_commit",
 ]
 
@@ -51,6 +52,7 @@ def _record_to_row(record: dict) -> dict:
         "dsp": hardware.get("dsp"),
         "bram": hardware.get("bram"),
         "ff": hardware.get("ff"),
+        "hardware_measurement_tier": hardware.get("measurement_tier", "unavailable"),
         "resource_source": hardware.get("resource_source"),
         "training_time_s": history_duration,
         "seed": repro.get("seed"),

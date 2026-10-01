@@ -1,0 +1,16 @@
+defaults: base.yaml
+
+experiment:
+  name: fp32_software_estimate
+  id: EXP_009_FP32_ESTIMATE
+
+quantization:
+  method: none
+  precision: fp32
+
+hardware:
+  backend: software_estimate
+  board: pynq-z2
+  clock_period_ns: 5
+  reuse_factor: 1
+  strategy: latency

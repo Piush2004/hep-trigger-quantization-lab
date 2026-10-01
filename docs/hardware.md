@@ -1,10 +1,42 @@
 # Hardware-Aware Analysis
 
+## Three backends, three measurement tiers
+
+Every `HardwareReport` carries a `measurement_tier` field so a consumer never has to
+guess how trustworthy a number is:
+
+| Backend | `measurement_tier` | What it actually does |
+|---|---|---|
+| `UnavailableBackend` | `"unavailable"` | Nothing — every field `None`. Used when `hardware.backend: unavailable` in config. |
+| `SoftwareEstimateBackend` | `"estimated"` | Pure arithmetic heuristic (parameter count × bit-width × reuse factor). No external tool, always available. See formula below. |
+| `HLSBackend` | `"simulated"` on success (`"unavailable"` if hls4ml itself fails) | Real hls4ml conversion + C-simulation. Would be `"measured"` if extended to run Vivado synthesis (see below) — not reachable in this environment. |
+
+`get_hardware_backend` requesting `hls4ml` but finding it unusable falls back to
+`SoftwareEstimateBackend`, not straight to `UnavailableBackend` — a labeled estimate is
+preferred over nothing, but it is never silently presented as hls4ml or Vivado output.
+
 ## Current status
 
 `hardware.backend` defaults to `unavailable` in `configs/base.yaml` (`UnavailableBackend`),
 so by default every experiment reports hardware fields (`lut`, `dsp`, `bram`, `ff`,
 `latency_estimate_ns`) as `None`/`N/A`, with `resource_source` stating why.
+
+`configs/fp32_estimate.yaml` opts into `hardware.backend: software_estimate`:
+`SoftwareEstimateBackend` always runs (no external dependency) and reports non-null
+`lut`/`dsp`/`ff` from the heuristic below, explicitly tagged `measurement_tier:
+"estimated"`. The formula (see `SoftwareEstimateBackend`'s docstring in
+`resource_estimator.py`):
+
+```
+dsp  = ceil(weight_params / reuse_factor)       # one DSP per MAC "slot"
+lut  = ceil(dsp * bits * 1.5)                   # fixed, documented constant — not device-calibrated
+ff   = total_params * bits
+bram = 0                                        # models this small don't need block RAM (documented simplification)
+```
+
+This is deliberately simple and explicitly NOT calibrated against any real Vivado run —
+it exists to give an always-available, clearly-labeled ballpark, never a stand-in for
+real synthesis.
 
 For experiments that opt in with `hardware.backend: hls4ml` (see `configs/fp32_hls.yaml`),
 **hls4ml 1.3.0 is installed and working in this environment**: `HLSBackend` performs a
@@ -39,12 +71,13 @@ is everything short of synthesis:
 
 ## What a result looks like, honestly
 
-| status | meaning | fields populated |
-|---|---|---|
-| `unavailable` | hls4ml not usable, or backend explicitly disabled | none (all `None`) |
-| `converted` | hls4ml accepted the model, no C++ toolchain for csim | none (all `None`), notes say conversion succeeded |
-| `csim` | hls4ml conversion + C-simulation both succeeded | none (all `None` — csim validates functional correctness, not resource usage); notes explain Vivado synthesis is still required for LUT/DSP/BRAM/FF |
-| `synthesized` | (not reachable in this environment — would require Vivado) | would be populated from the Vivado HLS report |
+| status | meaning | measurement_tier | fields populated |
+|---|---|---|---|
+| `unavailable` | hls4ml not usable, or backend explicitly disabled | `unavailable` | none (all `None`) |
+| `estimated` | `SoftwareEstimateBackend` heuristic | `estimated` | `lut`/`dsp`/`ff` (non-null), `bram=0` |
+| `converted` | hls4ml accepted the model, no C++ toolchain for csim | `simulated` | none (all `None`), notes say conversion succeeded |
+| `csim` | hls4ml conversion + C-simulation both succeeded | `simulated` | none (all `None` — csim validates functional correctness, not resource usage); notes explain Vivado synthesis is still required for LUT/DSP/BRAM/FF |
+| `synthesized` | (not reachable in this environment — would require Vivado) | `measured` | would be populated from the Vivado HLS report |
 
 ## If you have Vivado available
 
