@@ -1,0 +1,22 @@
+experiment_id,precision,method,params,weight_params,bias_params,checkpoint_dtypes,checkpoint_tensor_elements,checkpoint_file_bytes,theoretical_weight_storage_bytes,recorded_estimated_size_mb_x1048576,unique_weight_levels_per_layer_as_stored,unique_weight_levels_per_layer_effective_forward,max_allowed_levels
+EXP_S42_JET_FP32,fp32,none,4389,4256,133,torch.float32,4389,21431,17556.0,17556.0,"[1024, 2048, 1024, 160]",same as stored,n/a (fp32)
+EXP_S42_JET_INT8_PTQ,int8,ptq,4389,4256,133,torch.float32,4395,23093,4788.0,4788.0,"[135, 144, 174, 104]",same as stored,256
+EXP_S42_JET_INT8_QAT,int8,qat,4389,4256,133,"torch.bool,torch.float32",4398,23989,4788.0,4788.0,"[1024, 2048, 1024, 160]","[136, 169, 196, 102]",256
+EXP_S42_JET_INT6_PTQ,int6,ptq,4389,4256,133,torch.float32,4395,23093,3724.0,3724.0,"[46, 44, 57, 46]",same as stored,64
+EXP_S42_JET_INT6_QAT,int6,qat,4389,4256,133,"torch.bool,torch.float32",4398,23989,3724.0,3724.0,"[1024, 2048, 1024, 160]","[50, 54, 61, 44]",64
+EXP_S42_JET_INT4_PTQ,int4,ptq,4389,4256,133,torch.float32,4395,23093,2660.0,2660.0,"[16, 13, 16, 15]",same as stored,16
+EXP_S42_JET_INT4_QAT,int4,qat,4389,4256,133,"torch.bool,torch.float32",4398,23989,2660.0,2660.0,"[1024, 2048, 1024, 160]","[15, 16, 16, 14]",16
+EXP_S123_JET_FP32,fp32,none,4389,4256,133,torch.float32,4389,21431,17556.0,17556.0,"[1024, 2048, 1024, 160]",same as stored,n/a (fp32)
+EXP_S123_JET_INT8_PTQ,int8,ptq,4389,4256,133,torch.float32,4395,23093,4788.0,4788.0,"[142, 177, 186, 105]",same as stored,256
+EXP_S123_JET_INT8_QAT,int8,qat,4389,4256,133,"torch.bool,torch.float32",4398,23989,4788.0,4788.0,"[1024, 2048, 1024, 160]","[133, 152, 187, 106]",256
+EXP_S123_JET_INT6_PTQ,int6,ptq,4389,4256,133,torch.float32,4395,23093,3724.0,3724.0,"[51, 59, 59, 47]",same as stored,64
+EXP_S123_JET_INT6_QAT,int6,qat,4389,4256,133,"torch.bool,torch.float32",4398,23989,3724.0,3724.0,"[1024, 2048, 1024, 160]","[49, 48, 57, 47]",64
+EXP_S123_JET_INT4_PTQ,int4,ptq,4389,4256,133,torch.float32,4395,23093,2660.0,2660.0,"[16, 16, 16, 14]",same as stored,16
+EXP_S123_JET_INT4_QAT,int4,qat,4389,4256,133,"torch.bool,torch.float32",4398,23989,2660.0,2660.0,"[1024, 2048, 1024, 160]","[15, 16, 16, 16]",16
+EXP_S2026_JET_FP32,fp32,none,4389,4256,133,torch.float32,4389,21431,17556.0,17556.0,"[1024, 2048, 1024, 160]",same as stored,n/a (fp32)
+EXP_S2026_JET_INT8_PTQ,int8,ptq,4389,4256,133,torch.float32,4395,23093,4788.0,4788.0,"[140, 186, 166, 107]",same as stored,256
+EXP_S2026_JET_INT8_QAT,int8,qat,4389,4256,133,"torch.bool,torch.float32",4398,23989,4788.0,4788.0,"[1024, 2048, 1024, 160]","[136, 156, 171, 105]",256
+EXP_S2026_JET_INT6_PTQ,int6,ptq,4389,4256,133,torch.float32,4395,23093,3724.0,3724.0,"[50, 57, 54, 48]",same as stored,64
+EXP_S2026_JET_INT6_QAT,int6,qat,4389,4256,133,"torch.bool,torch.float32",4398,23989,3724.0,3724.0,"[1024, 2048, 1023, 160]","[48, 51, 54, 46]",64
+EXP_S2026_JET_INT4_PTQ,int4,ptq,4389,4256,133,torch.float32,4395,23093,2660.0,2660.0,"[16, 16, 16, 16]",same as stored,16
+EXP_S2026_JET_INT4_QAT,int4,qat,4389,4256,133,"torch.bool,torch.float32",4398,23989,2660.0,2660.0,"[1024, 2048, 1024, 160]","[15, 15, 16, 16]",16

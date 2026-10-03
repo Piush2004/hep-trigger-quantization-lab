@@ -1,0 +1,21 @@
+{
+  "test": {
+    "accuracy": 0.7559333333333333,
+    "precision": 0.7693359717923414,
+    "recall": 0.7555829522157401,
+    "f1": 0.7589677932117886,
+    "roc_auc": 0.9345008687051959,
+    "pr_auc": 0.8155822009241225,
+    "averaging": "macro"
+  },
+  "model_size": {
+    "estimated_size_mb": 0.003551483154296875,
+    "total_params": 4389,
+    "is_estimated": true
+  },
+  "latency": {
+    "device": "cuda",
+    "mean_ms_per_sample": 1.6885423299959257,
+    "p95_ms": 2.8166836499508454
+  }
+}

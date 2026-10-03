@@ -1,0 +1,1287 @@
+{
+  "frozen_at_utc": "2026-10-03T04:28:03.080358+00:00",
+  "n_expected": 21,
+  "n_present": 21,
+  "git_head_at_freeze": "b44311deea74c2e9f623e4b875837991dfe6c402",
+  "git_working_tree_dirty_at_freeze": true,
+  "software_at_freeze_time": {
+    "note": "numpy/scikit-learn versions are NOT stored in the experiment records; captured here at freeze time from the same virtualenv",
+    "python": "3.11.16",
+    "torch": "2.11.0+cu128",
+    "numpy": "2.4.6",
+    "sklearn": "1.9.1"
+  },
+  "dataset": {
+    "openml_name": "hls4ml_lhc_jets_hlf",
+    "openml_version": 1,
+    "full_X_float32_sha256": "b2863e6c92578c774dc4b677f88a8f054906226197e2ade5a938d3f2531f096c",
+    "full_n_samples": 830000,
+    "subset_100000_seed42_X_sha256": "f86b1cbe61fa18bd3de70838fe9e452f331147e707a5c58bb0ee7c1955f966cb",
+    "subset_100000_seed123_X_sha256": "15daadd454db056773ecefddd04066c182f413a76648f351290f2e8b1c5bb453",
+    "subset_100000_seed2026_X_sha256": "c2631ea3b290e2ec55ab64d8485e1766fb6453b0e692a681d7b9ca491063be93"
+  },
+  "integrity_checks": {
+    "EXP_S42_JET_FP32": {
+      "record_exists": true,
+      "status_completed": true,
+      "training_history_exists": true,
+      "checkpoint_exists": true,
+      "checkpoint_loads": true,
+      "metrics_present": true,
+      "metrics_finite": true,
+      "config_present": true,
+      "seed_recorded_and_matches": true,
+      "git_commit_recorded": true,
+      "timestamp_present": true,
+      "latency_present": true,
+      "model_size_present": true
+    },
+    "EXP_S42_JET_INT8_PTQ": {
+      "record_exists": true,
+      "status_completed": true,
+      "training_history_exists": true,
+      "checkpoint_exists": true,
+      "checkpoint_loads": true,
+      "metrics_present": true,
+      "metrics_finite": true,
+      "config_present": true,
+      "seed_recorded_and_matches": true,
+      "git_commit_recorded": true,
+      "timestamp_present": true,
+      "latency_present": true,
+      "model_size_present": true
+    },
+    "EXP_S42_JET_INT6_PTQ": {
+      "record_exists": true,
+      "status_completed": true,
+      "training_history_exists": true,
+      "checkpoint_exists": true,
+      "checkpoint_loads": true,
+      "metrics_present": true,
+      "metrics_finite": true,
+      "config_present": true,
+      "seed_recorded_and_matches": true,
+      "git_commit_recorded": true,
+      "timestamp_present": true,
+      "latency_present": true,
+      "model_size_present": true
+    },
+    "EXP_S42_JET_INT4_PTQ": {
+      "record_exists": true,
+      "status_completed": true,
+      "training_history_exists": true,
+      "checkpoint_exists": true,
+      "checkpoint_loads": true,
+      "metrics_present": true,
+      "metrics_finite": true,
+      "config_present": true,
+      "seed_recorded_and_matches": true,
+      "git_commit_recorded": true,
+      "timestamp_present": true,
+      "latency_present": true,
+      "model_size_present": true
+    },
+    "EXP_S42_JET_INT8_QAT": {
+      "record_exists": true,
+      "status_completed": true,
+      "training_history_exists": true,
+      "checkpoint_exists": true,
+      "checkpoint_loads": true,
+      "metrics_present": true,
+      "metrics_finite": true,
+      "config_present": true,
+      "seed_recorded_and_matches": true,
+      "git_commit_recorded": true,
+      "timestamp_present": true,
+      "latency_present": true,
+      "model_size_present": true
+    },
+    "EXP_S42_JET_INT6_QAT": {
+      "record_exists": true,
+      "status_completed": true,
+      "training_history_exists": true,
+      "checkpoint_exists": true,
+      "checkpoint_loads": true,
+      "metrics_present": true,
+      "metrics_finite": true,
+      "config_present": true,
+      "seed_recorded_and_matches": true,
+      "git_commit_recorded": true,
+      "timestamp_present": true,
+      "latency_present": true,
+      "model_size_present": true
+    },
+    "EXP_S42_JET_INT4_QAT": {
+      "record_exists": true,
+      "status_completed": true,
+      "training_history_exists": true,
+      "checkpoint_exists": true,
+      "checkpoint_loads": true,
+      "metrics_present": true,
+      "metrics_finite": true,
+      "config_present": true,
+      "seed_recorded_and_matches": true,
+      "git_commit_recorded": true,
+      "timestamp_present": true,
+      "latency_present": true,
+      "model_size_present": true
+    },
+    "EXP_S123_JET_FP32": {
+      "record_exists": true,
+      "status_completed": true,
+      "training_history_exists": true,
+      "checkpoint_exists": true,
+      "checkpoint_loads": true,
+      "metrics_present": true,
+      "metrics_finite": true,
+      "config_present": true,
+      "seed_recorded_and_matches": true,
+      "git_commit_recorded": true,
+      "timestamp_present": true,
+      "latency_present": true,
+      "model_size_present": true
+    },
+    "EXP_S123_JET_INT8_PTQ": {
+      "record_exists": true,
+      "status_completed": true,
+      "training_history_exists": true,
+      "checkpoint_exists": true,
+      "checkpoint_loads": true,
+      "metrics_present": true,
+      "metrics_finite": true,
+      "config_present": true,
+      "seed_recorded_and_matches": true,
+      "git_commit_recorded": true,
+      "timestamp_present": true,
+      "latency_present": true,
+      "model_size_present": true
+    },
+    "EXP_S123_JET_INT6_PTQ": {
+      "record_exists": true,
+      "status_completed": true,
+      "training_history_exists": true,
+      "checkpoint_exists": true,
+      "checkpoint_loads": true,
+      "metrics_present": true,
+      "metrics_finite": true,
+      "config_present": true,
+      "seed_recorded_and_matches": true,
+      "git_commit_recorded": true,
+      "timestamp_present": true,
+      "latency_present": true,
+      "model_size_present": true
+    },
+    "EXP_S123_JET_INT4_PTQ": {
+      "record_exists": true,
+      "status_completed": true,
+      "training_history_exists": true,
+      "checkpoint_exists": true,
+      "checkpoint_loads": true,
+      "metrics_present": true,
+      "metrics_finite": true,
+      "config_present": true,
+      "seed_recorded_and_matches": true,
+      "git_commit_recorded": true,
+      "timestamp_present": true,
+      "latency_present": true,
+      "model_size_present": true
+    },
+    "EXP_S123_JET_INT8_QAT": {
+      "record_exists": true,
+      "status_completed": true,
+      "training_history_exists": true,
+      "checkpoint_exists": true,
+      "checkpoint_loads": true,
+      "metrics_present": true,
+      "metrics_finite": true,
+      "config_present": true,
+      "seed_recorded_and_matches": true,
+      "git_commit_recorded": true,
+      "timestamp_present": true,
+      "latency_present": true,
+      "model_size_present": true
+    },
+    "EXP_S123_JET_INT6_QAT": {
+      "record_exists": true,
+      "status_completed": true,
+      "training_history_exists": true,
+      "checkpoint_exists": true,
+      "checkpoint_loads": true,
+      "metrics_present": true,
+      "metrics_finite": true,
+      "config_present": true,
+      "seed_recorded_and_matches": true,
+      "git_commit_recorded": true,
+      "timestamp_present": true,
+      "latency_present": true,
+      "model_size_present": true
+    },
+    "EXP_S123_JET_INT4_QAT": {
+      "record_exists": true,
+      "status_completed": true,
+      "training_history_exists": true,
+      "checkpoint_exists": true,
+      "checkpoint_loads": true,
+      "metrics_present": true,
+      "metrics_finite": true,
+      "config_present": true,
+      "seed_recorded_and_matches": true,
+      "git_commit_recorded": true,
+      "timestamp_present": true,
+      "latency_present": true,
+      "model_size_present": true
+    },
+    "EXP_S2026_JET_FP32": {
+      "record_exists": true,
+      "status_completed": true,
+      "training_history_exists": true,
+      "checkpoint_exists": true,
+      "checkpoint_loads": true,
+      "metrics_present": true,
+      "metrics_finite": true,
+      "config_present": true,
+      "seed_recorded_and_matches": true,
+      "git_commit_recorded": true,
+      "timestamp_present": true,
+      "latency_present": true,
+      "model_size_present": true
+    },
+    "EXP_S2026_JET_INT8_PTQ": {
+      "record_exists": true,
+      "status_completed": true,
+      "training_history_exists": true,
+      "checkpoint_exists": true,
+      "checkpoint_loads": true,
+      "metrics_present": true,
+      "metrics_finite": true,
+      "config_present": true,
+      "seed_recorded_and_matches": true,
+      "git_commit_recorded": true,
+      "timestamp_present": true,
+      "latency_present": true,
+      "model_size_present": true
+    },
+    "EXP_S2026_JET_INT6_PTQ": {
+      "record_exists": true,
+      "status_completed": true,
+      "training_history_exists": true,
+      "checkpoint_exists": true,
+      "checkpoint_loads": true,
+      "metrics_present": true,
+      "metrics_finite": true,
+      "config_present": true,
+      "seed_recorded_and_matches": true,
+      "git_commit_recorded": true,
+      "timestamp_present": true,
+      "latency_present": true,
+      "model_size_present": true
+    },
+    "EXP_S2026_JET_INT4_PTQ": {
+      "record_exists": true,
+      "status_completed": true,
+      "training_history_exists": true,
+      "checkpoint_exists": true,
+      "checkpoint_loads": true,
+      "metrics_present": true,
+      "metrics_finite": true,
+      "config_present": true,
+      "seed_recorded_and_matches": true,
+      "git_commit_recorded": true,
+      "timestamp_present": true,
+      "latency_present": true,
+      "model_size_present": true
+    },
+    "EXP_S2026_JET_INT8_QAT": {
+      "record_exists": true,
+      "status_completed": true,
+      "training_history_exists": true,
+      "checkpoint_exists": true,
+      "checkpoint_loads": true,
+      "metrics_present": true,
+      "metrics_finite": true,
+      "config_present": true,
+      "seed_recorded_and_matches": true,
+      "git_commit_recorded": true,
+      "timestamp_present": true,
+      "latency_present": true,
+      "model_size_present": true
+    },
+    "EXP_S2026_JET_INT6_QAT": {
+      "record_exists": true,
+      "status_completed": true,
+      "training_history_exists": true,
+      "checkpoint_exists": true,
+      "checkpoint_loads": true,
+      "metrics_present": true,
+      "metrics_finite": true,
+      "config_present": true,
+      "seed_recorded_and_matches": true,
+      "git_commit_recorded": true,
+      "timestamp_present": true,
+      "latency_present": true,
+      "model_size_present": true
+    },
+    "EXP_S2026_JET_INT4_QAT": {
+      "record_exists": true,
+      "status_completed": true,
+      "training_history_exists": true,
+      "checkpoint_exists": true,
+      "checkpoint_loads": true,
+      "metrics_present": true,
+      "metrics_finite": true,
+      "config_present": true,
+      "seed_recorded_and_matches": true,
+      "git_commit_recorded": true,
+      "timestamp_present": true,
+      "latency_present": true,
+      "model_size_present": true
+    }
+  },
+  "experiments": [
+    {
+      "experiment_id": "EXP_S42_JET_FP32",
+      "seed": 42,
+      "timestamp": "2026-10-03T04:05:24.515710+00:00",
+      "architecture": "mlp",
+      "hidden_dims": [
+        64,
+        32,
+        32
+      ],
+      "method": "none",
+      "precision": "fp32",
+      "dataset": "hls4ml_lhc_jets_hlf",
+      "subset_size": 100000,
+      "training_config": {
+        "epochs": 30,
+        "batch_size": 1024,
+        "learning_rate": 0.001,
+        "weight_decay": 0.0001,
+        "early_stopping_patience": 6,
+        "device": "auto"
+      },
+      "quantization_config": {
+        "method": "none",
+        "precision": "fp32",
+        "calibration_batches": 20
+      },
+      "git_commit_recorded": "4e9b673d46b61d99c920879335f6e8c3a472bdf5",
+      "system_recorded": {
+        "python_version": "3.11.16 (main, Sep 29 2026, 14:59:26) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch_version": "2.11.0+cu128",
+        "cuda_available": true,
+        "cuda_version": "12.8",
+        "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU"
+      },
+      "epochs_run": 30,
+      "train_seconds_sum_of_epochs": 36.9,
+      "file_sha256": {
+        "EXP_S42_JET_FP32.json": "e9132633ca7b27d975368e07d4f7713dfee72ca6222a88717bdde02872c1338e",
+        "EXP_S42_JET_FP32__best_model.pt": "23361a815e6614d8509c732ef058659dd1fe07325dc55d3a93773c1a3ecafcc0",
+        "EXP_S42_JET_FP32__training_history.json": "b19b35dbcdf8116020b498d1ce3b541a79d5c2c248c357959c9a84b703cee188",
+        "EXP_S42_JET_FP32__metrics.json": "65f181c5e28968e4adc459a0b5187748eddba8fb508dc252ac302bbff6cc9f3b"
+      }
+    },
+    {
+      "experiment_id": "EXP_S42_JET_INT8_PTQ",
+      "seed": 42,
+      "timestamp": "2026-10-03T04:06:03.931270+00:00",
+      "architecture": "mlp",
+      "hidden_dims": [
+        64,
+        32,
+        32
+      ],
+      "method": "ptq",
+      "precision": "int8",
+      "dataset": "hls4ml_lhc_jets_hlf",
+      "subset_size": 100000,
+      "training_config": {
+        "epochs": 30,
+        "batch_size": 1024,
+        "learning_rate": 0.001,
+        "weight_decay": 0.0001,
+        "early_stopping_patience": 6,
+        "device": "auto"
+      },
+      "quantization_config": {
+        "method": "ptq",
+        "precision": "int8",
+        "calibration_batches": 20
+      },
+      "git_commit_recorded": "4e9b673d46b61d99c920879335f6e8c3a472bdf5",
+      "system_recorded": {
+        "python_version": "3.11.16 (main, Sep 29 2026, 14:59:26) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch_version": "2.11.0+cu128",
+        "cuda_available": true,
+        "cuda_version": "12.8",
+        "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU"
+      },
+      "epochs_run": 30,
+      "train_seconds_sum_of_epochs": 33.8,
+      "file_sha256": {
+        "EXP_S42_JET_INT8_PTQ.json": "ce001708fad48abbed50c0d0bffffd01303f5ef290d4fdad482dfd8f841ab248",
+        "EXP_S42_JET_INT8_PTQ__best_model.pt": "3db60dd65931adf164055d51c7a0e1240c3b5287cc0f4c56f8d348abbd01b585",
+        "EXP_S42_JET_INT8_PTQ__training_history.json": "397001fe79f604ad45e1bd34d05be4cf5fcbe20dc116a3998f9b99bf069d8d65",
+        "EXP_S42_JET_INT8_PTQ__metrics.json": "28450110993edde19bc25fba802845591ca1fbf821a8e4838e5b14c136979ecc"
+      }
+    },
+    {
+      "experiment_id": "EXP_S42_JET_INT6_PTQ",
+      "seed": 42,
+      "timestamp": "2026-10-03T04:06:40.086486+00:00",
+      "architecture": "mlp",
+      "hidden_dims": [
+        64,
+        32,
+        32
+      ],
+      "method": "ptq",
+      "precision": "int6",
+      "dataset": "hls4ml_lhc_jets_hlf",
+      "subset_size": 100000,
+      "training_config": {
+        "epochs": 30,
+        "batch_size": 1024,
+        "learning_rate": 0.001,
+        "weight_decay": 0.0001,
+        "early_stopping_patience": 6,
+        "device": "auto"
+      },
+      "quantization_config": {
+        "method": "ptq",
+        "precision": "int6",
+        "calibration_batches": 20
+      },
+      "git_commit_recorded": "4e9b673d46b61d99c920879335f6e8c3a472bdf5",
+      "system_recorded": {
+        "python_version": "3.11.16 (main, Sep 29 2026, 14:59:26) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch_version": "2.11.0+cu128",
+        "cuda_available": true,
+        "cuda_version": "12.8",
+        "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU"
+      },
+      "epochs_run": 30,
+      "train_seconds_sum_of_epochs": 30.8,
+      "file_sha256": {
+        "EXP_S42_JET_INT6_PTQ.json": "c0eb8b29d41243365cfe265624efdfe12d47c387048c6305406f7eef26eaf8f1",
+        "EXP_S42_JET_INT6_PTQ__best_model.pt": "43e421cf06b0ebfb31cec9017e361c709ed46a90ca82fcff661d5f9c23443174",
+        "EXP_S42_JET_INT6_PTQ__training_history.json": "1ee4cb2554cb92a2502153f926bc8a58246d30954699a51c360c30e10d708fba",
+        "EXP_S42_JET_INT6_PTQ__metrics.json": "f2c4bfec021e9541fe860eecc052733ac665d97959f1d43117bc28935fb8e55d"
+      }
+    },
+    {
+      "experiment_id": "EXP_S42_JET_INT4_PTQ",
+      "seed": 42,
+      "timestamp": "2026-10-03T04:07:18.137537+00:00",
+      "architecture": "mlp",
+      "hidden_dims": [
+        64,
+        32,
+        32
+      ],
+      "method": "ptq",
+      "precision": "int4",
+      "dataset": "hls4ml_lhc_jets_hlf",
+      "subset_size": 100000,
+      "training_config": {
+        "epochs": 30,
+        "batch_size": 1024,
+        "learning_rate": 0.001,
+        "weight_decay": 0.0001,
+        "early_stopping_patience": 6,
+        "device": "auto"
+      },
+      "quantization_config": {
+        "method": "ptq",
+        "precision": "int4",
+        "calibration_batches": 20
+      },
+      "git_commit_recorded": "4e9b673d46b61d99c920879335f6e8c3a472bdf5",
+      "system_recorded": {
+        "python_version": "3.11.16 (main, Sep 29 2026, 14:59:26) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch_version": "2.11.0+cu128",
+        "cuda_available": true,
+        "cuda_version": "12.8",
+        "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU"
+      },
+      "epochs_run": 30,
+      "train_seconds_sum_of_epochs": 32.8,
+      "file_sha256": {
+        "EXP_S42_JET_INT4_PTQ.json": "629689821dd9286e48e88ec7b8d2e150d91ff57383ce1603bfa3fc003b22c907",
+        "EXP_S42_JET_INT4_PTQ__best_model.pt": "256f91bf2c5895d8e2247195be96de2880b7956a1f4c66928f7e62a175acad57",
+        "EXP_S42_JET_INT4_PTQ__training_history.json": "5369fd0e5e2d13af3e28ffc3e7cbaf0dfada0cc7df28d99c3d29faaa807e5507",
+        "EXP_S42_JET_INT4_PTQ__metrics.json": "0362c2e38e0415aa9c0aa023e19d2b72d23eb008a4c32eaa19171866318d3d8d"
+      }
+    },
+    {
+      "experiment_id": "EXP_S42_JET_INT8_QAT",
+      "seed": 42,
+      "timestamp": "2026-10-03T04:08:09.341244+00:00",
+      "architecture": "mlp",
+      "hidden_dims": [
+        64,
+        32,
+        32
+      ],
+      "method": "qat",
+      "precision": "int8",
+      "dataset": "hls4ml_lhc_jets_hlf",
+      "subset_size": 100000,
+      "training_config": {
+        "epochs": 30,
+        "batch_size": 1024,
+        "learning_rate": 0.001,
+        "weight_decay": 0.0001,
+        "early_stopping_patience": 6,
+        "device": "auto"
+      },
+      "quantization_config": {
+        "method": "qat",
+        "precision": "int8",
+        "calibration_batches": 20
+      },
+      "git_commit_recorded": "4e9b673d46b61d99c920879335f6e8c3a472bdf5",
+      "system_recorded": {
+        "python_version": "3.11.16 (main, Sep 29 2026, 14:59:26) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch_version": "2.11.0+cu128",
+        "cuda_available": true,
+        "cuda_version": "12.8",
+        "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU"
+      },
+      "epochs_run": 7,
+      "train_seconds_sum_of_epochs": 11.1,
+      "file_sha256": {
+        "EXP_S42_JET_INT8_QAT.json": "5e894aeef63d90d98559cbb6c71d718eeb61cafbeb9a03353c9e8334f52e18cc",
+        "EXP_S42_JET_INT8_QAT__best_model.pt": "a0426f352959ed204e98ae7534a57b101131f0d22620ecb773cebc7b7fb3e034",
+        "EXP_S42_JET_INT8_QAT__training_history.json": "94225a2cd62e333feb4e3641acfc1878cab918cacee714ce1ddf99122809898d",
+        "EXP_S42_JET_INT8_QAT__metrics.json": "5fabc0d9b4f739eef1b44b3c1c5ddf7c3ade4c6952c56b5a07eb295505284e63"
+      }
+    },
+    {
+      "experiment_id": "EXP_S42_JET_INT6_QAT",
+      "seed": 42,
+      "timestamp": "2026-10-03T04:08:58.434961+00:00",
+      "architecture": "mlp",
+      "hidden_dims": [
+        64,
+        32,
+        32
+      ],
+      "method": "qat",
+      "precision": "int6",
+      "dataset": "hls4ml_lhc_jets_hlf",
+      "subset_size": 100000,
+      "training_config": {
+        "epochs": 30,
+        "batch_size": 1024,
+        "learning_rate": 0.001,
+        "weight_decay": 0.0001,
+        "early_stopping_patience": 6,
+        "device": "auto"
+      },
+      "quantization_config": {
+        "method": "qat",
+        "precision": "int6",
+        "calibration_batches": 20
+      },
+      "git_commit_recorded": "4e9b673d46b61d99c920879335f6e8c3a472bdf5",
+      "system_recorded": {
+        "python_version": "3.11.16 (main, Sep 29 2026, 14:59:26) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch_version": "2.11.0+cu128",
+        "cuda_available": true,
+        "cuda_version": "12.8",
+        "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU"
+      },
+      "epochs_run": 7,
+      "train_seconds_sum_of_epochs": 11.6,
+      "file_sha256": {
+        "EXP_S42_JET_INT6_QAT.json": "ada7af8cab04e25f516dab5d8fa149de6c7474bb7a4e0a326bc25e66b1856176",
+        "EXP_S42_JET_INT6_QAT__best_model.pt": "b33df2cfff4314648ba46ae5f9845cc990189e33da9645e32f54acbf669f4a96",
+        "EXP_S42_JET_INT6_QAT__training_history.json": "5ae0953d38fd854fb4b490890ed8aa7e2afa5e82f84a9c114fbcc2c2b86a2898",
+        "EXP_S42_JET_INT6_QAT__metrics.json": "6cdd793b8f069b65a993ee3b3077184a8ce7a634f82c177004b2798fba310310"
+      }
+    },
+    {
+      "experiment_id": "EXP_S42_JET_INT4_QAT",
+      "seed": 42,
+      "timestamp": "2026-10-03T04:09:46.372773+00:00",
+      "architecture": "mlp",
+      "hidden_dims": [
+        64,
+        32,
+        32
+      ],
+      "method": "qat",
+      "precision": "int4",
+      "dataset": "hls4ml_lhc_jets_hlf",
+      "subset_size": 100000,
+      "training_config": {
+        "epochs": 30,
+        "batch_size": 1024,
+        "learning_rate": 0.001,
+        "weight_decay": 0.0001,
+        "early_stopping_patience": 6,
+        "device": "auto"
+      },
+      "quantization_config": {
+        "method": "qat",
+        "precision": "int4",
+        "calibration_batches": 20
+      },
+      "git_commit_recorded": "4e9b673d46b61d99c920879335f6e8c3a472bdf5",
+      "system_recorded": {
+        "python_version": "3.11.16 (main, Sep 29 2026, 14:59:26) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch_version": "2.11.0+cu128",
+        "cuda_available": true,
+        "cuda_version": "12.8",
+        "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU"
+      },
+      "epochs_run": 7,
+      "train_seconds_sum_of_epochs": 10.8,
+      "file_sha256": {
+        "EXP_S42_JET_INT4_QAT.json": "75722ff50afdaa57df2908088646f5af17ec55e068d4d791474e772cb833ef96",
+        "EXP_S42_JET_INT4_QAT__best_model.pt": "54d20a498080c8f3138f6182e91b0b8a2841e1188d56301fb0020b7f2caed35f",
+        "EXP_S42_JET_INT4_QAT__training_history.json": "a5a72db33f050ef03bc967f6496a3eb91f5c524c3d0baf16fec13e0e853ec5ec",
+        "EXP_S42_JET_INT4_QAT__metrics.json": "a28ce1ecf24219d141c843a1b0573f2bcb70ef6b0a5d18465883d0c22b18ff9e"
+      }
+    },
+    {
+      "experiment_id": "EXP_S123_JET_FP32",
+      "seed": 123,
+      "timestamp": "2026-10-03T04:10:23.308109+00:00",
+      "architecture": "mlp",
+      "hidden_dims": [
+        64,
+        32,
+        32
+      ],
+      "method": "none",
+      "precision": "fp32",
+      "dataset": "hls4ml_lhc_jets_hlf",
+      "subset_size": 100000,
+      "training_config": {
+        "epochs": 30,
+        "batch_size": 1024,
+        "learning_rate": 0.001,
+        "weight_decay": 0.0001,
+        "early_stopping_patience": 6,
+        "device": "auto"
+      },
+      "quantization_config": {
+        "method": "none",
+        "precision": "fp32",
+        "calibration_batches": 20
+      },
+      "git_commit_recorded": "4e9b673d46b61d99c920879335f6e8c3a472bdf5",
+      "system_recorded": {
+        "python_version": "3.11.16 (main, Sep 29 2026, 14:59:26) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch_version": "2.11.0+cu128",
+        "cuda_available": true,
+        "cuda_version": "12.8",
+        "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU"
+      },
+      "epochs_run": 30,
+      "train_seconds_sum_of_epochs": 31.9,
+      "file_sha256": {
+        "EXP_S123_JET_FP32.json": "45733ad85ab5e93787e5cf2f0f25de28d2c4fc85f333e0138a009a2a855cb678",
+        "EXP_S123_JET_FP32__best_model.pt": "e3c5d4af654337bc6d7e494ab7538554dfbc8390f4f5617e1d3421a0f61a4a69",
+        "EXP_S123_JET_FP32__training_history.json": "9c01517d2f6f0093ac2edca9e02aa2ac305b97259e3abdbd49496fa799e8431e",
+        "EXP_S123_JET_FP32__metrics.json": "051ef3166310e3ce6c22a1db642d45c27e7caf69739b5be5b4cdba7af4ce2fc2"
+      }
+    },
+    {
+      "experiment_id": "EXP_S123_JET_INT8_PTQ",
+      "seed": 123,
+      "timestamp": "2026-10-03T04:11:01.023650+00:00",
+      "architecture": "mlp",
+      "hidden_dims": [
+        64,
+        32,
+        32
+      ],
+      "method": "ptq",
+      "precision": "int8",
+      "dataset": "hls4ml_lhc_jets_hlf",
+      "subset_size": 100000,
+      "training_config": {
+        "epochs": 30,
+        "batch_size": 1024,
+        "learning_rate": 0.001,
+        "weight_decay": 0.0001,
+        "early_stopping_patience": 6,
+        "device": "auto"
+      },
+      "quantization_config": {
+        "method": "ptq",
+        "precision": "int8",
+        "calibration_batches": 20
+      },
+      "git_commit_recorded": "4e9b673d46b61d99c920879335f6e8c3a472bdf5",
+      "system_recorded": {
+        "python_version": "3.11.16 (main, Sep 29 2026, 14:59:26) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch_version": "2.11.0+cu128",
+        "cuda_available": true,
+        "cuda_version": "12.8",
+        "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU"
+      },
+      "epochs_run": 30,
+      "train_seconds_sum_of_epochs": 32.1,
+      "file_sha256": {
+        "EXP_S123_JET_INT8_PTQ.json": "101a480f641f1b3d310185e9ae9469c5855bdcf2ad411f955d01a45620e91edf",
+        "EXP_S123_JET_INT8_PTQ__best_model.pt": "be8b0a442abbba4b94896f161a83adc290b9fc4d9778d77f52ef66acc41247a8",
+        "EXP_S123_JET_INT8_PTQ__training_history.json": "cdf46f5405344fda298b2d2f7c0f12253f959daac2cc65d98886816bd1e237d3",
+        "EXP_S123_JET_INT8_PTQ__metrics.json": "cd531bbbc94720d28a8529aebcc7d749dde33e1facf011bb19d02813d935cc81"
+      }
+    },
+    {
+      "experiment_id": "EXP_S123_JET_INT6_PTQ",
+      "seed": 123,
+      "timestamp": "2026-10-03T04:11:39.270982+00:00",
+      "architecture": "mlp",
+      "hidden_dims": [
+        64,
+        32,
+        32
+      ],
+      "method": "ptq",
+      "precision": "int6",
+      "dataset": "hls4ml_lhc_jets_hlf",
+      "subset_size": 100000,
+      "training_config": {
+        "epochs": 30,
+        "batch_size": 1024,
+        "learning_rate": 0.001,
+        "weight_decay": 0.0001,
+        "early_stopping_patience": 6,
+        "device": "auto"
+      },
+      "quantization_config": {
+        "method": "ptq",
+        "precision": "int6",
+        "calibration_batches": 20
+      },
+      "git_commit_recorded": "4e9b673d46b61d99c920879335f6e8c3a472bdf5",
+      "system_recorded": {
+        "python_version": "3.11.16 (main, Sep 29 2026, 14:59:26) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch_version": "2.11.0+cu128",
+        "cuda_available": true,
+        "cuda_version": "12.8",
+        "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU"
+      },
+      "epochs_run": 30,
+      "train_seconds_sum_of_epochs": 32.6,
+      "file_sha256": {
+        "EXP_S123_JET_INT6_PTQ.json": "f402e057e9281f9841228eb8987b61dd7caf55accbce97a2f618b996a59ac7d5",
+        "EXP_S123_JET_INT6_PTQ__best_model.pt": "b749009140a313aeaab0d972f0bb3a0ad0058fa9f9a5249d81574c67507784ee",
+        "EXP_S123_JET_INT6_PTQ__training_history.json": "587c60a43185ea5c482ec88a5bc6135f0b7a73b4caddd113fc33a417549a9c8e",
+        "EXP_S123_JET_INT6_PTQ__metrics.json": "ab4d366e6815d82e0ac8e617aadd8a8cbde87bc82116ec5d0e7448df8834bcbf"
+      }
+    },
+    {
+      "experiment_id": "EXP_S123_JET_INT4_PTQ",
+      "seed": 123,
+      "timestamp": "2026-10-03T04:12:16.950120+00:00",
+      "architecture": "mlp",
+      "hidden_dims": [
+        64,
+        32,
+        32
+      ],
+      "method": "ptq",
+      "precision": "int4",
+      "dataset": "hls4ml_lhc_jets_hlf",
+      "subset_size": 100000,
+      "training_config": {
+        "epochs": 30,
+        "batch_size": 1024,
+        "learning_rate": 0.001,
+        "weight_decay": 0.0001,
+        "early_stopping_patience": 6,
+        "device": "auto"
+      },
+      "quantization_config": {
+        "method": "ptq",
+        "precision": "int4",
+        "calibration_batches": 20
+      },
+      "git_commit_recorded": "4e9b673d46b61d99c920879335f6e8c3a472bdf5",
+      "system_recorded": {
+        "python_version": "3.11.16 (main, Sep 29 2026, 14:59:26) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch_version": "2.11.0+cu128",
+        "cuda_available": true,
+        "cuda_version": "12.8",
+        "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU"
+      },
+      "epochs_run": 30,
+      "train_seconds_sum_of_epochs": 32.3,
+      "file_sha256": {
+        "EXP_S123_JET_INT4_PTQ.json": "108d1c58f23114a88f0ac5ee0a649ca450972580be9dd31042b15d0b172d820a",
+        "EXP_S123_JET_INT4_PTQ__best_model.pt": "a1e233d23fdc867138bebd534d48362bb9dd4f61903675e1a8667977cf335d6f",
+        "EXP_S123_JET_INT4_PTQ__training_history.json": "adb81e71f47665b271aa1204f5055c8b847c3fe9cf170b2e590e7ea2182c89ea",
+        "EXP_S123_JET_INT4_PTQ__metrics.json": "94aa0fcaaaac36b5fbfd26821e74cc3dfe3a42bd48843df5895f50e2f059b837"
+      }
+    },
+    {
+      "experiment_id": "EXP_S123_JET_INT8_QAT",
+      "seed": 123,
+      "timestamp": "2026-10-03T04:13:07.649835+00:00",
+      "architecture": "mlp",
+      "hidden_dims": [
+        64,
+        32,
+        32
+      ],
+      "method": "qat",
+      "precision": "int8",
+      "dataset": "hls4ml_lhc_jets_hlf",
+      "subset_size": 100000,
+      "training_config": {
+        "epochs": 30,
+        "batch_size": 1024,
+        "learning_rate": 0.001,
+        "weight_decay": 0.0001,
+        "early_stopping_patience": 6,
+        "device": "auto"
+      },
+      "quantization_config": {
+        "method": "qat",
+        "precision": "int8",
+        "calibration_batches": 20
+      },
+      "git_commit_recorded": "4e9b673d46b61d99c920879335f6e8c3a472bdf5",
+      "system_recorded": {
+        "python_version": "3.11.16 (main, Sep 29 2026, 14:59:26) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch_version": "2.11.0+cu128",
+        "cuda_available": true,
+        "cuda_version": "12.8",
+        "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU"
+      },
+      "epochs_run": 7,
+      "train_seconds_sum_of_epochs": 11.6,
+      "file_sha256": {
+        "EXP_S123_JET_INT8_QAT.json": "3e71eafe8820847223959ec823eac4f321550d6c6245024d2dd310710ac7e8f3",
+        "EXP_S123_JET_INT8_QAT__best_model.pt": "b8dc10c6c61a0362db59537e1a2fd5a930971954b16101df22257521328e2a63",
+        "EXP_S123_JET_INT8_QAT__training_history.json": "624e0d66e3182d3272cccc409f020836298dab63e1073a5768992ee5767a8af3",
+        "EXP_S123_JET_INT8_QAT__metrics.json": "4add8b865c01a88dfe8053421bdd56c506cdc357e87c2c05637dcdeaebec3d15"
+      }
+    },
+    {
+      "experiment_id": "EXP_S123_JET_INT6_QAT",
+      "seed": 123,
+      "timestamp": "2026-10-03T04:13:55.647196+00:00",
+      "architecture": "mlp",
+      "hidden_dims": [
+        64,
+        32,
+        32
+      ],
+      "method": "qat",
+      "precision": "int6",
+      "dataset": "hls4ml_lhc_jets_hlf",
+      "subset_size": 100000,
+      "training_config": {
+        "epochs": 30,
+        "batch_size": 1024,
+        "learning_rate": 0.001,
+        "weight_decay": 0.0001,
+        "early_stopping_patience": 6,
+        "device": "auto"
+      },
+      "quantization_config": {
+        "method": "qat",
+        "precision": "int6",
+        "calibration_batches": 20
+      },
+      "git_commit_recorded": "4e9b673d46b61d99c920879335f6e8c3a472bdf5",
+      "system_recorded": {
+        "python_version": "3.11.16 (main, Sep 29 2026, 14:59:26) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch_version": "2.11.0+cu128",
+        "cuda_available": true,
+        "cuda_version": "12.8",
+        "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU"
+      },
+      "epochs_run": 7,
+      "train_seconds_sum_of_epochs": 11.1,
+      "file_sha256": {
+        "EXP_S123_JET_INT6_QAT.json": "c3e1370a2dfd7da50d2a2b119b8e9570b880e0614e2aa4f9404492cbf9ea6dde",
+        "EXP_S123_JET_INT6_QAT__best_model.pt": "a6b52516f98382836592b91fc8be4bf5592b239f0729d1ad4aba44ef7a8820be",
+        "EXP_S123_JET_INT6_QAT__training_history.json": "739903d201de40bbca00b4e35aa53b51a63d6eaa23c1c297a040a7d5e8a56351",
+        "EXP_S123_JET_INT6_QAT__metrics.json": "b9a770dd053a29e11ae19e6504981a896884b6de701c975015a109d29d91fdb6"
+      }
+    },
+    {
+      "experiment_id": "EXP_S123_JET_INT4_QAT",
+      "seed": 123,
+      "timestamp": "2026-10-03T04:14:45.437249+00:00",
+      "architecture": "mlp",
+      "hidden_dims": [
+        64,
+        32,
+        32
+      ],
+      "method": "qat",
+      "precision": "int4",
+      "dataset": "hls4ml_lhc_jets_hlf",
+      "subset_size": 100000,
+      "training_config": {
+        "epochs": 30,
+        "batch_size": 1024,
+        "learning_rate": 0.001,
+        "weight_decay": 0.0001,
+        "early_stopping_patience": 6,
+        "device": "auto"
+      },
+      "quantization_config": {
+        "method": "qat",
+        "precision": "int4",
+        "calibration_batches": 20
+      },
+      "git_commit_recorded": "4e9b673d46b61d99c920879335f6e8c3a472bdf5",
+      "system_recorded": {
+        "python_version": "3.11.16 (main, Sep 29 2026, 14:59:26) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch_version": "2.11.0+cu128",
+        "cuda_available": true,
+        "cuda_version": "12.8",
+        "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU"
+      },
+      "epochs_run": 7,
+      "train_seconds_sum_of_epochs": 10.5,
+      "file_sha256": {
+        "EXP_S123_JET_INT4_QAT.json": "1a4182657fb8df050c44535de618725584d29294b7094f994e3c96bb131d32c5",
+        "EXP_S123_JET_INT4_QAT__best_model.pt": "ab5e508895c40bcb0fabfd04f7e1a046acdd912e6da5bdcb131b90e5e97895de",
+        "EXP_S123_JET_INT4_QAT__training_history.json": "9f5d86618783b2d1948d215ffcd2b25889beb8cdd10f98c9e09ef8365395f1e2",
+        "EXP_S123_JET_INT4_QAT__metrics.json": "a4685dd538569ecd05c13c7f3046a642555759ae8d2539e68dece8bc709e3673"
+      }
+    },
+    {
+      "experiment_id": "EXP_S2026_JET_FP32",
+      "seed": 2026,
+      "timestamp": "2026-10-03T04:15:22.830361+00:00",
+      "architecture": "mlp",
+      "hidden_dims": [
+        64,
+        32,
+        32
+      ],
+      "method": "none",
+      "precision": "fp32",
+      "dataset": "hls4ml_lhc_jets_hlf",
+      "subset_size": 100000,
+      "training_config": {
+        "epochs": 30,
+        "batch_size": 1024,
+        "learning_rate": 0.001,
+        "weight_decay": 0.0001,
+        "early_stopping_patience": 6,
+        "device": "auto"
+      },
+      "quantization_config": {
+        "method": "none",
+        "precision": "fp32",
+        "calibration_batches": 20
+      },
+      "git_commit_recorded": "4e9b673d46b61d99c920879335f6e8c3a472bdf5",
+      "system_recorded": {
+        "python_version": "3.11.16 (main, Sep 29 2026, 14:59:26) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch_version": "2.11.0+cu128",
+        "cuda_available": true,
+        "cuda_version": "12.8",
+        "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU"
+      },
+      "epochs_run": 30,
+      "train_seconds_sum_of_epochs": 32.7,
+      "file_sha256": {
+        "EXP_S2026_JET_FP32.json": "3b989a09966ba354964df9c83c1c0edb22970a317293820dc353a9323d5e4319",
+        "EXP_S2026_JET_FP32__best_model.pt": "17c03113ece21a874dc558dab159a8de98ec4f4d44e7ec8530cea7de6bf378d7",
+        "EXP_S2026_JET_FP32__training_history.json": "d65f591b117f31e549a101ef8364f06863b42d5bc955401abe52b7365fd2c25f",
+        "EXP_S2026_JET_FP32__metrics.json": "853eeae28ae30c9b2908abaaf10cba8943a0a5dfa8e7ff6f0727a1b9061718bd"
+      }
+    },
+    {
+      "experiment_id": "EXP_S2026_JET_INT8_PTQ",
+      "seed": 2026,
+      "timestamp": "2026-10-03T04:15:59.271028+00:00",
+      "architecture": "mlp",
+      "hidden_dims": [
+        64,
+        32,
+        32
+      ],
+      "method": "ptq",
+      "precision": "int8",
+      "dataset": "hls4ml_lhc_jets_hlf",
+      "subset_size": 100000,
+      "training_config": {
+        "epochs": 30,
+        "batch_size": 1024,
+        "learning_rate": 0.001,
+        "weight_decay": 0.0001,
+        "early_stopping_patience": 6,
+        "device": "auto"
+      },
+      "quantization_config": {
+        "method": "ptq",
+        "precision": "int8",
+        "calibration_batches": 20
+      },
+      "git_commit_recorded": "4e9b673d46b61d99c920879335f6e8c3a472bdf5",
+      "system_recorded": {
+        "python_version": "3.11.16 (main, Sep 29 2026, 14:59:26) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch_version": "2.11.0+cu128",
+        "cuda_available": true,
+        "cuda_version": "12.8",
+        "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU"
+      },
+      "epochs_run": 30,
+      "train_seconds_sum_of_epochs": 31.0,
+      "file_sha256": {
+        "EXP_S2026_JET_INT8_PTQ.json": "9396c34c7d5c3b7cb782d2661ee77b4ee7d207db9bfc51fe08762d83024fdeb2",
+        "EXP_S2026_JET_INT8_PTQ__best_model.pt": "71e2d84fa54af1bc2687882b447b301b6b4e530d7633a607f16e3d391932252b",
+        "EXP_S2026_JET_INT8_PTQ__training_history.json": "0d2ffd31287e9691f894801f30bf83267e6f922392c93f1393fe1631b2412fe3",
+        "EXP_S2026_JET_INT8_PTQ__metrics.json": "a16ec0b3552ce96ad9f755c1326733b9e91a3cd07e156d2f8cea7323734bb213"
+      }
+    },
+    {
+      "experiment_id": "EXP_S2026_JET_INT6_PTQ",
+      "seed": 2026,
+      "timestamp": "2026-10-03T04:16:34.696469+00:00",
+      "architecture": "mlp",
+      "hidden_dims": [
+        64,
+        32,
+        32
+      ],
+      "method": "ptq",
+      "precision": "int6",
+      "dataset": "hls4ml_lhc_jets_hlf",
+      "subset_size": 100000,
+      "training_config": {
+        "epochs": 30,
+        "batch_size": 1024,
+        "learning_rate": 0.001,
+        "weight_decay": 0.0001,
+        "early_stopping_patience": 6,
+        "device": "auto"
+      },
+      "quantization_config": {
+        "method": "ptq",
+        "precision": "int6",
+        "calibration_batches": 20
+      },
+      "git_commit_recorded": "4e9b673d46b61d99c920879335f6e8c3a472bdf5",
+      "system_recorded": {
+        "python_version": "3.11.16 (main, Sep 29 2026, 14:59:26) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch_version": "2.11.0+cu128",
+        "cuda_available": true,
+        "cuda_version": "12.8",
+        "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU"
+      },
+      "epochs_run": 30,
+      "train_seconds_sum_of_epochs": 30.4,
+      "file_sha256": {
+        "EXP_S2026_JET_INT6_PTQ.json": "4f5cf6c3a24738bf85b36875cdd35dbba85963def158c709ac6c0b54acc55cd9",
+        "EXP_S2026_JET_INT6_PTQ__best_model.pt": "c49846f131ddf53ea1c6ad9e0fed353c97357e69a5ef281e9ef2327ca7d555bf",
+        "EXP_S2026_JET_INT6_PTQ__training_history.json": "e0ffc544e4d7e089b690d943e69e62b6f39a2c3be428108de4f99c62701f0361",
+        "EXP_S2026_JET_INT6_PTQ__metrics.json": "0f389d7164486a79ac01b84e7ab15d29f4095df7b04dcffe9437ce90976a0f0d"
+      }
+    },
+    {
+      "experiment_id": "EXP_S2026_JET_INT4_PTQ",
+      "seed": 2026,
+      "timestamp": "2026-10-03T04:17:10.426213+00:00",
+      "architecture": "mlp",
+      "hidden_dims": [
+        64,
+        32,
+        32
+      ],
+      "method": "ptq",
+      "precision": "int4",
+      "dataset": "hls4ml_lhc_jets_hlf",
+      "subset_size": 100000,
+      "training_config": {
+        "epochs": 30,
+        "batch_size": 1024,
+        "learning_rate": 0.001,
+        "weight_decay": 0.0001,
+        "early_stopping_patience": 6,
+        "device": "auto"
+      },
+      "quantization_config": {
+        "method": "ptq",
+        "precision": "int4",
+        "calibration_batches": 20
+      },
+      "git_commit_recorded": "4e9b673d46b61d99c920879335f6e8c3a472bdf5",
+      "system_recorded": {
+        "python_version": "3.11.16 (main, Sep 29 2026, 14:59:26) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch_version": "2.11.0+cu128",
+        "cuda_available": true,
+        "cuda_version": "12.8",
+        "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU"
+      },
+      "epochs_run": 30,
+      "train_seconds_sum_of_epochs": 30.7,
+      "file_sha256": {
+        "EXP_S2026_JET_INT4_PTQ.json": "b246cfa0e2dd513dc57b4559a8620928affd61b105a62d6d2fbf4e65b528de16",
+        "EXP_S2026_JET_INT4_PTQ__best_model.pt": "f377eb6e4951ab3e372e896a6af9eeae83087b8d7e8e1cc8315264b50d75de2f",
+        "EXP_S2026_JET_INT4_PTQ__training_history.json": "f023379234c0d5b59d43be72ad611ce8e072d99381164c2b0a46614255e78408",
+        "EXP_S2026_JET_INT4_PTQ__metrics.json": "082ee7e0f601f03faf23650426f97afa6788a58b37e4467c7cfc81f8e132cfcb"
+      }
+    },
+    {
+      "experiment_id": "EXP_S2026_JET_INT8_QAT",
+      "seed": 2026,
+      "timestamp": "2026-10-03T04:17:59.344120+00:00",
+      "architecture": "mlp",
+      "hidden_dims": [
+        64,
+        32,
+        32
+      ],
+      "method": "qat",
+      "precision": "int8",
+      "dataset": "hls4ml_lhc_jets_hlf",
+      "subset_size": 100000,
+      "training_config": {
+        "epochs": 30,
+        "batch_size": 1024,
+        "learning_rate": 0.001,
+        "weight_decay": 0.0001,
+        "early_stopping_patience": 6,
+        "device": "auto"
+      },
+      "quantization_config": {
+        "method": "qat",
+        "precision": "int8",
+        "calibration_batches": 20
+      },
+      "git_commit_recorded": "4e9b673d46b61d99c920879335f6e8c3a472bdf5",
+      "system_recorded": {
+        "python_version": "3.11.16 (main, Sep 29 2026, 14:59:26) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch_version": "2.11.0+cu128",
+        "cuda_available": true,
+        "cuda_version": "12.8",
+        "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU"
+      },
+      "epochs_run": 7,
+      "train_seconds_sum_of_epochs": 11.4,
+      "file_sha256": {
+        "EXP_S2026_JET_INT8_QAT.json": "f13fba889abc5a369fdc687c663514431fa103815258cd7b7abddcb1677d9f8e",
+        "EXP_S2026_JET_INT8_QAT__best_model.pt": "8eb9cf3011fabc5e71264135aa77544b08d356c1ab337287f74e005c796a1d46",
+        "EXP_S2026_JET_INT8_QAT__training_history.json": "1ca4dd8824ba10bac6e426bc954177fa3b35cf8cb2f32fafe1c6651732d3b46e",
+        "EXP_S2026_JET_INT8_QAT__metrics.json": "e3223bdc9923531b023250aa9c2ccb583588b0c03c17d5a35d4c94acd8f5bd7a"
+      }
+    },
+    {
+      "experiment_id": "EXP_S2026_JET_INT6_QAT",
+      "seed": 2026,
+      "timestamp": "2026-10-03T04:18:45.012379+00:00",
+      "architecture": "mlp",
+      "hidden_dims": [
+        64,
+        32,
+        32
+      ],
+      "method": "qat",
+      "precision": "int6",
+      "dataset": "hls4ml_lhc_jets_hlf",
+      "subset_size": 100000,
+      "training_config": {
+        "epochs": 30,
+        "batch_size": 1024,
+        "learning_rate": 0.001,
+        "weight_decay": 0.0001,
+        "early_stopping_patience": 6,
+        "device": "auto"
+      },
+      "quantization_config": {
+        "method": "qat",
+        "precision": "int6",
+        "calibration_batches": 20
+      },
+      "git_commit_recorded": "4e9b673d46b61d99c920879335f6e8c3a472bdf5",
+      "system_recorded": {
+        "python_version": "3.11.16 (main, Sep 29 2026, 14:59:26) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch_version": "2.11.0+cu128",
+        "cuda_available": true,
+        "cuda_version": "12.8",
+        "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU"
+      },
+      "epochs_run": 7,
+      "train_seconds_sum_of_epochs": 10.1,
+      "file_sha256": {
+        "EXP_S2026_JET_INT6_QAT.json": "94a3b9dd13366b17a8869eafe279b093bae52d273768e6a1d0f8a952540ec2e6",
+        "EXP_S2026_JET_INT6_QAT__best_model.pt": "818d19ab3d24260c65ae1c28d5fcbca7c3247c165030b594a52a32aa36df668c",
+        "EXP_S2026_JET_INT6_QAT__training_history.json": "d38a8f406b21b1212dcf8b5523b1ec3b5162c0f4804227e5c4d9440cf18cc3c3",
+        "EXP_S2026_JET_INT6_QAT__metrics.json": "c7f0ae9cb3dfe08c2476f23641a015c93a6a0a3f416b364564cc59e18fe69322"
+      }
+    },
+    {
+      "experiment_id": "EXP_S2026_JET_INT4_QAT",
+      "seed": 2026,
+      "timestamp": "2026-10-03T04:19:33.561188+00:00",
+      "architecture": "mlp",
+      "hidden_dims": [
+        64,
+        32,
+        32
+      ],
+      "method": "qat",
+      "precision": "int4",
+      "dataset": "hls4ml_lhc_jets_hlf",
+      "subset_size": 100000,
+      "training_config": {
+        "epochs": 30,
+        "batch_size": 1024,
+        "learning_rate": 0.001,
+        "weight_decay": 0.0001,
+        "early_stopping_patience": 6,
+        "device": "auto"
+      },
+      "quantization_config": {
+        "method": "qat",
+        "precision": "int4",
+        "calibration_batches": 20
+      },
+      "git_commit_recorded": "4e9b673d46b61d99c920879335f6e8c3a472bdf5",
+      "system_recorded": {
+        "python_version": "3.11.16 (main, Sep 29 2026, 14:59:26) [Clang 22.1.3 ]",
+        "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+        "torch_version": "2.11.0+cu128",
+        "cuda_available": true,
+        "cuda_version": "12.8",
+        "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU"
+      },
+      "epochs_run": 7,
+      "train_seconds_sum_of_epochs": 10.6,
+      "file_sha256": {
+        "EXP_S2026_JET_INT4_QAT.json": "0b8d35697bbd83871e0d19827561434b2e4fd0e8cb61ecd8b11e319b1288e742",
+        "EXP_S2026_JET_INT4_QAT__best_model.pt": "da5be98dd8014af850f6a9c864675b5b523f1b7ad1627ebdd8d5a548b6a6b703",
+        "EXP_S2026_JET_INT4_QAT__training_history.json": "337c7a679e89c13ebdce9acc9163e8dc6db0f3e0ef59b49ed1c8beac4b6d8505",
+        "EXP_S2026_JET_INT4_QAT__metrics.json": "2e3eb2617ed4b417e6870ab613d90b45bfc73159ab0acb5caf58b887c3e72d72"
+      }
+    }
+  ]
+}
