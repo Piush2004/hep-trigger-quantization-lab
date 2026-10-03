@@ -43,3 +43,12 @@ def test_h5py_roundtrip(tmp_path):
         f.create_dataset("x", data=np.arange(10))
     with h5py.File(path, "r") as f:
         assert np.array_equal(f["x"][:], np.arange(10))
+
+
+def test_system_info_records_package_versions_and_environment_hash():
+    from hep_quant.utils.system import get_system_info
+
+    info = get_system_info().to_dict()
+    assert info["packages"]["numpy"] and info["packages"]["torch"]
+    assert len(info["environment_hash"]) == 64
+    assert info["git_dirty"] in (True, False, None)

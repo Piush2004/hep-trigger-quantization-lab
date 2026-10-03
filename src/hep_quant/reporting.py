@@ -12,7 +12,7 @@ from hep_quant.visualization.plots import plot_latency_vs_accuracy, plot_model_s
 
 logger = get_logger(__name__)
 
-REPLICATE_PATTERN = r"^EXP_S\d+_"
+REPLICATE_PATTERN = r"^EXP_[SC]\d+_"  # EXP_S<seed>_ = seed replicates, EXP_C<seed>_ = compute-matched controls
 SUMMARY_METRICS = ["accuracy", "f1", "roc_auc", "pr_auc"]
 
 RESULTS_COLUMNS = [

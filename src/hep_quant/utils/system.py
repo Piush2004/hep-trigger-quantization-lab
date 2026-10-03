@@ -16,6 +16,8 @@ class SystemInfo:
     gpu_name: str | None
     git_commit: str | None
     git_dirty: bool | None = None  # True if tracked files had uncommitted changes when the run started
+    packages: dict | None = None  # versions of the libraries that determine numerical results
+    environment_hash: str | None = None  # sha256 of the sorted "name==version" list above
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -43,6 +45,28 @@ def get_git_dirty() -> bool | None:
     return None
 
 
+_TRACKED_PACKAGES = ["numpy", "pandas", "scikit-learn", "torch", "hls4ml", "qkeras", "h5py", "matplotlib", "PyYAML"]
+
+
+def get_package_versions() -> dict:
+    """Installed versions of the numerically relevant packages; None for packages that are not installed."""
+    from importlib import metadata
+
+    out = {}
+    for name in _TRACKED_PACKAGES:
+        try:
+            out[name] = metadata.version(name)
+        except metadata.PackageNotFoundError:
+            out[name] = None
+    return out
+
+
+def environment_hash(packages: dict) -> str:
+    import hashlib
+
+    return hashlib.sha256(";".join(f"{k}=={v}" for k, v in sorted(packages.items())).encode()).hexdigest()
+
+
 def get_system_info() -> SystemInfo:
     try:
         import torch
@@ -67,4 +91,6 @@ def get_system_info() -> SystemInfo:
         gpu_name=gpu_name,
         git_commit=get_git_commit(),
         git_dirty=get_git_dirty(),
+        packages=(pk := get_package_versions()),
+        environment_hash=environment_hash(pk),
     )

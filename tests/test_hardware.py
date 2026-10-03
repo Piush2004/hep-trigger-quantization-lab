@@ -133,3 +133,14 @@ def test_hls_backend_handles_cuda_resident_model():
     report = backend.analyze(model, "int8", {"reuse_factor": 1})
     assert report.status in ("csim", "converted")
     assert next(model.parameters()).is_cuda  # original model object must be untouched
+
+
+def test_hardware_reports_carry_source_tool_version_configuration():
+    """Every hardware number must say where it came from (tier, source, tool, version, configuration)."""
+    model = MLPClassifier(input_dim=16, hidden_dims=[64, 32, 32], n_classes=5)
+    est = SoftwareEstimateBackend().analyze(model, "int8", {"reuse_factor": 2}).to_dict()
+    assert est["measurement_tier"] == "estimated" and est["source"] == "SoftwareEstimateBackend"
+    assert est["tool_version"] and est["configuration"]["reuse_factor"] == 2
+    assert est["configuration"]["validated_against_synthesis"] is False
+    na = UnavailableBackend(reason="x").analyze(None, "int8", {}).to_dict()
+    assert na["measurement_tier"] == "unavailable" and na["source"] == "UnavailableBackend" and na["lut"] is None

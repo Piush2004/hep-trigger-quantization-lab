@@ -1,0 +1,11 @@
+# Compute-matched control for QAT: FP32 training followed by the same extra
+# fine-tuning schedule QAT gets (max(5, epochs//4) epochs at 0.1x lr), no quantization.
+defaults: jet_base.yaml
+
+experiment:
+  name: jet_fp32_finetune_control
+  id: EXP_C_JET_FP32_FT
+
+quantization:
+  method: fp32_finetune
+  precision: fp32

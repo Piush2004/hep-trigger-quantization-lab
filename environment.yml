@@ -1,0 +1,14 @@
+# Reproduces the environment the Phase-2/3 results were produced in (WSL2 Ubuntu, Python 3.11, PyTorch 2.11.0+cu128).
+# Exact pinned versions: requirements-lock.txt (generated with `uv pip freeze`). For a CPU-only machine replace the torch line
+# in the lock file with the CPU wheel; note that INT4 PTQ results are device-sensitive (see reports/REAL_HEP_RESULTS.md).
+name: hep-quant
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - --extra-index-url https://download.pytorch.org/whl/cu128
+      - -r requirements-lock.txt
+      - -e .
+# hls4ml C-simulation additionally needs a C++ compiler (g++) on PATH. Vivado/Vitis HLS is NOT required and not used.

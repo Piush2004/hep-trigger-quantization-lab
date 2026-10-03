@@ -65,10 +65,13 @@ Full detail in [docs/architecture.md](docs/architecture.md).
 
 ## Dataset
 
-Runs by default on a **synthetic** classification dataset (see
-[reports/dataset_card.md](reports/dataset_card.md) for why, and the real-dataset
-integration plan). Every result in this repository is a development-validation
-result unless the dataset card says otherwise.
+**Primary (real-HEP-benchmark) dataset:** the hls4ml LHC jet-tagging benchmark, OpenML `hls4ml_lhc_jets_hlf` v1
+(Zenodo 10.5281/zenodo.3602260, CC BY 4.0; arXiv:1804.06913): **830,000 jets, 16 high-level substructure features, 5 classes** (g, q, t, W, Z; ≈20% each).
+Provenance (verified in the dataset paper): **particle-level Monte Carlo** — MadGraph5 + Pythia8 + FastJet anti-kT R = 0.8, jet pT 0.8–1.6 TeV, 13 TeV.
+It is **simulated physics data, not detector-level and not recorded collision data** (the paper describes no detector simulation). It is **not** the ATLAS JetSet dataset (evaluated and not adopted).
+The benchmark has been validated on a publicly available simulated HEP dataset; it has *not* been validated on real detector data.
+See [reports/dataset_selection.md](reports/dataset_selection.md), [reports/dataset_schema.md](reports/dataset_schema.md), [reports/real_data_validation.md](reports/real_data_validation.md).
+A synthetic dataset is retained only for pipeline tests (see [reports/dataset_card.md](reports/dataset_card.md)).
 
 ## Quantization methodology
 
@@ -79,6 +82,8 @@ and doesn't measure, in [docs/quantization.md](docs/quantization.md) — read th
 before interpreting model-size or latency numbers.
 
 ## Experiments
+
+Real-data (primary) configs are `configs/jet_*.yaml` (`jet_base.yaml`, staged `jet_validate_*`, the 7-configuration matrix and `jet_fp32_finetune_control.yaml`); the table lists the synthetic-pipeline configs.
 
 | Config | Method | Precision |
 |---|---|---|
@@ -92,30 +97,30 @@ before interpreting model-size or latency numbers.
 
 ## Results
 
-### Real dataset: hls4ml LHC jet tagging (5-class) — the result that matters
+### Real dataset: hls4ml jet tagging (5-class), audited multi-seed results
 
-100,000-event experiment matrix. FP32 baseline (74.95% accuracy) is consistent with the 75% reported
-for the same 16-64-32-32-5 architecture in arXiv:2003.06308 (Table 5; different split and training
-budget, so a sanity check rather than a reproduction).
+MLP 16-64-32-32-5 (4,389 parameters), 100,000-jet subsets, **5 seeds** (42, 123, 2026 frozen; 7, 99 added), all on one device. Macro one-vs-rest ROC-AUC, mean ± SD (n = 5, descriptive):
 
-| Precision | Method | Accuracy | ROC-AUC (macro) | Model size (MB) |
+| Precision | Method | ROC-AUC | ΔAUC vs same-seed FP32 | Theoretical weight storage |
 |---|---|---:|---:|---:|
-| FP32 | — | 0.7495 | 0.9335 | 0.0167 |
-| INT8 | PTQ | 0.7503 | 0.9333 | 0.0045 |
-| INT6 | PTQ | 0.7501 | 0.9323 | 0.0035 |
-| **INT4** | **PTQ** | **0.6507** | **0.8832** | 0.0025 |
-| INT8 | QAT | 0.7523 | 0.9344 | 0.0045 |
-| INT6 | QAT | 0.7517 | 0.9336 | 0.0035 |
-| INT4 | QAT | 0.7291 | 0.9232 | 0.0025 |
+| FP32 | — | 0.9343 ± 0.0011 | — | 17,556 B |
+| INT8 | PTQ | 0.9342 ± 0.0011 | −0.0001 | 4,788 B |
+| INT6 | PTQ | 0.9329 ± 0.0014 | −0.0014 | 3,724 B |
+| **INT4** | **PTQ** | **0.8819 ± 0.0308** (0.835–0.909) | **−0.052** | 2,660 B |
+| INT8 | QAT | 0.9348 ± 0.0017 | +0.0005 | 4,788 B |
+| INT6 | QAT | 0.9342 ± 0.0015 | −0.0001 | 3,724 B |
+| INT4 | QAT | 0.9246 ± 0.0018 | −0.0097 | 2,660 B |
 
-**INT4 PTQ collapses by 9.9 percentage points** — a genuine precision cliff, not a
-gentle degradation. **QAT recovers most but not all of it** (65.07% → 72.91%, still
-2.0 pp below FP32). All three QAT configurations are Pareto-optimal; PTQ and FP32 are
-all dominated
-([figure](reports/figures/pareto_accuracy_vs_size_hls4ml_lhc_jets_hlf.png)). See
-[reports/research_report.md §14.2](reports/research_report.md) for the full discussion,
-and [reports/dataset_card.md](reports/dataset_card.md) for dataset provenance/license
-(OpenML `hls4ml_lhc_jets_hlf`, CC BY, DOI 10.5281/zenodo.3602260).
+What the evidence supports (simulation, this simulated dataset, this MLP): INT8/INT6 PTQ are practically lossless; **INT4 PTQ is unreliable** (seed- and device-dependent, worst on W/Z jets and probability calibration, tied to calibration range and the first layer);
+INT4 QAT is stable at about −1% AUC; and **a compute-matched FP32 fine-tune control shows QAT's INT8/INT6 edge over PTQ is not separable from extra training epochs.**
+*Not* supported: any FPGA latency/resource claim or generality to other architectures or datasets.
+Details: [reports/REAL_HEP_RESULTS.md](reports/REAL_HEP_RESULTS.md), [reports/phase2_results_audit.md](reports/phase2_results_audit.md). The FP32 baseline is consistent with (not a reproduction of) the 75% in arXiv:2003.06308 Table 5.
+
+**Hardware measurement limitations — read before using any hardware number.** "Storage" above is *analytical* (bit-packed equivalent; no packed artifact exists; checkpoints are float32).
+LUT/DSP/BRAM/FF are a **software heuristic (`measurement_tier = estimated`)**, never validated against synthesis. hls4ml **C-simulation** (`simulated`) measures accuracy under fixed-point arithmetic only (no latency or resources).
+Software latency is emulation overhead (FP32 < PTQ < QAT) and not hardware latency. **Physical FPGA synthesis was not performed.** Tiers: measured / simulated / estimated / unavailable, never mixed in a figure.
+
+Earlier single-seed numbers (INT4 PTQ "−9.9 points, QAT recovers most") came from one CPU run and are superseded by the table above.
 
 ### Synthetic development dataset (pipeline validation only — no physics meaning)
 
@@ -174,22 +179,28 @@ python -m hep_quant report
 pytest -q
 ```
 
-43+ tests across environment, data pipeline, models, training, PTQ, QAT, hardware
-abstraction, and full-pipeline reproducibility. Every gate in this project's build was
+90+ tests across environment, data pipeline, schema enforcement, models, training, PTQ/QAT (including equivalence of the study builder), hardware abstraction, reporting and full-pipeline reproducibility
+(a few network/CUDA-dependent tests are opt-in or auto-skipped). Every gate in this project's build was
 run twice (two-test rule) before moving to the next — see
 [reports/experiment_log.md](reports/experiment_log.md) for the full build log,
 including two environment-setup failures and how they were resolved.
 
 ## Reproducibility
 
-Single seed (42) controls Python/NumPy/PyTorch/CUDA and the data split. Every
-experiment record captures the exact git commit, library versions, and GPU used. See
-[reports/reproducibility_report.md](reports/reproducibility_report.md).
+The 21 primary runs are **frozen** (`experiments/results/frozen_phase2/`, SHA-256 manifest; verify with `python scripts/freeze_phase2.py verify`).
+Re-run any recorded experiment in isolation and compare metrics, weights and predictions:
+
+```bash
+python -m hep_quant reproduce --experiment EXP_S42_JET_INT4_QAT
+```
+
+Two such reproductions were bit-identical on the same device; INT4 PTQ is **not** reproducible across devices (CPU vs CUDA differ by 8 accuracy points at one seed), so the distribution over seeds is the reproducible quantity.
+Pinned environment: `requirements-lock.txt`, `environment.yml`; the CUDA availability timeline is in [environment_report.md](environment_report.md).
+Known provenance gap: the 21 frozen runs recorded commit `4e9b673` while the working tree was dirty (see the audit). See also [reports/reproducibility_report.md](reports/reproducibility_report.md).
 
 ## Limitations
 
-- Primary results are on a synthetic dataset, not real collision data (see dataset
-  card).
+- The dataset is simulated particle-level MC (not detector-level, not recorded data); one dataset, one 4,389-parameter MLP, 5 seeds.
 - Quantization is simulated (fake-quantization), not real bit-packed integer kernels
   — see [docs/quantization.md](docs/quantization.md).
 - No FPGA synthesis numbers (Vivado not installed in this environment) — see
@@ -198,9 +209,8 @@ experiment record captures the exact git commit, library versions, and GPU used.
 
 ## Future work
 
-- Integrate a real public HEP dataset (ATLAS/CMS Open Data) per the plan in the
-  dataset card.
-- Extend beyond the MLP to a small CNN / ParticleNet-style architecture.
+- Percentile/MSE calibration for INT4 PTQ; mixed precision under QAT.
+- A second architecture and dataset, only if a generality claim is wanted.
 - Run real hls4ml synthesis on a machine with Vivado installed, to replace the
   "unavailable"/"csim" hardware fields with actual LUT/DSP/BRAM/FF numbers.
 

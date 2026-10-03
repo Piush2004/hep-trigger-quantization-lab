@@ -93,3 +93,15 @@ latency benchmarking produces finite, positive values.
 
 *(Entries for QAT, hls4ml live-attempt, and the full experiment matrix are appended
 below as they're completed.)*
+
+## Phase 2 audit and Phase 3 (real-data strengthening)
+
+**Built:** dedicated dataset adapter with schema enforcement; real-data validation report; 21-run multi-seed matrix (frozen, hash-verified); results audit; hls4ml C-simulation sweep; reproducibility command; Phase 3 studies (calibration, component, per-unit, mixed precision, per-class/calibration/error analysis, numerical consistency, controlled latency); compute-matched FP32 fine-tune control; seeds 7/99; provenance fields; environment lock.
+
+**Failures and corrections (kept visible):**
+- *Premise errors in the prompts.* The audit prompt assumed the matrix had finished (it had not; 10 of 21 at the time) and the Phase 3 prompt assumed the Phase 2 audit and frozen results existed (they did not). The matrix was allowed to finish, then the audit and freeze were performed first.
+- *Unsupported claims in earlier documents, corrected after checking primary sources:* generator "Pythia8 + Delphes" (the dataset paper describes MadGraph5 + Pythia8 + FastJet, no detector simulation); size "~880,000" (830,000); "within 1 pp of the original hls4ml paper" (reference is arXiv:2003.06308 Table 5, 75%, different split/budget); attribution of the first CUDA loss to `wsl --shutdown` (the timeline does not support it).
+- *Single-seed overreach:* the earlier "INT4 PTQ −9.9 points, QAT recovers most" was one draw of a highly variable quantity (n = 5: ROC-AUC 0.835–0.909).
+- *Tooling mistakes caught by tests/inspection:* a row-builder bug that let a metric named `precision` overwrite the config `precision`; a CRLF/encoding mangling of one source line (repaired); the C-simulation accumulator override initially applied to only two of four Dense layers (fixed after inspecting the generated `parameters.h`); a misleading regex-based `sed` edit that silently did not apply (caught by re-reading the file).
+- *CUDA lost mid-run* (`EXP_C7_JET_FP32_FT`): job aborted, recovered with one WSL restart, resumed; the failed record was overwritten by the completed re-run (log: `experiments/logs/phase3_runs.log`).
+- *Provenance gap:* the 21 frozen runs recorded commit `4e9b673` while the tree was dirty; documented in the audit; `git_dirty` is now recorded.

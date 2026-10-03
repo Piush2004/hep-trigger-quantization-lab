@@ -89,8 +89,7 @@ C-simulation (`g++` also installed for the csim compile step) — see
 
 CUDA was confirmed working early in this project (GPU-accelerated training, a CUDA
 matmul, and a CUDA-resident hls4ml conversion all succeeded — see git history). Partway
-through the session, after running `wsl --shutdown` once while troubleshooting Docker
-Desktop, CUDA inside WSL2 stopped initializing (`torch.cuda.is_available()` →`False`,
+through the session (cause unestablished; see the corrected timeline below), CUDA inside WSL2 stopped initializing (`torch.cuda.is_available()` →`False`,
 `nvidia-smi` → `Failed to initialize NVML: N/A`, both inside WSL2 and on the Windows
 host). One bounded fix attempt was made (`wsl --shutdown` + retry), which did not
 resolve it. Per explicit instruction, further NVIDIA/WSL debugging was NOT pursued —
@@ -112,3 +111,16 @@ reboot has effects beyond this project.
   machine's constraints, not a hard project requirement.
 - See "CUDA availability regression" above — GPU acceleration is currently unavailable
   in this WSL2 instance; all experiments run correctly on CPU, just slower.
+
+## CUDA availability timeline (reconstructed from run records and command logs)
+
+| When (UTC) | CUDA in WSL2 | Evidence | Experiments affected |
+|---|---|---|---|
+| 2026-10-01 until ~01:30 | working | `nvidia-smi` (00:37) and a CUDA matmul succeeded in WSL2 — *after* the Docker-era `wsl --shutdown`; records show `cuda_available: true` | EXP_001 – EXP_008 ran on CUDA |
+| 2026-10-01, between EXP_008 (~01:30, CUDA) and EXP_009 (~02:50, CPU) – 2026-10-03 | **unavailable** | `torch.cuda.is_available()` false; `nvidia-smi`: `Failed to initialize NVML` in WSL2; one `wsl --shutdown` + retry did not restore it | EXP_009 – EXP_018 (including the entire first real-data matrix, seed 42) ran on **CPU** (`latency.device: cpu`) |
+| 2026-10-03 03:47 | **restored** | `nvidia-smi` and `torch.cuda.is_available()` true again. The Windows build number differed from the previous session (10.0.26200 → 10.0.26300), so an OS update/reboot probably intervened; the cause of the recovery was not established | all 21 frozen runs `EXP_S{42,123,2026}_*` ran on **CUDA** (RTX 5060 Laptop) |
+| 2026-10-03 ~05:30 | **lost again, mid-run** | `CUDA error: unknown error`; `nvidia-smi`: "GPU access blocked by the operating system"; the failed run (`EXP_C7_JET_FP32_FT`) was recorded as failed | recovered by one WSL restart (`wsl --shutdown`); the interrupted job was resumed (completed runs skipped) and `EXP_C7` re-run; all later runs on CUDA |
+
+Known cause: **not established.** An earlier statement in this repository's history attributed the first loss to a manual `wsl --shutdown`; the timeline does not support that (CUDA worked after that shutdown, and the second loss occurred without one). Both losses are consistent with an intermittent laptop-GPU/WSL passthrough problem; no cause was identified. Impact: (1) the first real-data matrix (EXP_010–EXP_018) is CPU and is kept separate from the CUDA multi-seed set;
+the two are never pooled (`scripts/phase3_tables.py` refuses to pool results from different devices); (2) the same seed gives slightly different results across devices, dramatically so for INT4 PTQ (accuracy 0.651 CPU vs 0.572 CUDA, seed 42); (3) timing measurements made while the machine was shared are flagged as indicative.
+Documented but not debugged further, per instruction.

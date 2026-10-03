@@ -89,3 +89,15 @@ resource/latency table. This project's abstraction (`HardwareBackend` /
 produces them — only the `HLSBackend.analyze()` body needs extending, nothing else in
 the pipeline (`runner.py`, `reporting.py`, Pareto analysis) needs to change, since they
 already treat hardware fields as nullable.
+
+## Provenance fields on every hardware result (Phase 3)
+
+Each `HardwareReport` now carries, besides `measurement_tier`: `source` (backend class), `tool`, `tool_version` and `configuration` (the settings the numbers depend on, e.g. reuse factor, precision, heuristic constants,
+whether the heuristic was validated against synthesis — it was not). Example for the heuristic backend: `measurement_tier: estimated`, `source: SoftwareEstimateBackend`, `tool: analytical heuristic (hep_quant)`.
+The 21 frozen Phase-2 records predate these fields; `reports/tables/hardware_summary.csv` fills them with N/A where the record cannot say.
+
+## C-simulation precision (audited)
+
+`hep_quant.hardware.hls_csim.csim_predict` documents and exposes the fixed-point mode: default is `ap_fixed<W,I>` for input, weights, biases, accumulator, layer outputs and result with the C++ defaults (truncation `AP_TRN`, wrap-around `AP_WRAP`);
+optional `rounding`/`saturation` and a separate wide accumulator. `reports/numerical_consistency.md` shows the mode changes results far more than the width does at 8–12 bits. C-simulation produces **no** latency, II or resources; those need HLS synthesis (not performed).
+

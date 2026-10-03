@@ -1,9 +1,60 @@
 # Research Report: HEP-Trigger Quantization Lab
 
-**Status:** results below are from the synthetic development dataset (see Section 7 /
-`reports/dataset_card.md`). This is a development-validation benchmark of the
-engineering pipeline, not a physics result — the real-dataset experiment is pending
-(Section 19).
+> **Status after Phase 3 — read this first.** Sections 1–21 below were written in earlier phases.
+> The real-dataset results now live in the section **"Real HEP Dataset Results (audited)"** immediately below, with full detail in
+> `reports/REAL_HEP_RESULTS.md` and `reports/phase2_results_audit.md`. Where older text conflicts with it, **the audited section governs.**
+> Superseded statements: (i) §14.2/§15.2/§18/§20 describe a single-seed (CPU) INT4 PTQ "9.9-point collapse that QAT mostly recovers" — the
+> multi-seed picture is a *seed- and device-dependent* collapse (ROC-AUC 0.835–0.909 over 5 seeds) and QAT's INT8/INT6 advantage is not separable from extra training
+> (compute-matched control); (ii) "within 1 pp of the published baseline" — the reference is arXiv:2003.06308 Table 5 (75%, different split/budget): *consistent with*, not a reproduction;
+> (iii) the dataset is particle-level MC (MadGraph5 + Pythia8 + FastJet, no detector simulation described), 830,000 jets — not "Pythia8+Delphes", not ~880k, not detector-level, and not JetSet;
+> (iv) "model size" is *theoretical weight storage*, not file size; (v) hardware numbers are **estimated** (software heuristic) or **simulated** (hls4ml C-simulation); **no FPGA synthesis was performed.**
+> The synthetic-dataset results (§14.1, §15.1) remain valid as pipeline validation only.
+
+## Real HEP Dataset Results (audited)
+
+Primary evidence: frozen snapshot `experiments/results/frozen_phase2/` (21 runs, seeds 42/123/2026, hash manifest). Extension: seeds 7 and 99 and five FP32 fine-tune controls (new IDs). Everything below is regenerated from artifacts (`reports/tables/`).
+
+### Experimental Matrix
+
+Dataset: OpenML `hls4ml_lhc_jets_hlf` v1, 100,000-jet stratified subsets, 70/15/15 split. Model: MLP 16-64-32-32-5 (4,389 parameters). Methods × precisions: FP32; PTQ and QAT at INT8/INT6/INT4 (simulated per-tensor min/max fake-quantization); plus the compute-matched FP32 fine-tune control. 5 seeds × 7 configurations + 5 controls, all on CUDA. Hardware backend for these runs: software estimate (`estimated`).
+
+### Multi-Seed Analysis
+
+n = 5 (descriptive; no significance tests). ROC-AUC (macro OvR) mean ± SD: FP32 0.9343 ± 0.0011; INT8 PTQ 0.9342 ± 0.0011; INT6 PTQ 0.9329 ± 0.0014; **INT4 PTQ 0.8819 ± 0.0308 (0.835–0.909)**; INT8 QAT 0.9348 ± 0.0017; INT6 QAT 0.9342 ± 0.0015; INT4 QAT 0.9246 ± 0.0018. Seeds 7 and 99 fell inside the earlier n = 3 range.
+
+### Quantization Results
+
+Paired ΔAUC vs same-seed FP32: INT8 PTQ −0.0001; INT6 PTQ −0.0014 (−0.15%); INT4 PTQ −0.052 (−5.6%, 95% t-CI ±0.037); INT4 QAT −0.0097 (−1.0%, ±0.0022). INT8 and INT6 are practically lossless; INT4 without QAT is unreliable.
+INT4 PTQ is also device-sensitive (same seed: accuracy 0.651 on CPU vs 0.572 on CUDA), calibration-size-sensitive (more calibration data → lower AUC), and concentrated in the first layer (L0 weights, A0 activation); it damages W/Z jets (Δrecall −0.25/−0.29) and probability calibration (ECE 0.009 → 0.089).
+
+### PTQ vs QAT
+
+QAT − PTQ ΔAUC: INT8 +0.0006 ± 0.0009 (4/5 seeds), INT6 +0.0013 ± 0.0005 (5/5), INT4 +0.043 ± 0.037 (5/5). **Compute-matched control:** extra epochs alone give +0.0004; QAT − control = +0.0001 ± 0.0007 (INT8), −0.0005 ± 0.0006 (INT6), −0.0101 ± 0.0023 (INT4). Conclusion: QAT's value is in rescuing INT4; its INT8/INT6 edge over PTQ is not attributable to quantization-awareness.
+A sensitivity-derived PTQ mixed-precision variant (L0 weights + A0 at INT8, rest INT4) reaches AUC 0.9278 ± 0.0037 (n = 3) at 3,172 B theoretical storage (INT4 2,660 B; INT8 4,788 B).
+
+### HLS Fixed-Point Validation
+
+hls4ml 1.3.0 C-simulation (tier **simulated**) of the seed-42 FP32 weights on 15,000 test jets, uniform `ap_fixed<W,6>`. Default mode (truncation, wrap-around, accumulator = W): accuracy 0.20 / 0.35 / 0.73 / 0.75 at W = 8 / 10 / 12 / ≥14. With rounding + saturation: ΔAUC −0.096 / −0.007 / −0.0005 / 0.000 and class agreement with FP32 0.596 / 0.940 / 0.987 / ≥0.996. The default-mode collapse is therefore mostly a rounding/overflow-mode artifact; the result characterizes the arithmetic, not an FPGA design. C-simulation provides **no latency, initiation interval or resources.** (`reports/numerical_consistency.md`.)
+
+### Hardware-Oriented Analysis
+
+Theoretical weight storage (analytical): 17,556 / 4,788 / 3,724 / 2,660 B for FP32 / INT8 / INT6 / INT4. LUT/DSP/BRAM/FF: **estimated** by a linear software heuristic (tier `estimated`, never validated against synthesis; it is linear in bit-width by construction). Software latency (controlled CPU and CUDA-event study): FP32 < PTQ < QAT on both devices and at batch 4096, i.e. emulation overhead, **not** hardware latency. **Physical FPGA synthesis not performed.** Real-time trigger relevance (latency, throughput, determinism, resources, precision) is discussed as motivation only; no measured number here represents a Level-1 trigger latency.
+
+### Pareto Analysis
+
+On (ROC-AUC ↑, theoretical weight storage ↓), seed-mean frontier among the seven n = 3 configurations: INT8 QAT, INT6 QAT, INT4 QAT. Because the AUC differences among FP32/INT8/INT6 are within seed noise, the informative statement is a *region*: INT8/INT6 give ≈FP32 AUC at 3.7×/4.7× less theoretical weight storage; INT4 PTQ gives 6.6× less at a large, unstable cost; INT4 QAT gives 6.6× less at −0.010 AUC. Estimated and simulated hardware quantities are plotted in separate, labelled panels and never combined.
+
+### Reproducibility
+
+Two isolated re-runs of `EXP_S42_JET_INT4_QAT` reproduce the frozen reference exactly (metrics, weights, predictions); `python -m hep_quant reproduce --experiment <ID>` automates this. Frozen files verified (84, unchanged). Cross-device INT4 PTQ differs (above). Provenance gap: the 21 frozen runs recorded commit `4e9b673` while the tree was dirty (code committed afterwards as `b44311d`); equivalence evidence is the exact reproduction. Environment: `requirements-lock.txt`, `environment.yml`; CUDA availability timeline in `environment_report.md`.
+
+### Limitations
+
+Simulated particle-level MC, one pT window, 16 high-level features; one small MLP; simple per-tensor min/max fake-quantization (inputs/logits/biases/accumulators unquantized; not bit-packed); n = 5 seeds (n = 3 for checkpoint studies); no FPGA synthesis; software latency only; untuned QAT recipe and naive PTQ calibration; no second dataset or architecture; INT4 PTQ values are not point-reproducible across devices.
+
+### Discussion
+
+The audit changed the picture from "INT4 collapses, QAT recovers" to a more careful one: INT4 PTQ with min/max calibration is an *unstable* method on this benchmark whose failure is tied to range setting and first-layer sensitivity, QAT stabilizes it at about −1% AUC, and QAT is not demonstrably better than extra FP32 training at INT8/INT6. The strongest defensible conclusion is limited to simulation, this simulated dataset and this MLP. Related work (`reports/related_work_gap.md`) shows that low-precision jet tagging with real synthesis is established; this project's contribution (`reports/contribution_statement.md`) is controlled multi-seed analysis and measurement discipline, not a new method or hardware result.
 
 ## 1. Abstract
 

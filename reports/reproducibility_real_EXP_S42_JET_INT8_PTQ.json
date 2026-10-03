@@ -1,0 +1,107 @@
+{
+  "experiment": "EXP_S42_JET_INT8_PTQ",
+  "metric_tolerance_abs": 0.005,
+  "repeats": [
+    {
+      "repeat": 1,
+      "metric_abs_diff": {
+        "accuracy": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "roc_auc": 0.0,
+        "pr_auc": 0.0
+      },
+      "metadata_identical": {
+        "config": true,
+        "seed": true,
+        "parameters": true,
+        "model_size": true,
+        "hardware_estimate_fields": true
+      },
+      "weights": {
+        "same_keys": true,
+        "max_abs_weight_diff": 0.0,
+        "worst_tensor": "net.0.weight"
+      },
+      "original_metrics": {
+        "accuracy": 0.7502666666666666,
+        "precision": 0.7667539351895372,
+        "recall": 0.749965848908542,
+        "f1": 0.7539779494636761,
+        "roc_auc": 0.9332747505315455,
+        "pr_auc": 0.8139407603564066
+      },
+      "rerun_metrics": {
+        "accuracy": 0.7502666666666666,
+        "precision": 0.7667539351895372,
+        "recall": 0.749965848908542,
+        "f1": 0.7539779494636761,
+        "roc_auc": 0.9332747505315455,
+        "pr_auc": 0.8139407603564066
+      },
+      "predictions": {
+        "n_test": 15000,
+        "class_agreement": 1.0,
+        "max_abs_probability_diff": 0.0,
+        "mean_abs_probability_diff": 0.0
+      },
+      "passed": true
+    },
+    {
+      "repeat": 2,
+      "metric_abs_diff": {
+        "accuracy": 0.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "roc_auc": 0.0,
+        "pr_auc": 0.0
+      },
+      "metadata_identical": {
+        "config": true,
+        "seed": true,
+        "parameters": true,
+        "model_size": true,
+        "hardware_estimate_fields": true
+      },
+      "weights": {
+        "same_keys": true,
+        "max_abs_weight_diff": 0.0,
+        "worst_tensor": "net.0.weight"
+      },
+      "original_metrics": {
+        "accuracy": 0.7502666666666666,
+        "precision": 0.7667539351895372,
+        "recall": 0.749965848908542,
+        "f1": 0.7539779494636761,
+        "roc_auc": 0.9332747505315455,
+        "pr_auc": 0.8139407603564066
+      },
+      "rerun_metrics": {
+        "accuracy": 0.7502666666666666,
+        "precision": 0.7667539351895372,
+        "recall": 0.749965848908542,
+        "f1": 0.7539779494636761,
+        "roc_auc": 0.9332747505315455,
+        "pr_auc": 0.8139407603564066
+      },
+      "predictions": {
+        "n_test": 15000,
+        "class_agreement": 1.0,
+        "max_abs_probability_diff": 0.0,
+        "mean_abs_probability_diff": 0.0
+      },
+      "passed": true
+    }
+  ],
+  "excluded_fields": [
+    "timestamp",
+    "git_commit",
+    "git_dirty",
+    "latency (wall-clock)"
+  ],
+  "original_device": "cuda",
+  "rerun_device": "cuda",
+  "overall": "PASS"
+}

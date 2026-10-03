@@ -172,6 +172,17 @@ measurement tier in its title/axes.
 
 ---
 
+# Addendum (Phase 3) — what later work changed in this audit's readings
+
+This audit's text and tables are left as written (the frozen evidence is untouched). Later work refined four statements:
+
+1. **§8 / §14-Q7 (C-simulation).** The 8–10-bit collapse in the default hls4ml mode is largely a truncation + wrap-around artifact: with rounding + saturation, `ap_fixed<12,6>` gives ΔROC-AUC −0.0005 and `<10,6>` −0.007 (`reports/numerical_consistency.md`). The audit's caveat (a) was correct and is now quantified.
+2. **§3–5 (QAT vs PTQ).** The "fairness caveat" was tested with a compute-matched FP32 fine-tune control (5 seeds): extra epochs alone give +0.0004 AUC; QAT INT8 − control = +0.0001 ± 0.0007; QAT INT6 − control = −0.0005 ± 0.0006; QAT INT4 − control = −0.0101 ± 0.0023. QAT's INT8/INT6 advantage over PTQ is therefore not attributable to quantization-awareness. See `reports/REAL_HEP_RESULTS.md`.
+3. **§3 (INT4 PTQ).** Two more seeds (7, 99) fell inside the n = 3 range (n = 5: ROC-AUC 0.8819 ± 0.0308, range 0.835–0.909). Checkpoint studies attribute part of the instability to calibration range and to the first layer (L0 weights, A0 activation).
+4. **§7 (latency).** A controlled study (CPU and CUDA events, batch 1 and 4096) confirms the FP32 < PTQ < QAT ordering on both devices and at batch 4096, so it is emulation overhead; batch-1 timings remain noisy.
+
+---
+
 # Generated tables (from the frozen snapshot)
 
 ## Per-configuration statistics (3 seeds)

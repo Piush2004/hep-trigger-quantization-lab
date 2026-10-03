@@ -127,3 +127,11 @@ def test_generate_report_aggregates_replicates_separately(tmp_path, monkeypatch)
         assert (figs / f"multiseed_accuracy_vs_{name}_hls4ml_lhc_jets_hlf.png").exists()
     # replicates must NOT also appear as individual single-run Pareto points
     assert not (tabs / "pareto_accuracy_vs_size_hls4ml_lhc_jets_hlf.csv").exists()
+
+
+def test_control_runs_are_treated_as_replicates():
+    import re
+
+    assert re.match(reporting.REPLICATE_PATTERN, "EXP_S7_JET_FP32")
+    assert re.match(reporting.REPLICATE_PATTERN, "EXP_C99_JET_FP32_FT")
+    assert not re.match(reporting.REPLICATE_PATTERN, "EXP_012_JET_FP32")

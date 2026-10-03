@@ -27,21 +27,38 @@ def csim_predict(
     int_bits: int = 6,
     reuse_factor: int = 1,
     output_dir: str | Path = "experiments/hls4ml_csim",
+    rounding: str | None = None,
+    saturation: str | None = None,
+    accum_bits: tuple[int, int] | None = None,
 ) -> np.ndarray:
-    """Return logits from the compiled ap_fixed<total_bits,int_bits> C simulation of `model`."""
+    """Return logits from the compiled ap_fixed<total_bits,int_bits[,rounding,saturation]> C simulation of `model`.
+
+    `rounding`/`saturation` (e.g. "AP_RND", "AP_SAT") are appended to every type; left as None the C++
+    ap_fixed defaults (truncation AP_TRN, wrap-around AP_WRAP) apply. `accum_bits=(W,I)` gives every
+    Dense layer a separate, wider accumulator type; None keeps accumulator = the default type.
+    """
     import hls4ml
 
     if shutil.which("g++") is None:
         raise RuntimeError("g++ not found: C-simulation cannot be compiled")
     cpu_model = copy.deepcopy(model).cpu().eval()
+    extra = "".join(f",{m}" for m in (rounding, saturation) if m) if (rounding or saturation) else ""
+    if saturation and not rounding:
+        extra = f",AP_TRN,{saturation}"  # ap_fixed template needs the rounding slot before the overflow slot
     config = hls4ml.utils.config_from_pytorch_model(
         cpu_model,
         input_shape=(cpu_model.input_dim,),
-        default_precision=f"ap_fixed<{total_bits},{int_bits}>",
+        default_precision=f"ap_fixed<{total_bits},{int_bits}{extra}>",
         default_reuse_factor=reuse_factor,
     )
+    if accum_bits:  # model-level override: one wider accumulator type for every layer
+        config["Model"]["Precision"] = {
+            "default": f"ap_fixed<{total_bits},{int_bits}{extra}>",
+            "accum": f"ap_fixed<{accum_bits[0]},{accum_bits[1]}{extra}>",
+        }
+    tag = f"w{total_bits}_i{int_bits}_{rounding or 'trn'}_{saturation or 'wrap'}_{'acc' + str(accum_bits[0]) if accum_bits else 'noacc'}"
     hls_model = hls4ml.converters.convert_from_pytorch_model(
-        cpu_model, hls_config=config, output_dir=str(Path(output_dir) / f"w{total_bits}_i{int_bits}"), backend="Vivado"
+        cpu_model, hls_config=config, output_dir=str(Path(output_dir) / tag), backend="Vivado"
     )
     hls_model.compile()
     return np.asarray(hls_model.predict(np.ascontiguousarray(X, dtype=np.float64)))

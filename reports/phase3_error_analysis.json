@@ -1,0 +1,132 @@
+{
+  "transitions_mean": {
+    "INT4_PTQ": {
+      "fp32_correct__quant_correct": 9031.6667,
+      "fp32_correct__quant_wrong": 2264.3333,
+      "fp32_wrong__quant_correct": 410.6667,
+      "fp32_wrong__quant_wrong": 3293.3333,
+      "prediction_agreement": 0.7908
+    },
+    "INT4_QAT": {
+      "fp32_correct__quant_correct": 10756.0,
+      "fp32_correct__quant_wrong": 540.0,
+      "fp32_wrong__quant_correct": 301.0,
+      "fp32_wrong__quant_wrong": 3403.0,
+      "prediction_agreement": 0.9241
+    },
+    "INT6_PTQ": {
+      "fp32_correct__quant_correct": 11127.3333,
+      "fp32_correct__quant_wrong": 168.6667,
+      "fp32_wrong__quant_correct": 133.3333,
+      "fp32_wrong__quant_wrong": 3570.6667,
+      "prediction_agreement": 0.9732
+    },
+    "INT6_QAT": {
+      "fp32_correct__quant_correct": 11113.0,
+      "fp32_correct__quant_wrong": 183.0,
+      "fp32_wrong__quant_correct": 182.6667,
+      "fp32_wrong__quant_wrong": 3521.3333,
+      "prediction_agreement": 0.9662
+    },
+    "INT8_PTQ": {
+      "fp32_correct__quant_correct": 11261.6667,
+      "fp32_correct__quant_wrong": 34.3333,
+      "fp32_wrong__quant_correct": 34.6667,
+      "fp32_wrong__quant_wrong": 3669.3333,
+      "prediction_agreement": 0.9938
+    },
+    "INT8_QAT": {
+      "fp32_correct__quant_correct": 11157.6667,
+      "fp32_correct__quant_wrong": 138.3333,
+      "fp32_wrong__quant_correct": 166.6667,
+      "fp32_wrong__quant_wrong": 3537.3333,
+      "prediction_agreement": 0.9722
+    }
+  },
+  "calibration_mean": {
+    "FP32": {
+      "brier_mean": 0.34842,
+      "brier_std": 0.00384,
+      "ece_top_label_15bins_mean": 0.00846,
+      "ece_top_label_15bins_std": 0.00148,
+      "mean_confidence_mean": 0.7522,
+      "mean_confidence_std": 0.00347,
+      "d_brier_mean": 0.0,
+      "d_brier_std": 0.0,
+      "d_ece_mean": 0.0,
+      "d_ece_std": 0.0
+    },
+    "INT4_PTQ": {
+      "brier_mean": 0.52473,
+      "brier_std": 0.08701,
+      "ece_top_label_15bins_mean": 0.08879,
+      "ece_top_label_15bins_std": 0.03724,
+      "mean_confidence_mean": 0.71618,
+      "mean_confidence_std": 0.04752,
+      "d_brier_mean": 0.17631,
+      "d_brier_std": 0.08331,
+      "d_ece_mean": 0.08033,
+      "d_ece_std": 0.0381
+    },
+    "INT4_QAT": {
+      "brier_mean": 0.37379,
+      "brier_std": 0.00574,
+      "ece_top_label_15bins_mean": 0.01486,
+      "ece_top_label_15bins_std": 0.00232,
+      "mean_confidence_mean": 0.74758,
+      "mean_confidence_std": 0.00279,
+      "d_brier_mean": 0.02537,
+      "d_brier_std": 0.00608,
+      "d_ece_mean": 0.0064,
+      "d_ece_std": 0.00152
+    },
+    "INT6_PTQ": {
+      "brier_mean": 0.35287,
+      "brier_std": 0.00565,
+      "ece_top_label_15bins_mean": 0.00931,
+      "ece_top_label_15bins_std": 0.00089,
+      "mean_confidence_mean": 0.75336,
+      "mean_confidence_std": 0.00389,
+      "d_brier_mean": 0.00445,
+      "d_brier_std": 0.00202,
+      "d_ece_mean": 0.00085,
+      "d_ece_std": 0.00173
+    },
+    "INT6_QAT": {
+      "brier_mean": 0.34909,
+      "brier_std": 0.00502,
+      "ece_top_label_15bins_mean": 0.00877,
+      "ece_top_label_15bins_std": 0.00142,
+      "mean_confidence_mean": 0.75416,
+      "mean_confidence_std": 0.00152,
+      "d_brier_mean": 0.00067,
+      "d_brier_std": 0.00159,
+      "d_ece_mean": 0.00031,
+      "d_ece_std": 0.00204
+    },
+    "INT8_PTQ": {
+      "brier_mean": 0.34853,
+      "brier_std": 0.00379,
+      "ece_top_label_15bins_mean": 0.00916,
+      "ece_top_label_15bins_std": 0.00155,
+      "mean_confidence_mean": 0.75186,
+      "mean_confidence_std": 0.00345,
+      "d_brier_mean": 0.00011,
+      "d_brier_std": 0.00016,
+      "d_ece_mean": 0.0007,
+      "d_ece_std": 0.00012
+    },
+    "INT8_QAT": {
+      "brier_mean": 0.34733,
+      "brier_std": 0.00586,
+      "ece_top_label_15bins_mean": 0.0094,
+      "ece_top_label_15bins_std": 0.00178,
+      "mean_confidence_mean": 0.75391,
+      "mean_confidence_std": 0.00297,
+      "d_brier_mean": -0.00109,
+      "d_brier_std": 0.00254,
+      "d_ece_mean": 0.00094,
+      "d_ece_std": 0.00166
+    }
+  }
+}

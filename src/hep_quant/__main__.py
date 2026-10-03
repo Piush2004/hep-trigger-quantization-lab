@@ -78,6 +78,19 @@ def cmd_report(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_reproduce(args: argparse.Namespace) -> int:
+    from hep_quant.experiments.reproduce import reproduce
+
+    report = reproduce(args.experiment, repeats=args.repeats, metric_tol=args.metric_tol)
+    summary = {
+        "experiment": report["experiment"],
+        "overall": report["overall"],
+        "max_abs_metric_diff_per_repeat": [max(r["metric_abs_diff"].values()) for r in report["repeats"]],
+    }
+    print(json.dumps(summary, indent=2))
+    return 0 if report["overall"] == "PASS" else 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="python -m hep_quant")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -109,6 +122,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("report", help="Aggregate all experiment results into tables/plots/report")
     p.set_defaults(func=cmd_report)
+
+    p = sub.add_parser("reproduce", help="Re-run a recorded experiment from its stored config in isolation and compare with the stored reference")
+    p.add_argument("--experiment", required=True)
+    p.add_argument("--repeats", type=int, default=2)
+    p.add_argument("--metric-tol", type=float, default=0.005, help="absolute tolerance per metric")
+    p.set_defaults(func=cmd_reproduce)
 
     return parser
 

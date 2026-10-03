@@ -1,0 +1,29 @@
+{
+  "torch": "2.11.0+cu128",
+  "devices": [
+    "cpu",
+    "cuda"
+  ],
+  "cpu_threads": 1,
+  "median_ratio_to_fp32_batch1": {
+    "cpu": {
+      "FP32": 1.0,
+      "INT8_PTQ": 2.5487839529709624,
+      "INT6_PTQ": 4.734688266064574,
+      "INT4_PTQ": 2.6560692315457937,
+      "INT8_QAT": 9.305519652146604,
+      "INT6_QAT": 10.285324020176398,
+      "INT4_QAT": 8.745634059564814
+    },
+    "cuda": {
+      "FP32": 1.0,
+      "INT8_PTQ": 3.953311092740774,
+      "INT6_PTQ": 4.148148243269635,
+      "INT4_PTQ": 4.002374803031641,
+      "INT8_QAT": 11.249186274326206,
+      "INT6_QAT": 10.692443638289847,
+      "INT4_QAT": 10.172699075151622
+    }
+  },
+  "protocol": "warmup 100/20, reps 1000/100, cpu perf_counter, cuda events + sync per rep"
+}

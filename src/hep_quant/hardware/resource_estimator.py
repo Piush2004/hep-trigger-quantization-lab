@@ -34,6 +34,12 @@ from dataclasses import dataclass, field
 
 import torch.nn as nn
 
+def _hep_quant_version() -> str:
+    import hep_quant
+
+    return hep_quant.__version__
+
+
 _BITS_MAP = {"fp32": 32, "int8": 8, "int6": 6, "int4": 4}
 
 
@@ -50,6 +56,10 @@ class HardwareReport:
     bram: int | None = None
     ff: int | None = None
     notes: list[str] = field(default_factory=list)
+    source: str = "none"  # which backend class produced the numbers
+    tool: str | None = None  # underlying tool (None for pure arithmetic / nothing)
+    tool_version: str | None = None
+    configuration: dict = field(default_factory=dict)  # settings the numbers depend on
 
     def to_dict(self) -> dict:
         return {
@@ -64,6 +74,10 @@ class HardwareReport:
             "bram": self.bram,
             "ff": self.ff,
             "notes": self.notes,
+            "source": self.source,
+            "tool": self.tool,
+            "tool_version": self.tool_version,
+            "configuration": self.configuration,
         }
 
 
@@ -93,6 +107,7 @@ class UnavailableBackend(HardwareBackend):
             resource_source=f"hls4ml unavailable: {self.reason}",
             measurement_tier="unavailable",
             notes=[self.reason],
+            source="UnavailableBackend",
         )
 
 
@@ -159,6 +174,8 @@ class HLSBackend(HardwareBackend):
                     resource_source="hls4ml conversion only (no C++ toolchain for csim; no Vivado for synthesis)",
                     measurement_tier="simulated",
                     notes=notes,
+                    source="HLSBackend", tool="hls4ml", tool_version=getattr(hls4ml, "__version__", None),
+                    configuration={"backend": "Vivado", "io_type": "io_parallel", "default_precision": precision_str, "reuse_factor": hardware_cfg.get("reuse_factor", 1), "stage": "conversion only"},
                 )
 
             hls_model.compile()
@@ -173,6 +190,8 @@ class HLSBackend(HardwareBackend):
                 resource_source="hls4ml C-simulation (no Vivado synthesis available for resource/latency numbers)",
                 measurement_tier="simulated",
                 notes=notes,
+                source="HLSBackend", tool="hls4ml", tool_version=getattr(hls4ml, "__version__", None),
+                configuration={"backend": "Vivado", "io_type": "io_parallel", "default_precision": precision_str, "reuse_factor": hardware_cfg.get("reuse_factor", 1), "stage": "C-simulation compile only (no synthesis)"},
             )
         except Exception as exc:  # hls4ml's conversion surface is broad; fail soft, don't crash the pipeline
             notes.append(f"hls4ml conversion/compile failed: {exc}")
@@ -250,6 +269,9 @@ class SoftwareEstimateBackend(HardwareBackend):
             bram=bram_estimate,
             ff=ff_estimate,
             notes=notes,
+            source="SoftwareEstimateBackend", tool="analytical heuristic (hep_quant)", tool_version=_hep_quant_version(),
+            configuration={"precision": precision, "bits": bits, "reuse_factor": reuse_factor, "lut_per_bit_per_dsp": self.LUT_PER_BIT_PER_DSP,
+                           "formula": "dsp=ceil(weights/reuse); lut=ceil(dsp*bits*c); ff=params*bits; bram=0", "validated_against_synthesis": False},
         )
 
 

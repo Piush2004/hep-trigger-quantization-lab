@@ -21,6 +21,7 @@ class ExperimentRecord:
     hardware: dict[str, Any] = field(default_factory=dict)
     status: str = "completed"
     error: str | None = None
+    provenance: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         return {
@@ -33,6 +34,7 @@ class ExperimentRecord:
             "hardware": self.hardware,
             "status": self.status,
             "error": self.error,
+            "provenance": self.provenance,
         }
 
 
@@ -44,6 +46,7 @@ def create_experiment_record(
     hardware: dict[str, Any] | None = None,
     status: str = "completed",
     error: str | None = None,
+    provenance: dict[str, Any] | None = None,
 ) -> ExperimentRecord:
     seed = config.get("seed", 42)
     repro = capture_reproducibility_info(seed)
@@ -57,6 +60,7 @@ def create_experiment_record(
         hardware=hardware or {},
         status=status,
         error=error,
+        provenance=provenance or {},
     )
 
 

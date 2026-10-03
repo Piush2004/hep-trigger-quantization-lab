@@ -1,0 +1,118 @@
+{
+  "experiment_id": "EXP_S99_JET_INT4_PTQ",
+  "timestamp": "2026-10-03T05:46:49.325554+00:00",
+  "config": {
+    "seed": 99,
+    "dataset": {
+      "name": "hls4ml_lhc_jets_hlf",
+      "path": null,
+      "subset_size": 100000,
+      "n_features": 16,
+      "n_samples": 20000,
+      "n_classes": 2,
+      "val_fraction": 0.15,
+      "test_fraction": 0.15,
+      "source": "hls4ml_jets",
+      "openml_name": "hls4ml_lhc_jets_hlf",
+      "openml_version": 1
+    },
+    "model": {
+      "type": "mlp",
+      "hidden_dims": [
+        64,
+        32,
+        32
+      ],
+      "dropout": 0.1,
+      "activation": "relu"
+    },
+    "training": {
+      "epochs": 30,
+      "batch_size": 1024,
+      "learning_rate": 0.001,
+      "weight_decay": 0.0001,
+      "early_stopping_patience": 6,
+      "device": "auto"
+    },
+    "quantization": {
+      "method": "ptq",
+      "precision": "int4",
+      "calibration_batches": 20
+    },
+    "hardware": {
+      "backend": "software_estimate",
+      "board": "pynq-z2",
+      "clock_period_ns": 5,
+      "reuse_factor": 1,
+      "strategy": "latency"
+    },
+    "experiment": {
+      "name": "jet_int4_ptq",
+      "id": "EXP_S99_JET_INT4_PTQ"
+    }
+  },
+  "reproducibility": {
+    "seed": 99,
+    "system": {
+      "python_version": "3.11.16 (main, Sep 29 2026, 14:59:26) [Clang 22.1.3 ]",
+      "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+      "processor": "",
+      "torch_version": "2.11.0+cu128",
+      "cuda_available": true,
+      "cuda_version": "12.8",
+      "gpu_name": "NVIDIA GeForce RTX 5060 Laptop GPU",
+      "git_commit": "e6fc7c2872b9d1bab01fca62a046c3c0c247ba6e",
+      "git_dirty": true
+    }
+  },
+  "metrics": {
+    "test": {
+      "accuracy": 0.6771333333333334,
+      "precision": 0.7101550986056748,
+      "recall": 0.677645756452068,
+      "f1": 0.6771479986024811,
+      "roc_auc": 0.90140705195525,
+      "pr_auc": 0.7348939299864692,
+      "averaging": "macro"
+    },
+    "model_size": {
+      "estimated_size_mb": 0.002536773681640625,
+      "total_params": 4389,
+      "is_estimated": true
+    },
+    "latency": {
+      "device": "cuda",
+      "mean_ms_per_sample": 1.8246662999990804,
+      "p95_ms": 2.6541493500474176
+    }
+  },
+  "model_info": {
+    "architecture": "mlp",
+    "hidden_dims": [
+      64,
+      32,
+      32
+    ],
+    "n_parameters": 4389,
+    "method": "ptq",
+    "precision": "int4"
+  },
+  "hardware": {
+    "backend": "software_estimate",
+    "status": "estimated",
+    "resource_source": "software heuristic estimate (parameter-count arithmetic, not hls4ml or Vivado)",
+    "measurement_tier": "estimated",
+    "latency_estimate_ns": null,
+    "initiation_interval": null,
+    "lut": 25536,
+    "dsp": 4256,
+    "bram": 0,
+    "ff": 17556,
+    "notes": [
+      "Heuristic: dsp=ceil(weight_params(4256)/reuse_factor(1)), lut=ceil(dsp*bits(4)*1.5), ff=total_params*bits, bram=0 (assumes a model small enough to avoid block RAM).",
+      "This is an analytical estimate, NOT hls4ml output and NOT a Vivado synthesis result \u2014 it exists so a resource ballpark is available even when hls4ml itself cannot be used, and must not be read as device-specific or validated against real synthesis."
+    ]
+  },
+  "status": "completed",
+  "error": null
+}

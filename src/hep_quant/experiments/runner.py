@@ -1,6 +1,7 @@
 """End-to-end experiment orchestration: data -> model -> train -> (quantize) -> evaluate -> record."""
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -108,6 +109,14 @@ def run_experiment(
             qat_cfg = {**training_cfg, "epochs": qat_epochs, "learning_rate": training_cfg.get("learning_rate", 0.001) * 0.1}
             trainer = Trainer(model, qat_cfg, ckpt_dir)
             history = trainer.fit(X_train, splits.y_train, X_val, splits.y_val)
+        elif method == "fp32_finetune":
+            # Compute-matched control for QAT: identical FP32 training, then the SAME extra
+            # fine-tuning schedule QAT receives (epochs, lr x0.1), but with no quantization.
+            trainer.fit(X_train, splits.y_train, X_val, splits.y_val)
+            ft_epochs = max(5, training_cfg.get("epochs", 40) // 4)
+            ft_cfg = {**training_cfg, "epochs": ft_epochs, "learning_rate": training_cfg.get("learning_rate", 0.001) * 0.1}
+            trainer = Trainer(model, ft_cfg, ckpt_dir)
+            history = trainer.fit(X_train, splits.y_train, X_val, splits.y_val)
         else:
             history = trainer.fit(X_train, splits.y_train, X_val, splits.y_val)
             if method == "ptq" and precision != "fp32":
@@ -180,6 +189,14 @@ def run_experiment(
             },
             hardware=hardware_report.to_dict(),
             status="completed",
+            provenance={
+                "dataset_source": source,
+                "dataset_version": dataset_cfg.get("openml_version"),
+                "dataset_subset_fingerprint_sha256_X": hashlib.sha256(np.ascontiguousarray(ds.X).tobytes()).hexdigest(),
+                "dataset_subset_n_samples": int(len(ds.y)),
+                "calibration_size": (min(quant_cfg.get("calibration_batches", 20) * training_cfg.get("batch_size", 512), len(X_train)) if method == "ptq" and precision != "fp32" else None),
+                "device": device,
+            },
         )
     except Exception as exc:
         logger.error(f"Experiment {experiment_id} failed: {exc}")
