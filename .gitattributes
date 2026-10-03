@@ -1,0 +1,2 @@
+# Frozen evidence: byte-exact, never line-ending-converted (SHA-256 manifest depends on it)
+experiments/results/frozen_phase2/** -text
