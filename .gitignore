@@ -36,3 +36,4 @@ Thumbs.db
 # secrets
 .env
 *.key
+hls4ml_csim/

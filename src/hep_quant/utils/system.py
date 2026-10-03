@@ -15,6 +15,7 @@ class SystemInfo:
     cuda_version: str | None
     gpu_name: str | None
     git_commit: str | None
+    git_dirty: bool | None = None  # True if tracked files had uncommitted changes when the run started
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -27,6 +28,16 @@ def get_git_commit() -> str | None:
         )
         if out.returncode == 0:
             return out.stdout.strip()
+    except (subprocess.SubprocessError, FileNotFoundError):
+        pass
+    return None
+
+
+def get_git_dirty() -> bool | None:
+    try:
+        out = subprocess.run(["git", "status", "--porcelain", "--untracked-files=no"], capture_output=True, text=True, timeout=10)
+        if out.returncode == 0:
+            return bool(out.stdout.strip())
     except (subprocess.SubprocessError, FileNotFoundError):
         pass
     return None
@@ -55,4 +66,5 @@ def get_system_info() -> SystemInfo:
         cuda_version=cuda_version,
         gpu_name=gpu_name,
         git_commit=get_git_commit(),
+        git_dirty=get_git_dirty(),
     )

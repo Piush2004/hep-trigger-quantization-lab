@@ -1,0 +1,78 @@
+"""hls4ml C-simulation accuracy under bit-accurate fixed-point arithmetic.
+
+This is the one hardware-oriented quantity obtainable without Vivado: hls4ml
+compiles the converted model to C++ with `ap_fixed<W,I>` types and
+`hls_model.predict` executes it bit-accurately on the host CPU. Reported with
+`measurement_tier="simulated"`. It does NOT yield latency, LUT/DSP/BRAM/FF
+(those need HLS synthesis, not performed), and it is a different quantization
+scheme from this project's calibrated uniform-affine fake-quantization (global
+fixed-point format, no per-layer calibration), so the two are not numerically
+interchangeable.
+"""
+from __future__ import annotations
+
+import copy
+import shutil
+import time
+from pathlib import Path
+
+import numpy as np
+import torch.nn as nn
+
+
+def csim_predict(
+    model: nn.Module,
+    X: np.ndarray,
+    total_bits: int,
+    int_bits: int = 6,
+    reuse_factor: int = 1,
+    output_dir: str | Path = "experiments/hls4ml_csim",
+) -> np.ndarray:
+    """Return logits from the compiled ap_fixed<total_bits,int_bits> C simulation of `model`."""
+    import hls4ml
+
+    if shutil.which("g++") is None:
+        raise RuntimeError("g++ not found: C-simulation cannot be compiled")
+    cpu_model = copy.deepcopy(model).cpu().eval()
+    config = hls4ml.utils.config_from_pytorch_model(
+        cpu_model,
+        input_shape=(cpu_model.input_dim,),
+        default_precision=f"ap_fixed<{total_bits},{int_bits}>",
+        default_reuse_factor=reuse_factor,
+    )
+    hls_model = hls4ml.converters.convert_from_pytorch_model(
+        cpu_model, hls_config=config, output_dir=str(Path(output_dir) / f"w{total_bits}_i{int_bits}"), backend="Vivado"
+    )
+    hls_model.compile()
+    return np.asarray(hls_model.predict(np.ascontiguousarray(X, dtype=np.float64)))
+
+
+def csim_accuracy_sweep(
+    model: nn.Module,
+    X: np.ndarray,
+    y: np.ndarray,
+    widths: list[int],
+    int_bits: int = 6,
+    reference_pred: np.ndarray | None = None,
+) -> list[dict]:
+    """Accuracy (and agreement with the floating-point model, if given) per fixed-point width."""
+    rows = []
+    for w in widths:
+        t0 = time.perf_counter()
+        logits = csim_predict(model, X, total_bits=w, int_bits=int_bits)
+        pred = logits.argmax(axis=1)
+        row = {
+            "ap_fixed": f"<{w},{int_bits}>",
+            "total_bits": w,
+            "int_bits": int_bits,
+            "frac_bits": w - int_bits,
+            "n_eval": int(len(y)),
+            "accuracy": float((pred == y).mean()),
+            "finite_outputs": bool(np.isfinite(logits).all()),
+            "wall_seconds_compile_and_predict": round(time.perf_counter() - t0, 1),
+            "measurement_tier": "simulated",
+        }
+        if reference_pred is not None:
+            row["agreement_with_fp32_predictions"] = float((pred == reference_pred).mean())
+        rows.append(row)
+    return rows

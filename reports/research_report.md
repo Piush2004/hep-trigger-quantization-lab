@@ -206,11 +206,11 @@ the same architecture.
 ### 14.2 Real dataset: hls4ml LHC jet tagging (the result that matters)
 
 Architecture `hidden_dims: [64, 32, 32]` (4,389 parameters) deliberately mirrors the
-reference dense network from the original hls4ml paper on this exact dataset, as a
-sanity check: the FP32 baseline below (74.95% accuracy) lands within 1 percentage
-point of that paper's own reported baseline for the same architecture on the same
-data, which is strong evidence the pipeline (data handling, training, evaluation) is
-implemented correctly — not just "runs without crashing."
+reference dense network used for this dataset in arXiv:2003.06308 (Ngadiuba et al., Table 5:
+16×64×32×32×5, floating point, accuracy 75%, per-class AUC 0.904–0.958). Our FP32 baseline
+(74.95% accuracy; macro one-vs-rest ROC-AUC 0.9335) is **consistent with** that reference. It is not
+a reproduction: the reference uses a 60/20/20 split of ~1M jets, lr 1e-4 and a different training budget,
+while we use a 100k-jet stratified subset with a 70/15/15 split (see `reports/REAL_HEP_RESULTS.md`).
 
 Staged validation (per the project's risk-management plan, run before the full matrix):
 

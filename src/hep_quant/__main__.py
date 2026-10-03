@@ -11,17 +11,32 @@ logger = get_logger("hep_quant.cli")
 
 
 def cmd_validate_data(args: argparse.Namespace) -> int:
-    from hep_quant.data.loader import load_dataset
-    from hep_quant.config import load_config
+    from hep_quant.config import apply_overrides, load_config
 
     cfg = load_config(args.config) if args.config else {"dataset": {}}
+    if args.override:
+        cfg = apply_overrides(cfg, args.override)
     dataset_cfg = cfg.get("dataset", {})
+    seed = cfg.get("seed", 42)
+
+    if dataset_cfg.get("source") == "hls4ml_jets":
+        from hep_quant.data.real_validation import validate_real_dataset, write_report
+
+        report = validate_real_dataset(dataset_cfg, seed=seed)
+        json_path, md_path = write_report(report, out_dir=args.output_dir, stem=args.stem)
+        print(json.dumps({k: report[k] for k in ("dataset", "status")}, indent=2))
+        print(f"Wrote {json_path} and {md_path}")
+        logger.info(f"Real dataset validation {report['status']}")
+        return 0 if report["status"] == "PASS" else 1
+
+    from hep_quant.data.loader import load_dataset
+
     ds = load_dataset(
         dataset_cfg.get("path"),
         n_samples=dataset_cfg.get("n_samples", 20000),
         n_features=dataset_cfg.get("n_features", 16),
         n_classes=dataset_cfg.get("n_classes", 2),
-        seed=cfg.get("seed", 42),
+        seed=seed,
     )
     report = ds.validate(raise_on_error=True)
     print(json.dumps(report.to_dict(), indent=2))
@@ -69,6 +84,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser("validate-data", help="Load and validate a dataset")
     p.add_argument("--config", default=None)
+    p.add_argument("--override", action="append", default=[], help="key.path=value")
+    p.add_argument("--output-dir", default="reports", help="where real-dataset validation reports are written")
+    p.add_argument("--stem", default="real_data_validation", help="report file stem for real-dataset validation")
     p.set_defaults(func=cmd_validate_data)
 
     p = sub.add_parser("train", help="Run an experiment (train, optionally quantize, evaluate)")

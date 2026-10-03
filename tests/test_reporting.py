@@ -17,7 +17,7 @@ def _fake_df(dataset: str, accuracies: list[float]) -> pd.DataFrame:
             "accuracy": accuracies,
             "f1": accuracies,
             "roc_auc": accuracies,
-            "model_size_mb": [0.05, 0.02, 0.015, 0.01][:n],
+            "theoretical_weight_storage_mb": [0.05, 0.02, 0.015, 0.01][:n],
             "inference_latency_ms": [0.5, 1.0, 1.0, 1.0][:n],
         }
     )
@@ -65,7 +65,7 @@ def test_staged_validation_runs_excluded_from_comparison_plots(tmp_path, monkeyp
             "accuracy": [0.55, 0.75, 0.75],
             "f1": [0.54, 0.75, 0.75],
             "roc_auc": [0.82, 0.93, 0.93],
-            "model_size_mb": [0.017, 0.017, 0.013],
+            "theoretical_weight_storage_mb": [0.017, 0.017, 0.013],
             "inference_latency_ms": [0.1, 0.1, 0.1],
         }
     )
@@ -82,3 +82,48 @@ def test_staged_validation_runs_excluded_from_comparison_plots(tmp_path, monkeyp
 
     pareto_csv = pd.read_csv(tables_dir / "pareto_accuracy_vs_size_hls4ml_lhc_jets_hlf.csv")
     assert "EXP_010_JET_VALIDATE_10K" not in pareto_csv["experiment_id"].values  # excluded from comparison
+
+
+def _replicate_df() -> pd.DataFrame:
+    rows = []
+    for seed, acc in [(42, 0.750), (123, 0.760), (2026, 0.740)]:
+        for prec, method, a, size in [("fp32", "none", acc, 0.0167), ("int4", "ptq", acc - 0.10, 0.0025), ("int4", "qat", acc - 0.02, 0.0025)]:
+            rows.append({
+                "experiment_id": f"EXP_S{seed}_JET_{prec.upper()}_{method.upper()}", "dataset": "hls4ml_lhc_jets_hlf",
+                "precision": prec, "method": method, "seed": seed, "subset_size": 100000, "parameters": 4389,
+                "accuracy": a, "f1": a, "roc_auc": a + 0.18, "pr_auc": a, "theoretical_weight_storage_mb": size,
+                "inference_latency_ms": 0.5, "inference_device": "cuda", "lut": 1000 * (4 if prec == "int4" else 32),
+                "dsp": 12000, "bram": 0, "ff": 10, "hardware_measurement_tier": "estimated",
+            })
+    return pd.DataFrame(rows)
+
+
+def test_summarize_seeds_mean_and_sample_std():
+    summary = reporting.summarize_seeds(_replicate_df())
+    fp32 = summary[(summary.precision == "fp32") & (summary.method == "none")].iloc[0]
+    assert fp32["n_seeds"] == 3
+    assert abs(fp32["accuracy_mean"] - 0.750) < 1e-12
+    assert abs(fp32["accuracy_std"] - 0.010) < 1e-12  # sample std (ddof=1) of 0.74/0.75/0.76
+    assert fp32["hardware_measurement_tier"] == "estimated"
+
+
+def test_summarize_seeds_single_seed_has_nan_std():
+    one = _replicate_df().query("seed == 42")
+    summary = reporting.summarize_seeds(one)
+    assert summary["accuracy_std"].isna().all()
+    assert "N/A" in reporting._summary_markdown(summary)
+
+
+def test_generate_report_aggregates_replicates_separately(tmp_path, monkeypatch):
+    df = _replicate_df()
+    for col in ("architecture", "recall", "precision_score", "latency_unit", "resource_source", "training_time_s", "git_commit", "dataset_version"):
+        df[col] = None
+    monkeypatch.setattr(reporting, "build_results_dataframe", lambda results_dir: df)
+    figs, tabs = tmp_path / "f", tmp_path / "t"
+    generate_report(results_dir="x", out_csv=str(tmp_path / "r.csv"), figures_dir=str(figs), tables_dir=str(tabs))
+
+    assert (tabs / "multiseed_summary_hls4ml_lhc_jets_hlf.csv").exists()
+    for name in ("precision", "size", "latency", "estimated_lut"):
+        assert (figs / f"multiseed_accuracy_vs_{name}_hls4ml_lhc_jets_hlf.png").exists()
+    # replicates must NOT also appear as individual single-run Pareto points
+    assert not (tabs / "pareto_accuracy_vs_size_hls4ml_lhc_jets_hlf.csv").exists()

@@ -94,9 +94,9 @@ before interpreting model-size or latency numbers.
 
 ### Real dataset: hls4ml LHC jet tagging (5-class) — the result that matters
 
-100,000-event experiment matrix. FP32 baseline (74.95% accuracy) lands within 1 pp of
-the original hls4ml paper's own published baseline for this exact architecture on this
-exact dataset — a strong sanity check that the pipeline is implemented correctly.
+100,000-event experiment matrix. FP32 baseline (74.95% accuracy) is consistent with the 75% reported
+for the same 16-64-32-32-5 architecture in arXiv:2003.06308 (Table 5; different split and training
+budget, so a sanity check rather than a reproduction).
 
 | Precision | Method | Accuracy | ROC-AUC (macro) | Model size (MB) |
 |---|---|---:|---:|---:|

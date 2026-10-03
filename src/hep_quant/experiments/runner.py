@@ -7,6 +7,7 @@ from pathlib import Path
 import numpy as np
 
 from hep_quant.config import apply_overrides, load_config
+from hep_quant.data.hls4ml_jets import load_hls4ml_jets
 from hep_quant.data.loader import load_dataset, load_openml
 from hep_quant.data.preprocessing import Preprocessor
 from hep_quant.data.splits import check_no_leakage, split_dataset
@@ -52,7 +53,9 @@ def run_experiment(
     try:
         dataset_cfg = cfg["dataset"]
         source = dataset_cfg.get("source", "synthetic")
-        if source == "openml":
+        if source == "hls4ml_jets":
+            ds = load_hls4ml_jets(subset_size=dataset_cfg.get("subset_size"), seed=seed)
+        elif source == "openml":
             ds = load_openml(
                 name=dataset_cfg.get("openml_name", "hls4ml_lhc_jets_hlf"),
                 version=dataset_cfg.get("openml_version", 1),

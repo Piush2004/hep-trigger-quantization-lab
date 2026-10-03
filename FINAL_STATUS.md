@@ -158,7 +158,7 @@ fixable with a full machine reboot, left to the user's discretion.
 
 **Primary (Phase 2):** OpenML `hls4ml_lhc_jets_hlf` — the hls4ml team's own published
 jet-tagging benchmark (16 features, 5 classes: gluon/quark/top/W/Z jets), Monte
-Carlo-simulated (Pythia8+Delphes), CC BY licensed, DOI 10.5281/zenodo.3602260. This is
+Carlo-simulated (MadGraph5+Pythia8+FastJet, no detector simulation described), CC BY licensed, DOI 10.5281/zenodo.3602260. This is
 **simulated** jet data, not recorded ATLAS/CMS detector data — see
 `reports/dataset_card.md`'s "What 'real' means here" for why that's the correct and
 standard thing for this kind of study, and why it's still meaningfully different from
@@ -171,9 +171,9 @@ Full specification, license, citation, and schema for both in `reports/dataset_c
 
 ## Results Available
 
-**Real dataset:** FP32 baseline 74.95% accuracy / 0.9335 ROC-AUC (within 1pp of the
-original hls4ml paper's own published baseline for this architecture — a strong
-correctness signal). INT8/INT6 PTQ essentially lossless. **INT4 PTQ collapses 9.9
+**Real dataset:** FP32 baseline 74.95% accuracy / 0.9335 ROC-AUC (consistent with the
+75% reported for the same architecture in arXiv:2003.06308 Table 5, which uses a different
+split and training budget — a sanity check, not a reproduction). INT8/INT6 PTQ essentially lossless. **INT4 PTQ collapses 9.9
 percentage points** (a genuine precision cliff). QAT recovers most of it (+7.8pp) but
 not completely (still -2.0pp vs FP32). All three QAT configs are Pareto-optimal on
 accuracy-vs-size; PTQ and FP32 are all dominated. Full discussion:

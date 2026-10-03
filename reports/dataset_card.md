@@ -11,7 +11,8 @@ failure, so this card is explicit about which is which:
 2. **hls4ml LHC jet-tagging dataset** (OpenML `hls4ml_lhc_jets_hlf`) — a real,
    citable, physics-motivated benchmark used by the actual HEP/FPGA-trigger research
    community. This is the dataset this project's physics-relevant conclusions should
-   be drawn from. **It is Monte Carlo-simulated jet data (Pythia8 + Delphes), not
+   be drawn from. **It is particle-level Monte Carlo jet data (MadGraph5 + Pythia8 +
+   FastJet; no detector simulation is described in the dataset paper), not
    recorded ATLAS/CMS detector data** — see "What 'real' means here" below; this
    distinction matters and is not the same thing as "synthetic" in sense #1 above.
 
@@ -28,7 +29,7 @@ failure, so this card is explicit about which is which:
 | Associated publication | ["Fast inference of deep neural networks in FPGAs for particle physics"](https://iopscience.iop.org/article/10.1088/1748-0221/13/07/P07027), JINST 13 (2018) P07027 — the original hls4ml paper |
 | License | CC BY (Creative Commons Attribution) — this card + `CITATION.cff` constitute the attribution |
 | Download mechanism | `sklearn.datasets.fetch_openml("hls4ml_lhc_jets_hlf", version=1)`, wrapped in `hep_quant.data.loader.load_openml`; cached locally under `data/raw/openml_cache/` (gitignored) |
-| Total instances | ~880,000 jets (per OpenML/Zenodo documentation) |
+| Total instances | **830,000 jets** in the OpenML copy (measured by this project; see `reports/real_data_validation.md`). An earlier version of this card said ~880,000, taken from a search snippet, which was wrong |
 | Features | 16 physics-motivated jet-substructure observables: `zlogz`, `c1_b0_mmdt`, `c1_b1_mmdt`, `c1_b2_mmdt`, `c2_b1_mmdt`, `c2_b2_mmdt`, `d2_b1_mmdt`, `d2_b2_mmdt`, `d2_a1_b1_mmdt`, `d2_a1_b2_mmdt`, `m2_b1_mmdt`, `m2_b2_mmdt`, `n2_b1_mmdt`, `n2_b2_mmdt`, `mass_mmdt`, `multiplicity` |
 | Target | `class`, 5-way: gluon (`g`), light quark (`q`), top quark (`t`), W boson (`w`), Z boson (`z`) |
 | Class balance | Approximately balanced across the 5 classes per the dataset's documentation; verified empirically for each subsample via `validate_dataset` (see `tests/test_openml_loader.py::test_load_openml_stratified_subsample_preserves_balance`) |
@@ -39,12 +40,15 @@ failure, so this card is explicit about which is which:
 
 ### What "real" means here
 
-This is **Monte Carlo-simulated** jet data (particles generated with Pythia8, detector
-response modeled with Delphes), not data recorded by a physical ATLAS/CMS detector.
+This is **particle-level Monte Carlo** jet data: parton-level events from MadGraph5 (LO, v2.3.1),
+showered with Pythia8 (v8.212, Monash 2013 tune, with underlying event), jets clustered with FastJet
+anti-kT R=0.8, jet pT window 0.8–1.6 TeV (arXiv:1804.06913, "Input generation and features"). The paper
+describes no detector simulation. It is not data recorded by a physical ATLAS/CMS detector. (An earlier
+version of this card said "Pythia8 + Delphes"; Delphes is not mentioned in the source.)
 This is the correct and standard thing for this kind of study: jet-flavor ground truth
 (is this jet "really" from a top quark vs. a gluon?) is not directly observable in
 recorded collision data at all — it can only be established via simulation truth-
-matching. The real HEP/FPGA-trigger literature (including the original hls4ml papers)
+matching. The real HEP/FPGA-trigger literature (including the hls4ml papers)
 uses exactly this kind of simulated-with-truth-labels dataset for this reason. Calling
 it "real" (as opposed to this project's own `make_classification`-based synthetic
 dataset) means: produced by the actual particle-physics simulation community, with

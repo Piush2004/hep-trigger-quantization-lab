@@ -117,7 +117,7 @@ def load_openml(
 
     Beyond sklearn's own raw-file cache, the full parsed array is cached as a
     `.npz` under `data_home` after the first call: `fetch_openml`'s ARFF
-    parser takes ~2-3 minutes for this ~880k-row dataset on every call (it
+    parser takes ~2-3 minutes for this ~830k-row dataset on every call (it
     does not cache the parsed result, only the raw download), which would
     otherwise be paid repeatedly across this project's staged 10k/50k/100k+
     experiment runs that all load the same underlying dataset at different
