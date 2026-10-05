@@ -10,6 +10,41 @@
 > (iv) "model size" is *theoretical weight storage*, not file size; (v) hardware numbers are **estimated** (software heuristic) or **simulated** (hls4ml C-simulation); **no FPGA synthesis was performed.**
 > The synthetic-dataset results (§14.1, §15.1) remain valid as pipeline validation only.
 
+### Section map (28-part paper structure → where the content is)
+
+The report was not renumbered (that would risk resurrecting superseded single-seed text); this table maps the standard paper structure to the authoritative location.
+
+| # | Paper section | Location |
+|---|---|---|
+| 1 | Abstract | §1 (older; the audited section below governs) |
+| 2 | Introduction | §2 |
+| 3 | Motivation | §3 |
+| 4 | Related work | `reports/related_work_gap.md` (abstract-level survey) |
+| 5 | Problem statement | §4 |
+| 6 | Research questions | §5 |
+| 7 | Contribution statement | `reports/contribution_statement.md` (no novelty claim) |
+| 8 | Background | §6 |
+| 9 | Dataset | §7, `dataset_selection.md`, `dataset_schema.md`, `real_data_validation.md` |
+| 10 | Data integrity | `real_data_validation.md`, `phase2_results_audit.md` |
+| 11 | Methodology | §8 |
+| 12 | Baseline architecture | §9 |
+| 13 | Quantization methodology | §10, `docs/quantization.md` |
+| 14 | QAT methodology | §11 (plus compute-matched control, audited section) |
+| 15 | Hardware-aware evaluation | §12, `docs/hardware.md` |
+| 16 | Experimental setup | §13, `environment_report.md`, `phase3_experiment_plan.md` |
+| 17 | Statistical methodology | audited section "Multi-Seed Analysis"; `reports/tables/seed_statistics.csv` |
+| 18 | Results | audited section, §14.2, `REAL_HEP_RESULTS.md` |
+| 19 | PTQ vs QAT | audited section "PTQ vs QAT"; `reports/tables/qat_vs_ptq.csv` |
+| 20 | Model size audit | `reports/tables/phase2_model_size_audit.csv` (serialized checkpoint bytes vs theoretical storage) |
+| 21 | Latency audit | `reports/tables/phase3_latency_study.csv` |
+| 22 | hls4ml / numerical consistency | `numerical_consistency.md`, `hls_csim_accuracy.md` |
+| 23 | Error analysis | `reports/tables/phase3_per_class_delta.csv`, `phase3_per_class_int4.png` |
+| 24 | Pareto analysis | §15, audited section "Pareto Analysis" |
+| 25 | Reproducibility | §16, `reproducibility_real_*.md` |
+| 26 | Limitations / threats to validity | §17, audited section "Limitations", `reviewer_checklist.md` |
+| 27 | Discussion / future work | §18–§19 (§18 partly superseded; see notice above) |
+| 28 | Conclusion / references | §20–§21 (§20 describes the synthetic dataset only) |
+
 ## Real HEP Dataset Results (audited)
 
 Primary evidence: frozen snapshot `experiments/results/frozen_phase2/` (21 runs, seeds 42/123/2026, hash manifest). Extension: seeds 7 and 99 and five FP32 fine-tune controls (new IDs). Everything below is regenerated from artifacts (`reports/tables/`).

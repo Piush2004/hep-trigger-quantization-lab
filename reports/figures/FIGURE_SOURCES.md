@@ -2,6 +2,7 @@
 
 Every figure is produced by a script from experiment artifacts; the table(s) it plots are saved next to it in `reports/tables/`.
 The un-prefixed names below are the final figure set (identical copies of the `phase2_fig*` files: frozen n = 3 seeds, seed-42 ROC curves).
+The numbered files `01_roc_curves.png` ... `08_pareto_frontier.png` are byte-identical copies of the un-prefixed names (same order: ROC, AUC by precision, degradation, QAT vs PTQ, storage, latency, hardware, Pareto). They show the frozen n = 3 seeds; the n = 5 aggregate is in `phase3_auc_by_config_all_seeds.png` and `reports/tables/seed_statistics.csv`.
 Phase 3 figures (n = 5 seeds, studies) have their own names.
 
 | Figure | Script | Source data |

@@ -35,7 +35,7 @@ QAT is stable at INT4 (ΔAUC −0.0097, −1.0%). QAT − PTQ: +0.0006 (INT8, 4/
 
 ## Hardware findings
 
-Theoretical weight storage (analytical, not file size): 17,556 / 4,788 / 3,724 / 2,660 B (FP32/INT8/INT6/INT4). LUT/DSP/BRAM/FF: **estimated** by a linear software heuristic, never validated against synthesis. Software latency (controlled CPU and CUDA-event study) rises FP32 → PTQ → QAT on both devices and at batch 4096: emulation overhead, not hardware latency. **Physical FPGA synthesis not performed (Vivado/Vitis not installed). No measured hardware number exists.**
+Theoretical weight storage (analytical, not file size): 17,556 / 4,788 / 3,724 / 2,660 B (FP32/INT8/INT6/INT4). LUT/DSP/BRAM/FF: **estimated** by a linear software heuristic, never validated against synthesis. Software latency (controlled CPU and CUDA-event study) rises FP32 → PTQ → QAT on both devices and at batch 4096: emulation overhead, not hardware latency. **Physical FPGA synthesis not performed. A toolchain check on 2026-10-05 (WSL PATH, standard Xilinx/Intel install dirs in WSL and Windows) found no Vivado, Vitis HLS, Quartus or similar; only g++ (used for hls4ml C-simulation). No measured hardware number exists.**
 
 ## hls4ml findings
 
@@ -54,6 +54,8 @@ Provenance gap: the 21 frozen runs recorded commit `4e9b673` while the working t
 ## Tests
 
 `pytest -q`: **92 passed, 4 skipped** on run 1 and **92 passed, 4 skipped** on run 2 (the 4 skips are opt-in network tests). Report-generation pipeline executed afterwards; frozen snapshot re-verified (84 files, 0 changed). `python -m hep_quant reproduce` exercised on `EXP_S42_JET_INT8_PTQ` (PASS, bit-identical, 2 repeats).
+
+Re-check on 2026-10-05 (docs-only changes since): **91 passed, 5 skipped** on two consecutive runs. The extra skip versus 92/4 is `tests/test_hardware.py:120` (GPU-model conversion), skipped because CUDA was again unavailable in WSL (`torch.cuda.is_available()` = False; cause still not established). Frozen snapshot re-verified: 84 files, 0 changed.
 
 ## Limitations
 
