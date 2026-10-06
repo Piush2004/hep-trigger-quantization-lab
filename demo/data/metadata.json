@@ -1,0 +1,46 @@
+{
+  "research_commit": "970f44a",
+  "dataset": {
+    "name": "OpenML hls4ml_lhc_jets_hlf v1",
+    "doi": "10.5281/zenodo.3602260",
+    "licence": "CC BY 4.0",
+    "jets": 830000,
+    "features": 16,
+    "classes": [
+      "g",
+      "q",
+      "t",
+      "W",
+      "Z"
+    ],
+    "nature": "public simulated particle-level Monte Carlo; not detector data",
+    "fingerprint_sha256_X": "b2863e6c92578c774dc4b677f88a8f054906226197e2ade5a938d3f2531f096c"
+  },
+  "seeds": [
+    42,
+    123,
+    2026,
+    7,
+    99
+  ],
+  "split": "70/15/15 stratified, seed-controlled; 100,000-jet subset",
+  "devices": {
+    "primary_frozen": "CUDA-era records (seeds 42/123/2026 frozen; 7/99 as recorded)",
+    "architecture_rerun": "CPU (Phase 6, both architectures)",
+    "calibration": "CPU (Phase 4, architecture A)",
+    "hls4ml": "CPU, C-simulation"
+  },
+  "evidence_tiers": {
+    "MEASURED": "PyTorch evaluation on held-out test split",
+    "SIMULATED": "hls4ml C-simulation (fixed-point arithmetic, no hardware)",
+    "ESTIMATED": "software hardware-resource heuristic (not validated by synthesis)",
+    "NOT AVAILABLE": "HLS synthesis and physical FPGA measurement (no tool or device)"
+  },
+  "storage_definition": "theoretical weight storage in bytes (analytical); checkpoints are float32; not file size",
+  "not_available": [
+    "HLS synthesis (Vivado/Vitis/Quartus not installed)",
+    "physical FPGA measurement",
+    "latency on hardware",
+    "power or energy"
+  ]
+}

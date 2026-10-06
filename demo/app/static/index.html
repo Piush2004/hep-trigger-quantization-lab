@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HEP-Trigger Quantization Lab · Result explorer</title>
+  <meta name="description" content="Frozen research results: quantization of a small neural network for simulated HEP jet classification. Measured, simulated and estimated evidence kept separate.">
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js" defer></script>
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="#top">HEP-Trigger <span>Quantization Lab</span></a>
+  <nav>
+    <a href="#results">Results</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#hardware">Hardware</a>
+    <a href="#methodology">Methodology</a>
+    <a href="#reproducibility">Reproducibility</a>
+    <a href="#research">Research</a>
+    <a id="nav-github" class="ext" href="#" hidden>GitHub</a>
+  </nav>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <p class="eyebrow">Reproducible benchmark · research release</p>
+    <h1>HEP-Trigger Quantization Lab</h1>
+    <p class="lede">Exploring how aggressively neural networks for HEP jet classification can be quantized before physics performance breaks down.</p>
+    <div class="actions">
+      <a class="btn primary" href="#results">Launch interactive explorer</a>
+      <a class="btn" href="#research">Read the research</a>
+      <a class="btn" id="hero-github" href="#" hidden>GitHub</a>
+    </div>
+    <ul class="credibility" id="credibility">
+      <li>830K simulated jets</li><li>16 features</li><li>5 seeds</li><li>2 MLP architectures</li><li>PTQ + QAT</li><li>hls4ml C-simulation</li>
+    </ul>
+    <div class="caution">
+      <strong>Simulated public dataset.</strong> Not detector data. No FPGA synthesis or physical measurement was performed.
+      Hardware resource figures are estimates. <span class="badge na">HLS synthesis not available in experimental environment</span>
+    </div>
+  </section>
+
+  <section id="results" class="panel">
+    <header class="section-head">
+      <p class="eyebrow">01 · Main result</p>
+      <h2>Accuracy vs theoretical weight storage</h2>
+      <p class="muted">Test macro ROC-AUC, mean ± SD over five seeds, against analytical weight storage (bytes, log scale). Hover for values.</p>
+    </header>
+    <div class="chart-wrap tall"><div id="chart-main" class="chart"></div></div>
+    <div class="callout" id="headline"></div>
+    <p class="fineprint">Storage is theoretical (weights at their bit-width, biases at 4 bytes); checkpoints are float32 and no packed artifact exists. Primary architecture rows are the CUDA-era frozen records.</p>
+  </section>
+
+  <section class="panel">
+    <header class="section-head">
+      <p class="eyebrow">02 · Precision explorer</p>
+      <h2>Inspect one configuration</h2>
+    </header>
+    <div class="controls">
+      <div class="ctrl"><span class="ctrl-label">Precision</span><div class="seg" id="seg-precision"></div></div>
+      <div class="ctrl"><span class="ctrl-label">Method</span><div class="seg" id="seg-method"></div></div>
+    </div>
+    <div class="explorer">
+      <dl class="metrics" id="metrics"></dl>
+      <div class="chart-wrap"><div id="chart-seeds" class="chart"></div></div>
+    </div>
+    <p class="fineprint" id="explorer-note"></p>
+  </section>
+
+  <section class="panel">
+    <header class="section-head">
+      <p class="eyebrow">03 · PTQ vs QAT</p>
+      <h2>Quantization-aware training recovers most of the INT4 loss</h2>
+    </header>
+    <div class="chart-wrap"><div id="chart-ptq-qat" class="chart"></div></div>
+    <div class="callout" id="recovery"></div>
+  </section>
+
+  <section id="architecture" class="panel">
+    <header class="section-head">
+      <p class="eyebrow">04 · Architecture generalization</p>
+      <h2>Same pattern across two MLPs</h2>
+      <p class="muted">Architecture A (CUDA-era and CPU) and Architecture B (CPU), side by side. Devices are not merged.</p>
+    </header>
+    <div class="controls">
+      <div class="ctrl"><span class="ctrl-label">Configuration</span>
+        <select id="sel-arch-config" class="select"></select>
+      </div>
+    </div>
+    <div class="arch-grid" id="arch-grid"></div>
+    <div class="caveat" id="arch-caveat"></div>
+  </section>
+
+  <section class="panel">
+    <header class="section-head">
+      <p class="eyebrow">05 · Calibration sensitivity</p>
+      <h2>INT4 PTQ depends on the calibration sample size</h2>
+      <p class="muted">Architecture A, CPU, min/max calibration. Mean ± SD over seeds × draws. The model seed is the larger source of variation.</p>
+    </header>
+    <div class="chart-wrap"><div id="chart-calib" class="chart"></div></div>
+    <p class="fineprint">Observed through the activation range (A0 upper bound widens and the step grows); clipping is near zero under min/max.</p>
+  </section>
+
+  <section id="hardware" class="panel">
+    <header class="section-head">
+      <p class="eyebrow">06 · Hardware evidence</p>
+      <h2>From PyTorch to an FPGA, with each stage labelled</h2>
+    </header>
+    <ol class="pipeline" id="pipeline"></ol>
+    <div class="chart-wrap"><div id="chart-hls" class="chart"></div></div>
+    <p class="fineprint">C-simulation (SIMULATED) reproduces fixed-point arithmetic only. It gives no latency, initiation interval or resource use. Narrow-width collapse under default truncation and wrap is largely removed by rounding and saturation; the individual contributions were not separated.</p>
+  </section>
+
+  <section id="methodology" class="panel">
+    <header class="section-head">
+      <p class="eyebrow">07 · Methodology</p>
+      <h2>How the numbers were produced</h2>
+    </header>
+    <div class="prose">
+      <ul>
+        <li><strong>Dataset.</strong> OpenML <code>hls4ml_lhc_jets_hlf</code> v1 (Zenodo 10.5281/zenodo.3602260, CC BY 4.0): 830,000 jets, 16 high-level features, 5 classes. Particle-level Monte Carlo; not detector data.</li>
+        <li><strong>Split.</strong> 100,000-jet stratified subset; 70/15/15 train/validation/test; seed-controlled.</li>
+        <li><strong>Quantization.</strong> Simulated uniform affine (fake) quantization of Linear weights and hidden activations; PTQ calibrated on 20,480 training jets; QAT is 7 fine-tuning epochs at 0.1× learning rate.</li>
+        <li><strong>Selection.</strong> No test-set information is used for any choice. The earlier mixed-precision result selected on test data is excluded from every public chart.</li>
+        <li><strong>Statistics.</strong> Five seeds; intervals are descriptive t-intervals; no significance test is claimed.</li>
+      </ul>
+    </div>
+    <div class="legend-tiers" id="tier-legend"></div>
+  </section>
+
+  <section id="reproducibility" class="panel">
+    <header class="section-head">
+      <p class="eyebrow">08 · Reproducibility</p>
+      <h2>Reproduce from the repository</h2>
+    </header>
+    <div class="prose">
+      <ul>
+        <li>Research results are frozen at commit <code>970f44a</code> on the research branch.</li>
+        <li>Full instructions, dataset fingerprints and commands: <code>docs/REPRODUCIBILITY.md</code>.</li>
+        <li>Two independent runs of the gates and of the architecture experiment produced identical results; the full test suite passes (94 passed, 5 skipped).</li>
+        <li>The CPU/CUDA device caveat for architecture A is documented in the repository and above.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="research" class="panel">
+    <header class="section-head">
+      <p class="eyebrow">09 · Research</p>
+      <h2>Findings and limits</h2>
+    </header>
+    <div class="findings">
+      <article><h3>What the evidence supports</h3>
+        <ul>
+          <li>INT8 PTQ is practically lossless against FP32.</li>
+          <li>INT6 PTQ costs about 0.001 ROC-AUC.</li>
+          <li>INT4 PTQ degrades substantially in both architectures; INT4 QAT recovers most of the loss.</li>
+          <li>No evaluated mixed-precision layout beat uniform INT6 PTQ under the 3,724 B constraint.</li>
+        </ul></article>
+      <article><h3>What it does not support</h3>
+        <ul>
+          <li>Any claim about detector data, trigger efficiency or physics operating points.</li>
+          <li>Any FPGA resource, latency or physical measurement.</li>
+          <li>Device dependence as an established mechanism (observational only).</li>
+          <li>Generalization beyond two small MLPs on one simulated dataset.</li>
+        </ul></article>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <p>Independent research project. Not an official or CERN-affiliated project. Visualization of frozen results; no training runs at request time.</p>
+</footer>
+</body>
+</html>
