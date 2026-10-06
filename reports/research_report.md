@@ -1,5 +1,17 @@
 # Research Report: HEP-Trigger Quantization Lab
 
+## Final status (read first)
+
+Final evidence is in `reports/final_results.md` (summary), `reports/tables/final_results.csv` (canonical table), `reports/final_statistical_audit.md` (statistics), `reports/phase7_hls_numerical_validation.md` (hls4ml numerical validation), `reports/hostile_peer_review.md` (review) and `docs/REPRODUCIBILITY.md` (reproduction). The sections below predate some of these; where they conflict, the final documents govern.
+
+Summary of the final evidence, all on one simulated public dataset (830,000 jets, 100,000-jet subset) and two small MLPs:
+- INT8 PTQ is practically lossless (ΔROC-AUC ≈ 0.0001). INT6 PTQ costs about 0.001–0.0014.
+- INT4 PTQ degrades substantially (−0.026 to −0.052 ROC-AUC) with large seed-dependent spread on the primary architecture; INT4 QAT recovers about 74–79% of the loss in both architectures.
+- The INT4 loss magnitude and spread depend on device (CPU vs CUDA) and on seed; calibration size acts through the activation range.
+- Mixed precision did not beat uniform INT6 PTQ under the 3,724 B constraint (validation-selected layout, Phase 5B). The earlier 0.9278 result was selected on test data and is excluded.
+- hls4ml C-simulation (SIMULATED) shows that fixed-point arithmetic configuration changes numerical fidelity at narrow widths; rounding with saturation removes most of the collapse at W = 8–10. The individual contributions of rounding and saturation were not separated.
+- No HLS synthesis and no physical FPGA measurement is available. HLS SYNTHESIS NOT AVAILABLE IN EXPERIMENTAL ENVIRONMENT. All hardware resource numbers are ESTIMATED.
+
 > **Status after Phase 3 — read this first.** Sections 1–21 below were written in earlier phases.
 > The real-dataset results now live in the section **"Real HEP Dataset Results (audited)"** immediately below, with full detail in
 > `reports/REAL_HEP_RESULTS.md` and `reports/phase2_results_audit.md`. Where older text conflicts with it, **the audited section governs.**
@@ -65,7 +77,7 @@ INT4 PTQ is also device-sensitive (same seed: accuracy 0.651 on CPU vs 0.572 on 
 ### PTQ vs QAT
 
 QAT − PTQ ΔAUC: INT8 +0.0006 ± 0.0009 (4/5 seeds), INT6 +0.0013 ± 0.0005 (5/5), INT4 +0.043 ± 0.037 (5/5). **Compute-matched control:** extra epochs alone give +0.0004; QAT − control = +0.0001 ± 0.0007 (INT8), −0.0005 ± 0.0006 (INT6), −0.0101 ± 0.0023 (INT4). Conclusion: QAT's value is in rescuing INT4; its INT8/INT6 edge over PTQ is not attributable to quantization-awareness.
-A sensitivity-derived PTQ mixed-precision variant (L0 weights + A0 at INT8, rest INT4) reaches AUC 0.9278 ± 0.0037 (n = 3) at 3,172 B theoretical storage (INT4 2,660 B; INT8 4,788 B).
+**Exploratory, excluded from confirmatory analysis (TEST_SET_SELECTED / BIASED).** A mixed-precision variant (L0 weights + A0 at INT8, rest INT4) reached AUC 0.9278 ± 0.0037 (n = 3) at 3,172 B theoretical storage, but its layout was chosen using test-split ROC-AUC, so the figure is optimistic. See `reports/exploratory_mixed_precision_TEST_SET_SELECTED_BIASED.md`. The validation-selected replacement is in `reports/phase5_mixed_precision_gate.md`.
 
 ### HLS Fixed-Point Validation
 

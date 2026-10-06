@@ -1,0 +1,55 @@
+{
+  "rule": "maximise mean validation macro ROC-AUC over 5 seeds among mixed layouts; tie-break fewer INT8 units, then name",
+  "selected": "L0L1A0_int8",
+  "selected_mean_val_auc": 0.9272433598575315,
+  "ranking": [
+    {
+      "candidate": "L0L1A0_int8",
+      "mean_val_auc": 0.9272433598575315,
+      "int8_units": 3
+    },
+    {
+      "candidate": "L0A0_int8",
+      "mean_val_auc": 0.9264868628048115,
+      "int8_units": 2
+    },
+    {
+      "candidate": "A0_int8",
+      "mean_val_auc": 0.907774774879434,
+      "int8_units": 1
+    },
+    {
+      "candidate": "A1_int8",
+      "mean_val_auc": 0.8920775445623585,
+      "int8_units": 1
+    },
+    {
+      "candidate": "A2_int8",
+      "mean_val_auc": 0.8820827385039335,
+      "int8_units": 1
+    },
+    {
+      "candidate": "L3_int8",
+      "mean_val_auc": 0.881730105627082,
+      "int8_units": 1
+    },
+    {
+      "candidate": "L1_int8",
+      "mean_val_auc": 0.8803828342133067,
+      "int8_units": 1
+    },
+    {
+      "candidate": "L2_int8",
+      "mean_val_auc": 0.8801787584948351,
+      "int8_units": 1
+    },
+    {
+      "candidate": "L0_int8",
+      "mean_val_auc": 0.8725950307261081,
+      "int8_units": 1
+    }
+  ],
+  "selection_inputs": "validation split only: stage_a_validation() loads with include_test=False and scores with score(model, Xva, yva)",
+  "cuda_available": false,
+  "device": "cpu"
+}

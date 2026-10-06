@@ -1,0 +1,149 @@
+{
+  "experiment_id": "EXP_P6A_S2026_JET_FP32",
+  "timestamp": "2026-10-05T17:02:41.547308+00:00",
+  "config": {
+    "seed": 2026,
+    "dataset": {
+      "name": "hls4ml_lhc_jets_hlf",
+      "path": null,
+      "subset_size": 100000,
+      "n_features": 16,
+      "n_samples": 20000,
+      "n_classes": 2,
+      "val_fraction": 0.15,
+      "test_fraction": 0.15,
+      "source": "hls4ml_jets",
+      "openml_name": "hls4ml_lhc_jets_hlf",
+      "openml_version": 1
+    },
+    "model": {
+      "type": "mlp",
+      "hidden_dims": [
+        64,
+        32,
+        32
+      ],
+      "dropout": 0.1,
+      "activation": "relu"
+    },
+    "training": {
+      "epochs": 30,
+      "batch_size": 1024,
+      "learning_rate": 0.001,
+      "weight_decay": 0.0001,
+      "early_stopping_patience": 6,
+      "device": "auto"
+    },
+    "quantization": {
+      "method": "none",
+      "precision": "fp32",
+      "calibration_batches": 20
+    },
+    "hardware": {
+      "backend": "software_estimate",
+      "board": "pynq-z2",
+      "clock_period_ns": 5,
+      "reuse_factor": 1,
+      "strategy": "latency"
+    },
+    "experiment": {
+      "name": "jet_fp32_baseline",
+      "id": "EXP_P6A_S2026_JET_FP32"
+    }
+  },
+  "reproducibility": {
+    "seed": 2026,
+    "system": {
+      "python_version": "3.11.16 (main, Sep 29 2026, 14:59:26) [Clang 22.1.3 ]",
+      "platform": "Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.43",
+      "processor": "",
+      "torch_version": "2.11.0+cu128",
+      "cuda_available": false,
+      "cuda_version": null,
+      "gpu_name": null,
+      "git_commit": "b41363666cb14d4bb689976e232491f8be950479",
+      "git_dirty": true,
+      "packages": {
+        "numpy": "2.4.6",
+        "pandas": "3.0.6",
+        "scikit-learn": "1.9.1",
+        "torch": "2.11.0+cu128",
+        "hls4ml": "1.3.0",
+        "qkeras": null,
+        "h5py": "3.16.0",
+        "matplotlib": "3.11.2",
+        "PyYAML": "6.0.3"
+      },
+      "environment_hash": "ba123a7a01e046a24b4a1e7616e7307c2b59edf371639692f62050f31aa201b4"
+    }
+  },
+  "metrics": {
+    "test": {
+      "accuracy": 0.7503333333333333,
+      "precision": 0.7665448594485426,
+      "recall": 0.750040391731359,
+      "f1": 0.753821408772522,
+      "roc_auc": 0.9321697589838918,
+      "pr_auc": 0.8088281310065948,
+      "averaging": "macro"
+    },
+    "model_size": {
+      "estimated_size_mb": 0.016742706298828125,
+      "total_params": 4389,
+      "is_estimated": false
+    },
+    "latency": {
+      "device": "cpu",
+      "mean_ms_per_sample": 0.07745626993710175,
+      "p95_ms": 0.1922757483043824
+    }
+  },
+  "model_info": {
+    "architecture": "mlp",
+    "hidden_dims": [
+      64,
+      32,
+      32
+    ],
+    "n_parameters": 4389,
+    "method": "none",
+    "precision": "fp32"
+  },
+  "hardware": {
+    "backend": "software_estimate",
+    "status": "estimated",
+    "resource_source": "software heuristic estimate (parameter-count arithmetic, not hls4ml or Vivado)",
+    "measurement_tier": "estimated",
+    "latency_estimate_ns": null,
+    "initiation_interval": null,
+    "lut": 204288,
+    "dsp": 4256,
+    "bram": 0,
+    "ff": 140448,
+    "notes": [
+      "Heuristic: dsp=ceil(weight_params(4256)/reuse_factor(1)), lut=ceil(dsp*bits(32)*1.5), ff=total_params*bits, bram=0 (assumes a model small enough to avoid block RAM).",
+      "This is an analytical estimate, NOT hls4ml output and NOT a Vivado synthesis result \u2014 it exists so a resource ballpark is available even when hls4ml itself cannot be used, and must not be read as device-specific or validated against real synthesis."
+    ],
+    "source": "SoftwareEstimateBackend",
+    "tool": "analytical heuristic (hep_quant)",
+    "tool_version": "0.1.0",
+    "configuration": {
+      "precision": "fp32",
+      "bits": 32,
+      "reuse_factor": 1,
+      "lut_per_bit_per_dsp": 1.5,
+      "formula": "dsp=ceil(weights/reuse); lut=ceil(dsp*bits*c); ff=params*bits; bram=0",
+      "validated_against_synthesis": false
+    }
+  },
+  "status": "completed",
+  "error": null,
+  "provenance": {
+    "dataset_source": "hls4ml_jets",
+    "dataset_version": 1,
+    "dataset_subset_fingerprint_sha256_X": "c2631ea3b290e2ec55ab64d8485e1766fb6453b0e692a681d7b9ca491063be93",
+    "dataset_subset_n_samples": 100000,
+    "calibration_size": null,
+    "device": "cpu"
+  }
+}

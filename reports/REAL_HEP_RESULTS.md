@@ -64,7 +64,7 @@ Even-handed note: QAT−PTQ at INT6 (+0.0013, 5/5 seeds) is real but small; roug
 | uniform INT4 | 2,660 B | 0.8702 ± 0.0370 | −0.0638 |
 | L0 at INT8, rest INT4 | 3,172 B | 0.8798 ± 0.0180 | −0.0542 |
 | A0 at INT8, rest INT4 | 2,660 B | 0.9039 ± 0.0180 | −0.0301 |
-| **L0 and A0 at INT8, rest INT4** | 3,172 B | **0.9278 ± 0.0037** | −0.0062 |
+| **L0 and A0 at INT8, rest INT4** *(exploratory — TEST_SET_SELECTED / BIASED; excluded from confirmatory analysis)* | 3,172 B | ~~0.9278 ± 0.0037~~ (biased; see `exploratory_mixed_precision_TEST_SET_SELECTED_BIASED.md`) | — |
 
 Keeping only the first layer's weights *and* first activation at INT8 recovers most of the INT4-PTQ loss with +19% storage over uniform INT4 (activation bit-width does not enter the weight-storage figure). For reference INT4 QAT is 0.9246 at 2,660 B (n = 5) and INT6 PTQ 0.9329 at 3,724 B. Not tested: mixed precision under QAT, other mixed assignments, other seeds.
 

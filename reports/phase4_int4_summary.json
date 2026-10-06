@@ -1,0 +1,12 @@
+{
+  "C_build_and_inference_bitwise_identical": true,
+  "device": "cpu",
+  "cuda_available": false,
+  "seeds": [
+    42,
+    123,
+    2026,
+    7,
+    99
+  ]
+}

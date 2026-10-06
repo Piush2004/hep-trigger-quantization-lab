@@ -19,6 +19,10 @@ data/processed/*
 # Experiment artifacts (large / regenerable)
 experiments/checkpoints/*
 !experiments/checkpoints/.gitkeep
+# Phase 6 checkpoints (regenerable; 50 files per run-tag)
+experiments/checkpoints_phase6_*/
+# Per-experiment diagnostic figures written by the runner (regenerable; not the final figure set)
+reports/figures/EXP_P6*.png
 experiments/logs/*
 !experiments/logs/.gitkeep
 

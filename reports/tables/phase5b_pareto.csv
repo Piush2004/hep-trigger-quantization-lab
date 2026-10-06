@@ -1,0 +1,8 @@
+configuration,storage_bytes,roc_auc_mean,dominated
+FP32,17556.0,0.9343044065488277,False
+INT8 PTQ,4788.0,0.9342177163875597,False
+INT6 PTQ,3724.0,0.9329252558871705,False
+INT4 PTQ,2660.0,0.8819450285487846,True
+INT4 QAT,2660.0,0.9246401741021376,False
+"Mixed L0L1A0 INT8 (Phase 5, validation-selected, not size-constrained)",4196.0,0.9281,True
+"Mixed L0A0_int8 (Phase 5B, size-constrained)",3172.0,0.9275932754188435,False

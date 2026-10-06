@@ -1,0 +1,35 @@
+{
+  "selection_rule": "among mixed candidates with theoretical_weight_storage_bytes <= size_limit_bytes, select highest mean validation macro ROC-AUC over the five seeds; candidates within tie_eps of the best are treated as indistinguishable and the smallest storage is preferred, then candidate name",
+  "size_limit_bytes": 3724.0,
+  "tie_eps": 0.001,
+  "candidate_count": 9,
+  "eligible_candidate_count": 8,
+  "seeds": [
+    42,
+    123,
+    2026,
+    7,
+    99
+  ],
+  "selection_inputs": "validation split only (stage A, include_test=False)",
+  "selection_used_test_set": false,
+  "selected_layout": "L0A0_int8",
+  "selected_bit_widths": "L0=INT8; A0=INT8 (rest INT4)",
+  "selected_storage_bytes": 3172.0,
+  "validation_mean": 0.9264868628048116,
+  "validation_sd": 0.002296008148595032,
+  "indistinguishable_from_best": [
+    "L0A0_int8"
+  ],
+  "status": "SELECTED",
+  "test_set_used_after_selection": true,
+  "final_test_mean": 0.9275932754188435,
+  "final_test_sd": 0.0026868558474213143,
+  "final_test_per_seed": {
+    "42": 0.9245338163073459,
+    "123": 0.9318698232282865,
+    "2026": 0.9271406134160433,
+    "7": 0.9278154415807712,
+    "99": 0.9266066825617711
+  }
+}

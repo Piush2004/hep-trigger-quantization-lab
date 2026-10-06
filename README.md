@@ -63,6 +63,16 @@ Experiment registry (traceable JSON per run) -> Pareto analysis + report
 
 Full detail in [docs/architecture.md](docs/architecture.md).
 
+## Final status
+
+Current evidence and classification: **Reproducible Benchmark** (not a publication candidate).
+- Start with [reports/final_results.md](reports/final_results.md) (summary) and [reports/final_statistical_audit.md](reports/final_statistical_audit.md) (statistics and leakage rules).
+- Architecture generalization: [reports/phase6_architecture_generalization.md](reports/phase6_architecture_generalization.md).
+- Mixed precision: the 0.9278 result is **exploratory and test-set selected (biased)**; the corrected result is in [reports/phase5b_size_constrained_gate.md](reports/phase5b_size_constrained_gate.md).
+- hls4ml numerical validation (SIMULATED C-simulation): [reports/phase7_hls_numerical_validation.md](reports/phase7_hls_numerical_validation.md).
+- Hardware: **no HLS synthesis or physical FPGA measurement exists**; all resource numbers are ESTIMATED.
+- Reproduction: [docs/REPRODUCIBILITY.md](docs/REPRODUCIBILITY.md).
+
 ## Dataset
 
 **Primary (real-HEP-benchmark) dataset:** the hls4ml LHC jet-tagging benchmark, OpenML `hls4ml_lhc_jets_hlf` v1
