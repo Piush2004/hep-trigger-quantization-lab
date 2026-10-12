@@ -34,18 +34,17 @@ If the build/run succeeds, the health check, every `/api/*` endpoint, and the bi
 
 ## 3. GitHub
 
-**Status: prepared, not published — awaiting your confirmation.**
+**Status: DONE.**
 
-- `gh auth status` shows an authenticated session: account `Piush2004`, token scopes `gist`, `read:org`, `repo`. This machine **can** create and push to a GitHub repository.
-- I searched the account's existing public repositories for one matching this project (cern/hep/quant/trigger/jet in the name) and found **none** — there is no existing repository to push to.
-- I have **not** created a repository or pushed anything. Creating a new public GitHub repository and pushing this project's code is an outward-facing, hard-to-reverse publishing action, so it needs your explicit go-ahead in chat before I do it, even though the tooling is available — this is a deliberate pause, not a missing capability.
+- You confirmed: public repository, whole project (research + demo).
+- Created `https://github.com/Piush2004/hep-trigger-quantization-lab` (public, MIT license auto-detected from the existing `LICENSE` file).
+- Before pushing, ran a repo-wide scan (both branches) for AWS/private-key/OpenAI/GitHub/Hugging-Face token-shaped strings — the only match was the string literals inside `tests/test_demo_api.py`'s own secret-detection pattern list (`"ghp_"`, `"hf_"`, etc.), confirmed by inspection, not a real secret. Repo size: 8.01 MiB packed, 95 objects.
+- Pushed `master` (research, frozen at `970f44a`, untouched) and `demo/web-release` (release layer, `c1ee1bc` at push time).
+- Set the **default branch to `demo/web-release`**: it contains the full research history as an ancestor, plus the root `README.md`'s "Interactive demo" pointer and all the release documentation, so a visitor lands on the most complete picture. `master` remains available as the pure frozen-research line.
+- GitHub's own secret scanning and push-protection are enabled on the repo (platform-level, in addition to the pre-push scan above).
+- Verified live via `gh repo view`: `isPrivate: false`, `defaultBranchRef: demo/web-release`, `license: mit`.
 
-**To proceed, tell me:**
-- The repository name and whether it should be **public** or **private**.
-- Whether to push the whole project (research + demo) or only `demo/` (a smaller public surface, pointing back to the private research repo if you keep that separate).
-- Confirm you want me to create it now under `Piush2004` and push.
-
-Once confirmed, I will create the repository, push the relevant branch(es), and report the exact URL back.
+**Repository URL:** https://github.com/Piush2004/hep-trigger-quantization-lab
 
 ## 4. Summary table
 
@@ -54,4 +53,4 @@ Once confirmed, I will create the repository, push the relevant branch(es), and 
 | Local app (`uvicorn`) | **DONE** — see `reports/release_test_report.md` |
 | Docker build/run | **BLOCKED (NOT RUN)** — Docker Desktop engine not starting on this machine |
 | Hugging Face Space (live) | **BLOCKED** — no account/token available in this environment |
-| GitHub repository (public) | **NOT IMPLEMENTED** — prepared; awaiting your explicit confirmation |
+| GitHub repository (public) | **DONE** — https://github.com/Piush2004/hep-trigger-quantization-lab |

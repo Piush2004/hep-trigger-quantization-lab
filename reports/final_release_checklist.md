@@ -11,7 +11,7 @@ Acceptance table, reproduced from the master release prompt. Every status below 
 | Regression: full suite executed twice | **DONE** | `reports/release_test_report.md` §A |
 | Docker: image built and tested, or explicitly blocked | **BLOCKED, documented** | `reports/deployment_report.md` §1 |
 | Hugging Face metadata validated against current docs | **DONE** | `demo/README.md` front matter; checked against the Hub's "Spaces Configuration Reference" 2026-10-13 |
-| Public hosting: live Space URL verified, or exact user action documented | **BLOCKED, documented** | `reports/deployment_report.md` §2 |
+| Public hosting: live Space URL verified, or exact user action documented | **PARTIAL** — GitHub repository live and verified (https://github.com/Piush2004/hep-trigger-quantization-lab); Hugging Face Space still blocked on credentials | `reports/deployment_report.md` §2–3 |
 | Security: no known release-blocking secret or exposure issue | **DONE** | `reports/release_test_report.md` §E |
 | Documentation: setup, methodology, limitations, release instructions | **DONE** | `demo/README.md`, this file, `reports/release_readiness_audit.md`, `reports/deployment_report.md` |
 | Android usability: PWA implemented and tested if practical, else documented | **PARTIAL — implemented; registration unverified in this session's browser tool** | `demo/README.md` "PWA" section; `reports/release_test_report.md` §C |
@@ -21,7 +21,7 @@ Acceptance table, reproduced from the master release prompt. Every status below 
 ## Decision log (why things stand where they stand)
 - **Docker**: engine unavailable on this machine (documented history of the same issue in this project); not re-escalated per the project's own standing guidance against further Docker Desktop troubleshooting. Exact fix path given to the user.
 - **Hugging Face**: no credentials exist in this environment; cannot be worked around, by design (I do not create accounts or use found/guessed tokens).
-- **GitHub**: tooling is available (`gh` authenticated), but creating a new public repository is treated as an outward-facing publish action requiring the user's explicit confirmation, not a routine engineering choice. All other independent work was finished first.
+- **GitHub**: tooling was available (`gh` authenticated); creating a new public repository was treated as an outward-facing publish action requiring the user's explicit confirmation before acting, not a routine engineering choice. All other independent work was finished first; the user then confirmed "public repo, whole project," and the repository was created, scanned for secrets, and pushed: https://github.com/Piush2004/hep-trigger-quantization-lab.
 - **PWA / service worker**: the service-worker JavaScript was verified syntactically correct and side-effect-free by loading it as a plain Web Worker (no errors). Live `ServiceWorkerContainer.register()` failed inside this session's automated browser-preview tool with a generic "unknown error fetching the script" even though a normal `fetch()` of the identical URL returned 200 with the correct content-type — consistent with known restrictions on Service Worker registration under CDP-automated/embedded Chrome profiles, not an application defect. This was not papered over: it is reported as **unverified in this tool**, not as "tested and passing." Recommended real-world check: open the deployed (or `localhost`) URL in an ordinary desktop Chrome/Edge window and confirm via DevTools → Application → Service Workers.
 
 ## Honest final assessment
