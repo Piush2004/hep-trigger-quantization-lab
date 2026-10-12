@@ -73,6 +73,12 @@ Current evidence and classification: **Reproducible Benchmark** (not a publicati
 - Hardware: **no HLS synthesis or physical FPGA measurement exists**; all resource numbers are ESTIMATED.
 - Reproduction: [docs/REPRODUCIBILITY.md](docs/REPRODUCIBILITY.md).
 
+## Interactive demo
+
+An installable (PWA) web dashboard visualizes these frozen results — no training or experiments run in it; see [demo/README.md](demo/README.md) for what it does and does not demonstrate, and [reports/deployment_report.md](reports/deployment_report.md) for whether it is currently deployed and at what URL.
+- Run it locally: `pip install -r demo/requirements.txt && cd demo/app && uvicorn main:app --reload` then open http://127.0.0.1:7860/.
+- Live Space: see `reports/deployment_report.md` for the current status (deployment requires a Hugging Face account, which is outside this repository's control).
+
 ## Dataset
 
 **Primary (real-HEP-benchmark) dataset:** the hls4ml LHC jet-tagging benchmark, OpenML `hls4ml_lhc_jets_hlf` v1

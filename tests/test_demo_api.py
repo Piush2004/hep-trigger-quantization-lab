@@ -86,3 +86,65 @@ def test_metadata_states_no_runtime_training_and_no_cern_claim():
     meta = client.get("/api/metadata").json()
     assert "No training happens at runtime" in meta["demo_note"]
     assert meta["dataset"]["nature"].startswith("public simulated")
+
+
+def test_root_health_endpoint_matches_docker_healthcheck_expectations():
+    r = client.get("/health")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["status"] == "ok"
+    assert body["missing_data_files"] == []
+    assert body["training_at_runtime"] is False
+    assert "uptime_seconds" in body
+
+
+def test_pwa_assets_are_served_with_correct_types():
+    m = client.get("/manifest.webmanifest")
+    assert m.status_code == 200
+    assert "manifest" in m.headers["content-type"]
+    manifest = m.json()
+    assert manifest["start_url"].startswith("/")
+    assert len(manifest["icons"]) >= 2
+
+    sw = client.get("/sw.js")
+    assert sw.status_code == 200
+    assert "/api/" in sw.text  # the worker must reference the API path it explicitly excludes from caching
+    assert "javascript" in sw.headers["content-type"]
+
+    fav = client.get("/favicon.ico")
+    assert fav.status_code == 200
+
+
+def test_api_responses_have_bounded_cache_control_not_indefinite():
+    r = client.get("/api/results")
+    cc = r.headers.get("cache-control", "")
+    assert "max-age" in cc
+    # must not be cached forever / without revalidation, so a redeploy's new results become visible
+    assert "max-age=31536000" not in cc and "immutable" not in cc
+
+
+def test_unknown_route_returns_404_not_a_file_leak():
+    r = client.get("/../../etc/passwd")
+    assert r.status_code in (404, 400)
+    r2 = client.get("/api/does-not-exist")
+    assert r2.status_code == 404
+
+
+def test_no_permissive_cors_header_on_api():
+    r = client.get("/api/results")
+    assert "access-control-allow-origin" not in {k.lower() for k in r.headers.keys()}
+
+
+def test_no_obvious_secrets_committed_in_demo_tree():
+    patterns = ["AKIA", "-----BEGIN PRIVATE KEY-----", "sk-proj-", "ghp_", "hf_", "xox"]
+    offenders = []
+    for path in (ROOT / "demo").rglob("*"):
+        if path.is_file() and path.suffix in {".py", ".js", ".html", ".css", ".json", ".webmanifest", ".md", ""}:
+            try:
+                text = path.read_text(encoding="utf-8", errors="ignore")
+            except OSError:
+                continue
+            for p in patterns:
+                if p in text:
+                    offenders.append((str(path.relative_to(ROOT)), p))
+    assert offenders == []
