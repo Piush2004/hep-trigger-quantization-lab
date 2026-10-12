@@ -110,6 +110,9 @@ def test_pwa_assets_are_served_with_correct_types():
     assert sw.status_code == 200
     assert "/api/" in sw.text  # the worker must reference the API path it explicitly excludes from caching
     assert "javascript" in sw.headers["content-type"]
+    # Cache-poisoning guard: nothing may be written to Cache Storage without first checking the response
+    # is a successful (res.ok), same-origin, non-opaque (res.type === "basic") response.
+    assert "res.ok" in sw.text and 'res.type === "basic"' in sw.text
 
     fav = client.get("/favicon.ico")
     assert fav.status_code == 200

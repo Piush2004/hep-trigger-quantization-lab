@@ -27,6 +27,15 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+// Only ever cache a successful, same-origin, non-opaque response. Without this check a transient
+// error page (or, worse, a tampered/opaque response from a misbehaving intermediary) could be written
+// into the offline cache and replayed to the user on every future offline load — a cache-poisoning risk.
+// `type === "basic"` additionally rules out opaque cross-origin responses, which this worker should
+// never see anyway (cross-origin requests are excluded below) but is checked as defense-in-depth.
+function isCacheable(res) {
+  return res && res.ok && res.type === "basic";
+}
+
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
@@ -40,8 +49,10 @@ self.addEventListener("fetch", (event) => {
     // Network-first for the page itself, so an online visitor always gets the latest shell.
     event.respondWith(
       fetch(req).then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE_VERSION).then((c) => c.put("/", copy));
+        if (isCacheable(res)) {
+          const copy = res.clone();
+          caches.open(CACHE_VERSION).then((c) => c.put("/", copy));
+        }
         return res;
       }).catch(() => caches.match("/"))
     );
@@ -52,7 +63,7 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     caches.match(req).then((cached) => {
       const network = fetch(req).then((res) => {
-        if (res.ok) caches.open(CACHE_VERSION).then((c) => c.put(req, res.clone()));
+        if (isCacheable(res)) caches.open(CACHE_VERSION).then((c) => c.put(req, res.clone()));
         return res;
       }).catch(() => cached);
       return cached || network;

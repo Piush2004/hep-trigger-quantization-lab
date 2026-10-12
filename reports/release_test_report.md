@@ -85,5 +85,9 @@ Malformed-data handling: `_load()` raises an HTTP 500 with a clear `detail` if a
 
 All findings above were fixed inline during this session (escaping helper, CORS absence confirmed, `.dockerignore` added, SRI added) rather than left as review comments.
 
+**Post-commit automated security review (triggered after the first four release commits) found one additional issue, fixed immediately:**
+- `demo/app/static/sw.js`'s navigate-request handler wrote the network response into Cache Storage under the key `"/"` without first checking `response.ok` — unlike the static-asset handler a few lines below it, which already gated on `res.ok`. A transient error page (or an opaque/tampered response) could therefore have been cached and replayed to the user on a future offline load: a cache-poisoning risk, even though the same-origin guard already present meant the practical exposure was narrow.
+- Fixed by adding an `isCacheable(res)` helper (`res.ok && res.type === "basic"`) and applying it to both cache-write sites. `test_pwa_assets_are_served_with_correct_types` now asserts the guard text is present in the served `sw.js`. Re-ran the 14 demo tests: 14 passed.
+
 ## F. Scope note
 This report covers the demo/presentation layer only. The research test suite (94 of the 109 passing tests) is unchanged by this work and is documented separately in the research tree's own reports (`reports/phase4_build_report.md` and others).
