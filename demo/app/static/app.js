@@ -16,6 +16,9 @@
   const COLORS = { cuda: "#5eead4", cpu: "#7dd3fc", b: "#fbbf24", mixed: "#c4b5fd", grid: "#22304d", text: "#e6ecf7", muted: "#93a3bf" };
 
   const $ = (sel) => document.querySelector(sel);
+  // All data comes from this app's own exported JSON (never third-party or user input), but values
+  // are still escaped before going into innerHTML, as defense-in-depth against a future data change.
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const fmt = (x, d = 4) => (x === null || x === undefined || Number.isNaN(x) ? "not recorded" : Number(x).toFixed(d));
   const signed = (x, d = 4) => (x === null || x === undefined ? "—" : (x >= 0 ? "+" : "") + Number(x).toFixed(d));
   const kb = (bytes) => {
@@ -45,9 +48,17 @@
     hoverlabel: { bgcolor: "#0b1020", bordercolor: COLORS.cuda, font: { family: "ui-monospace, Menlo, monospace", color: COLORS.text } },
   }, extra || {});
   const plotCfg = { responsive: true, displayModeBar: false };
-  const plot = (id, traces, layout) => {
-    if (!window.Plotly) { $("#" + id).innerHTML = '<p class="muted">Chart library did not load; the tables and text still apply.</p>'; return; }
-    window.Plotly.newPlot(id, traces, baseLayout(layout), plotCfg);
+  const plot = (id, traces, layout, ariaLabel) => {
+    const el = $("#" + id);
+    if (!window.Plotly) {
+      el.innerHTML = '<p class="muted">The chart library did not load (offline or blocked CDN); the numbers above and the surrounding text still apply.</p>';
+      el.setAttribute("role", "note");
+      return;
+    }
+    window.Plotly.newPlot(id, traces, baseLayout(layout), plotCfg).then(() => {
+      el.setAttribute("role", "img");
+      if (ariaLabel) el.setAttribute("aria-label", ariaLabel);
+    });
   };
 
   /* ---------- 1. main result ---------- */
@@ -83,7 +94,7 @@
       xaxis: { title: "Theoretical weight storage (bytes, log scale; analytical)", type: "log", gridcolor: COLORS.grid },
       yaxis: { title: "Test macro ROC-AUC (mean ± SD)", gridcolor: COLORS.grid, tickformat: ".3f" },
       showlegend: false,
-    });
+    }, "Scatter chart of test ROC-AUC against theoretical weight storage for each precision and method. See the headline text below for the key numbers.");
 
     const fp = cuda.find((r) => r.configuration === "FP32");
     const int6 = cuda.find((r) => r.configuration === "INT6 PTQ");
@@ -169,7 +180,7 @@
       const fp = rows.find((r) => label(r) === "FP32"), ptq = rows.find((r) => label(r) === "INT4 PTQ"), qat = rows.find((r) => label(r) === "INT4 QAT");
       if (fp && ptq && qat) {
         const share = (qat.roc_auc_mean - ptq.roc_auc_mean) / (fp.roc_auc_mean - ptq.roc_auc_mean);
-        recovery.push(`<strong>${p.device}</strong>: QAT recovered ≈${(100 * share).toFixed(0)}% of the INT4 PTQ loss ` +
+        recovery.push(`<strong>${esc(p.device)}</strong>: QAT recovered ≈${(100 * share).toFixed(0)}% of the INT4 PTQ loss ` +
           `(INT4 PTQ ${fmt(ptq.roc_auc_mean)} → INT4 QAT ${fmt(qat.roc_auc_mean)}, FP32 ${fmt(fp.roc_auc_mean)}).`);
       }
     });
@@ -187,12 +198,12 @@
     const grid = $("#arch-grid");
     grid.innerHTML = arch.panels.map((p, i) => `
       <article class="arch-card">
-        <h3>${p.label}</h3>
-        <p class="device">device: ${p.device} · ${p.parameters.toLocaleString("en-GB")} parameters</p>
+        <h3>${esc(p.label)}</h3>
+        <p class="device">device: ${esc(p.device)} · ${Number(p.parameters).toLocaleString("en-GB")} parameters</p>
         <div class="chart" id="arch-chart-${i}"></div>
         <dl class="metrics" id="arch-metrics-${i}" style="margin-top:10px"></dl>
       </article>`).join("");
-    $("#arch-caveat").innerHTML = `<strong>Observational comparison.</strong> ${arch.caveat}`;
+    $("#arch-caveat").innerHTML = `<strong>Observational comparison.</strong> ${esc(arch.caveat)}`;
 
     const draw = () => {
       const chosen = sel.value;
@@ -285,7 +296,7 @@
       yaxis: { title: "Accuracy on 15,000 held-out jets", tickformat: ".2f", gridcolor: COLORS.grid, range: [0, 0.85] },
       legend: { orientation: "h", y: -0.28, font: { size: 11 } },
       margin: { l: 64, r: 24, t: 24, b: 110 },
-    });
+    }, "Line chart of hls4ml C-simulation accuracy against fixed-point width, for four arithmetic modes, against a dashed PyTorch FP32 reference line. Values are in the table rows above.");
   }
 
   /* ---------- evidence tier legend ---------- */
@@ -306,28 +317,53 @@
   }
 
   /* ---------- boot ---------- */
+  function showLoadError(sectionName, err) {
+    const note = document.createElement("p");
+    note.className = "caveat";
+    note.setAttribute("role", "alert");
+    note.textContent = `Could not load "${sectionName}": ${err.message}. ` +
+      (navigator.onLine ? "Try reloading the page." : "You appear to be offline; reconnect and reload.");
+    document.querySelector("main").prepend(note);
+  }
+
   function boot() {
-    Promise.all([
-      getJSON("/api/results"), getJSON("/api/quantization"), getJSON("/api/architecture-comparison"),
-      getJSON("/api/calibration-sensitivity"), getJSON("/api/hls4ml"), getJSON("/api/metadata"),
-    ]).then(([results, quant, arch, cal, hls, meta]) => {
-      const baseline = { rows: results.rows };
-      renderLegend();
-      renderMeta(meta);
-      renderMain(baseline);
-      renderExplorer(baseline, quant);
-      renderPtqQat(arch);
-      renderArchitecture(arch);
-      renderCalibration(cal);
-      renderHardware(hls);
-    }).catch((err) => {
-      const note = document.createElement("p");
-      note.className = "caveat";
-      note.textContent = "Could not load the exported results: " + err.message;
-      document.querySelector("main").prepend(note);
+    renderLegend();
+    // allSettled: one failing endpoint (e.g. offline) degrades only its own section, never blanks the page —
+    // the static Methodology/Reproducibility/Research text below always stays readable.
+    const endpoints = [
+      ["metadata", "/api/metadata"], ["results", "/api/results"], ["quantization", "/api/quantization"],
+      ["architecture-comparison", "/api/architecture-comparison"], ["calibration-sensitivity", "/api/calibration-sensitivity"],
+      ["hls4ml", "/api/hls4ml"],
+    ];
+    Promise.allSettled(endpoints.map(([, url]) => getJSON(url))).then((outcomes) => {
+      const data = {};
+      outcomes.forEach((o, i) => {
+        const [name] = endpoints[i];
+        if (o.status === "fulfilled") data[name] = o.value;
+        else showLoadError(name, o.reason);
+      });
+      if (data.metadata) renderMeta(data.metadata);
+      if (data.results) {
+        const baseline = { rows: data.results.rows };
+        renderMain(baseline);
+        if (data.quantization) renderExplorer(baseline, data.quantization);
+      }
+      if (data["architecture-comparison"]) {
+        renderPtqQat(data["architecture-comparison"]);
+        renderArchitecture(data["architecture-comparison"]);
+      }
+      if (data["calibration-sensitivity"]) renderCalibration(data["calibration-sensitivity"]);
+      if (data.hls4ml) renderHardware(data.hls4ml);
     });
+  }
+
+  function registerServiceWorker() {
+    if (!("serviceWorker" in navigator)) return;
+    // Secure-context only by browser rule (localhost is exempt); fails silently and harmlessly elsewhere.
+    navigator.serviceWorker.register("/sw.js").catch(() => { /* offline support is a progressive enhancement */ });
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
+  window.addEventListener("load", registerServiceWorker);
 })();

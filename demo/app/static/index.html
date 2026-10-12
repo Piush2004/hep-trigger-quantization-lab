@@ -5,14 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>HEP-Trigger Quantization Lab · Result explorer</title>
   <meta name="description" content="Frozen research results: quantization of a small neural network for simulated HEP jet classification. Measured, simulated and estimated evidence kept separate.">
+  <meta name="theme-color" content="#0b1020">
+  <meta name="color-scheme" content="dark">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/static/icons/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/static/icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="HEP Quant Lab">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="stylesheet" href="/static/styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js" defer
+          integrity="sha384-cCVCZkAjYNxaYKbM8lsArLznDF/SvMFr1jcZrvOpSTCa0W40ZAdLzHCEulnUa5i7" crossorigin="anonymous"></script>
   <script src="/static/app.js" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#top">Skip to main content</a>
 <header class="topbar">
   <a class="brand" href="#top">HEP-Trigger <span>Quantization Lab</span></a>
-  <nav>
+  <nav aria-label="Primary">
     <a href="#results">Results</a>
     <a href="#architecture">Architecture</a>
     <a href="#hardware">Hardware</a>
@@ -85,8 +96,8 @@
       <p class="muted">Architecture A (CUDA-era and CPU) and Architecture B (CPU), side by side. Devices are not merged.</p>
     </header>
     <div class="controls">
-      <div class="ctrl"><span class="ctrl-label">Configuration</span>
-        <select id="sel-arch-config" class="select"></select>
+      <div class="ctrl"><label class="ctrl-label" for="sel-arch-config">Configuration</label>
+        <select id="sel-arch-config" class="select" aria-label="Select configuration to compare across architectures"></select>
       </div>
     </div>
     <div class="arch-grid" id="arch-grid"></div>

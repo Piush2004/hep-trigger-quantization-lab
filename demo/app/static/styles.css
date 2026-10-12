@@ -18,12 +18,31 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+.skip-link {
+  position: absolute; top: -48px; left: 8px; z-index: 100;
+  background: var(--accent); color: #04211c; padding: 10px 16px; border-radius: 8px;
+  font-weight: 700; transition: top 0.15s ease;
+}
+.skip-link:focus { top: 8px; }
+
+a:focus-visible, button:focus-visible, select:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--accent-2); outline-offset: 2px; border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
 body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--sans);
   line-height: 1.55;
   font-size: 16px;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 a { color: var(--accent-2); text-decoration: none; }
 a:hover { text-decoration: underline; }
