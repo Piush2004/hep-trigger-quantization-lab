@@ -1,0 +1,30 @@
+# Keeps the Docker build context small and out of research/dev artifacts. The demo image's Dockerfile
+# only ever COPYs demo/requirements.txt, demo/app and demo/data, but Docker still uploads the whole
+# build context first, so this matters for build speed and for never accidentally sending secrets.
+.git/
+.venv/
+.venv-wsl/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+*.egg-info/
+
+data/
+experiments/
+docs/
+reports/
+configs/
+scripts/
+src/
+tests/
+
+*.key
+*.env
+.env*
+requirements-lock.txt
+environment.yml
+
+# Keep only what the demo image needs
+!demo/
+demo/**/__pycache__/

@@ -5,22 +5,42 @@ in demo/data/ (produced by demo/scripts/export_results.py). Never trains, never 
 """
 import json
 import os
+import time
 from functools import lru_cache
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 APP_DIR = Path(__file__).resolve().parent
 DATA_DIR = APP_DIR.parent / "data"
 STATIC_DIR = APP_DIR / "static"
+START_TIME = time.time()
 
 # Public charts never show the biased, test-selected exploratory mixed-precision result.
 EXCLUDED_MARKERS = ("EXPLORATORY", "TEST-SET SELECTED", "TEST_SET_SELECTED")
 EXCLUDED_ROC_AUC = 0.9278  # the biased exploratory value; must never be shown as a result
 
-app = FastAPI(title="HEP-Trigger Quantization Lab — result explorer", version="1.0.0")
+# Bounded cache so a deployed Space never serves indefinitely stale scientific results: short enough
+# that a redeploy (which replaces demo/data/*.json) is visible within minutes, long enough to cut
+# repeat-request load. Static assets (JS/CSS) can cache longer; they are versioned by redeploy, not by URL.
+API_CACHE_CONTROL = "public, max-age=300, must-revalidate"
+STATIC_CACHE_CONTROL = "public, max-age=3600, must-revalidate"
+
+app = FastAPI(title="HEP-Trigger Quantization Lab — result explorer", version="1.0.0",
+              description="Visualization of frozen research results. No training or experiments run at request time.")
+
+
+@app.middleware("http")
+async def add_cache_and_timing_headers(request: Request, call_next):
+    response = await call_next(request)
+    if request.url.path.startswith("/api/"):
+        response.headers["Cache-Control"] = API_CACHE_CONTROL
+    elif request.url.path.startswith("/static/"):
+        response.headers["Cache-Control"] = STATIC_CACHE_CONTROL
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
 
 
 @lru_cache(maxsize=None)
@@ -41,10 +61,28 @@ def _is_public(row: dict) -> bool:
     return True
 
 
+def _health_payload() -> dict:
+    missing = [n for n in ("metadata", "baseline", "quantization", "pareto", "architecture", "calibration", "hls4ml")
+               if not (DATA_DIR / f"{n}.json").exists()]
+    return {
+        "status": "ok" if not missing else "degraded",
+        "missing_data_files": missing,
+        "data_dir": str(DATA_DIR.relative_to(APP_DIR.parent.parent)).replace("\\", "/"),
+        "training_at_runtime": False,
+        "uptime_seconds": round(time.time() - START_TIME, 1),
+    }
+
+
+@app.get("/health")
+def health_root():
+    """Root-level health endpoint for Docker HEALTHCHECK / orchestration probes."""
+    payload = _health_payload()
+    return JSONResponse(payload, status_code=200 if payload["status"] == "ok" else 503)
+
+
 @app.get("/api/health")
 def health() -> dict:
-    return {"status": "ok", "data_dir": str(DATA_DIR.relative_to(APP_DIR.parent.parent)).replace("\\", "/"),
-            "training_at_runtime": False}
+    return _health_payload()
 
 
 @app.get("/api/metadata")
@@ -129,9 +167,29 @@ def hls4ml() -> dict:
 
 
 # ---- frontend ----
+# StaticFiles only ever serves files under STATIC_DIR and rejects path traversal by construction
+# (Starlette resolves and checks the path stays within the mounted directory).
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
 @app.get("/")
 def index() -> FileResponse:
     return FileResponse(STATIC_DIR / "index.html")
+
+
+@app.get("/favicon.ico")
+def favicon() -> FileResponse:
+    # Browsers request this path by convention; serve the SVG icon for it rather than 404-spamming logs.
+    return FileResponse(STATIC_DIR / "icons" / "favicon.svg", media_type="image/svg+xml")
+
+
+@app.get("/manifest.webmanifest")
+def manifest() -> FileResponse:
+    return FileResponse(STATIC_DIR / "manifest.webmanifest", media_type="application/manifest+json")
+
+
+@app.get("/sw.js")
+def service_worker() -> FileResponse:
+    # Served at the origin root (not /static/) so its default scope covers the whole app.
+    return FileResponse(STATIC_DIR / "sw.js", media_type="application/javascript",
+                        headers={"Service-Worker-Allowed": "/", "Cache-Control": "no-cache"})
