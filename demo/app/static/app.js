@@ -312,7 +312,9 @@
 
   /* ---------- evidence tier legend ---------- */
   function renderLegend() {
-    $("#tier-legend").innerHTML = Object.keys(TIER).map((k) =>
+    const el = $("#tier-legend");
+    if (!el) return; // only present on the Methodology page
+    el.innerHTML = Object.keys(TIER).map((k) =>
       `<span>${badge(k)} <span class="tierdesc">${TIER[k].text}</span></span>`).join("");
   }
 
@@ -321,11 +323,49 @@
     if (meta.repository_url) {
       ["#nav-github", "#hero-github"].forEach((sel) => {
         const a = $(sel);
+        if (!a) return; // #hero-github only exists on the home page
         a.href = meta.repository_url; a.hidden = false;
         if (sel === "#nav-github") a.textContent = "GitHub";
       });
     }
   }
+
+  /* ---------- nav active state ---------- */
+  function markActiveNav(page) {
+    document.querySelectorAll(".topbar nav a[data-page]").forEach((a) => {
+      if (a.dataset.page === page) a.setAttribute("aria-current", "page");
+    });
+  }
+
+  /* ---------- per-page boot ----------
+   * The site is a set of separate static pages (one per feature) sharing this one app.js. Each page
+   * declares which it is via <body data-page="...">; this table says which /api/* endpoints that page
+   * needs and which renderers to run once they've loaded, so a page only fetches what it shows. */
+  const PAGE_ENDPOINTS = {
+    home: ["metadata"],
+    results: ["metadata", "results", "quantization", "architecture-comparison"],
+    architecture: ["metadata", "architecture-comparison"],
+    hardware: ["metadata", "calibration-sensitivity", "hls4ml"],
+    methodology: ["metadata"],
+    research: ["metadata"],
+  };
+  const PAGE_RENDER = {
+    results: (data) => {
+      if (data.results) {
+        const baseline = { rows: data.results.rows };
+        renderMain(baseline);
+        if (data.quantization) renderExplorer(baseline, data.quantization);
+      }
+      if (data["architecture-comparison"]) renderPtqQat(data["architecture-comparison"]);
+    },
+    architecture: (data) => {
+      if (data["architecture-comparison"]) renderArchitecture(data["architecture-comparison"]);
+    },
+    hardware: (data) => {
+      if (data["calibration-sensitivity"]) renderCalibration(data["calibration-sensitivity"]);
+      if (data.hls4ml) renderHardware(data.hls4ml);
+    },
+  };
 
   /* ---------- boot ---------- */
   function showLoadError(sectionName, err) {
@@ -339,9 +379,10 @@
 
   function boot() {
     renderLegend();
-    // allSettled: one failing endpoint (e.g. offline) degrades only its own section, never blanks the page —
-    // the static Methodology/Reproducibility/Research text below always stays readable.
-    const endpoints = ["metadata", "results", "quantization", "architecture-comparison", "calibration-sensitivity", "hls4ml"];
+    const page = document.body.dataset.page || "home";
+    markActiveNav(page);
+    // allSettled: one failing endpoint (e.g. offline) degrades only its own section, never blanks the page.
+    const endpoints = PAGE_ENDPOINTS[page] || ["metadata"];
     Promise.allSettled(endpoints.map((name) => getJSON(apiUrl(name)))).then((outcomes) => {
       const data = {};
       outcomes.forEach((o, i) => {
@@ -350,17 +391,8 @@
         else showLoadError(name, o.reason);
       });
       if (data.metadata) renderMeta(data.metadata);
-      if (data.results) {
-        const baseline = { rows: data.results.rows };
-        renderMain(baseline);
-        if (data.quantization) renderExplorer(baseline, data.quantization);
-      }
-      if (data["architecture-comparison"]) {
-        renderPtqQat(data["architecture-comparison"]);
-        renderArchitecture(data["architecture-comparison"]);
-      }
-      if (data["calibration-sensitivity"]) renderCalibration(data["calibration-sensitivity"]);
-      if (data.hls4ml) renderHardware(data.hls4ml);
+      const render = PAGE_RENDER[page];
+      if (render) render(data);
     });
   }
 

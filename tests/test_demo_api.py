@@ -157,13 +157,16 @@ def test_static_site_build_produces_all_data_files():
         payload = json.loads(f.read_text(encoding="utf-8"))
         assert payload, f"{f} is empty"
 
-    for asset in ["index.html", "styles.css", "app.js", "sw.js", "manifest.webmanifest", "favicon.ico"]:
+    pages = ["index.html", "results.html", "architecture.html", "hardware.html", "methodology.html", "research.html"]
+    for asset in pages + ["styles.css", "app.js", "sw.js", "manifest.webmanifest", "favicon.ico"]:
         assert (site / asset).exists(), f"missing {asset}"
 
-    # Every reference must be relative (no leading "/"), so the site works at a GitHub Pages subpath.
-    html = (site / "index.html").read_text(encoding="utf-8")
-    assert 'href="/' not in html and 'src="/' not in html
-    assert "window.STATIC_MODE = true" in html
+    # Every reference on every page must be relative (no leading "/"), so the site works at a
+    # GitHub Pages subpath, and every page must be flagged into static mode before app.js runs.
+    for page in pages:
+        html = (site / page).read_text(encoding="utf-8")
+        assert 'href="/' not in html and 'src="/' not in html, f"{page} has an absolute reference"
+        assert "window.STATIC_MODE = true" in html, f"{page} missing the static-mode flag"
 
 
 def test_no_obvious_secrets_committed_in_demo_tree():

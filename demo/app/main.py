@@ -177,6 +177,31 @@ def index() -> FileResponse:
     return FileResponse(STATIC_DIR / "index.html")
 
 
+@app.get("/results")
+def results_page() -> FileResponse:
+    return FileResponse(STATIC_DIR / "results.html")
+
+
+@app.get("/architecture")
+def architecture_page() -> FileResponse:
+    return FileResponse(STATIC_DIR / "architecture.html")
+
+
+@app.get("/hardware")
+def hardware_page() -> FileResponse:
+    return FileResponse(STATIC_DIR / "hardware.html")
+
+
+@app.get("/methodology")
+def methodology_page() -> FileResponse:
+    return FileResponse(STATIC_DIR / "methodology.html")
+
+
+@app.get("/research")
+def research_page() -> FileResponse:
+    return FileResponse(STATIC_DIR / "research.html")
+
+
 @app.get("/favicon.ico")
 def favicon() -> FileResponse:
     # Browsers request this path by convention; serve the SVG icon for it rather than 404-spamming logs.

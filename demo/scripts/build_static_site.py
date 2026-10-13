@@ -50,6 +50,34 @@ def build_data() -> None:
     print(f"wrote 9 static data files to {data_out}")
 
 
+# Every page in demo/app/static/, and where its FastAPI route ("/results") maps to on the static
+# mirror, which has no server-side routing and so needs the real filename ("./results.html").
+PAGES = {
+    "index.html": "./",
+    "results.html": "./results.html",
+    "architecture.html": "./architecture.html",
+    "hardware.html": "./hardware.html",
+    "methodology.html": "./methodology.html",
+    "research.html": "./research.html",
+}
+NAV_HREFS = {
+    "/": "./", "/results": "./results.html", "/architecture": "./architecture.html",
+    "/hardware": "./hardware.html", "/methodology": "./methodology.html", "/research": "./research.html",
+}
+
+
+def _relativize_html(html: str) -> str:
+    html = html.replace('href="/manifest.webmanifest"', 'href="./manifest.webmanifest"')
+    html = html.replace('href="/static/icons/', 'href="./icons/')
+    html = html.replace('href="/static/styles.css"', 'href="./styles.css"')
+    html = html.replace('src="/static/app.js"', 'src="./app.js"')
+    for src, dst in NAV_HREFS.items():
+        html = html.replace(f'href="{src}"', f'href="{dst}"')
+    # Inject the static-mode flag before app.js runs (app.js reads window.STATIC_MODE at call time).
+    html = html.replace("</head>", '  <script>window.STATIC_MODE = true;</script>\n</head>')
+    return html
+
+
 def build_assets() -> None:
     # Overwrite-in-place rather than rmtree+recreate: the output file set is fully deterministic
     # (nothing is ever removed between builds), and this also sidesteps a WSL<->NTFS permission quirk
@@ -63,14 +91,10 @@ def build_assets() -> None:
         shutil.copy2(APP_STATIC / name, OUT / name)
     shutil.copy2(APP_STATIC / "icons" / "favicon-32.png", OUT / "favicon.ico")  # conventional-path fallback
 
-    html = (APP_STATIC / "index.html").read_text(encoding="utf-8")
-    html = html.replace('href="/manifest.webmanifest"', 'href="./manifest.webmanifest"')
-    html = html.replace('href="/static/icons/', 'href="./icons/')
-    html = html.replace('href="/static/styles.css"', 'href="./styles.css"')
-    html = html.replace('src="/static/app.js"', 'src="./app.js"')
-    # Inject the static-mode flag before app.js runs (app.js reads window.STATIC_MODE at call time).
-    html = html.replace("</head>", '  <script>window.STATIC_MODE = true;</script>\n</head>')
-    (OUT / "index.html").write_text(html, encoding="utf-8")
+    for source_name in PAGES:
+        html = (APP_STATIC / source_name).read_text(encoding="utf-8")
+        html = _relativize_html(html)
+        (OUT / source_name).write_text(html, encoding="utf-8")
 
     manifest = (OUT / "manifest.webmanifest").read_text(encoding="utf-8")
     manifest = manifest.replace('"start_url": "/?source=pwa"', '"start_url": "./?source=pwa"')
@@ -79,10 +103,17 @@ def build_assets() -> None:
     (OUT / "manifest.webmanifest").write_text(manifest, encoding="utf-8")
 
     sw = (OUT / "sw.js").read_text(encoding="utf-8")
-    sw = sw.replace('"/", "/static/styles.css", "/static/app.js",\n  "/static/icons/favicon.svg", "/static/icons/icon-192.png", "/static/icons/icon-512.png",\n  "/manifest.webmanifest",',
-                    '"./", "./styles.css", "./app.js",\n  "./icons/favicon.svg", "./icons/icon-192.png", "./icons/icon-512.png",\n  "./manifest.webmanifest",')
-    sw = sw.replace('caches.open(CACHE_VERSION).then((c) => c.put("/", copy));', 'caches.open(CACHE_VERSION).then((c) => c.put("./", copy));')
-    sw = sw.replace('.catch(() => caches.match("/"))', '.catch(() => caches.match("./"))')
+    sw = sw.replace(
+        '"/", "/results", "/architecture", "/hardware", "/methodology", "/research",\n'
+        '  "/static/styles.css", "/static/app.js",\n'
+        '  "/static/icons/favicon.svg", "/static/icons/icon-192.png", "/static/icons/icon-512.png",\n'
+        '  "/manifest.webmanifest",',
+        '"./", "./results.html", "./architecture.html", "./hardware.html", "./methodology.html", "./research.html",\n'
+        '  "./styles.css", "./app.js",\n'
+        '  "./icons/favicon.svg", "./icons/icon-192.png", "./icons/icon-512.png",\n'
+        '  "./manifest.webmanifest",')
+    sw = sw.replace('caches.match(req).then((cached) => cached || caches.match("/"))',
+                    'caches.match(req).then((cached) => cached || caches.match("./"))')
     # The static site has no /api/ to exclude; data/*.json here is a point-in-time snapshot (not a
     # live API), so it's fine — and useful — for it to be cached offline like the rest of the shell.
     sw = sw.replace('url.pathname.startsWith("/api/")', 'false')
