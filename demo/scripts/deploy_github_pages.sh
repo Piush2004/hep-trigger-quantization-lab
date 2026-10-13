@@ -7,7 +7,12 @@ cd "$(git rev-parse --show-toplevel)"
 echo "==> Rebuilding static site from demo/data (run demo/scripts/export_results.py first if research results changed)"
 python demo/scripts/build_static_site.py
 
-WORKTREE=/tmp/gh-pages-deploy-$$
+# mktemp -d gives a securely random, race-free path (unlike a PID-based name, which is predictable
+# and vulnerable to a symlink pre-plant attack). `git worktree add` requires the target to not
+# already exist, so remove the just-created empty dir immediately before handing the same path to it
+# -- the directory name itself is still unpredictable, which is what actually defeats the attack.
+WORKTREE=$(mktemp -d /tmp/gh-pages-deploy-XXXXXXXX)
+rmdir "$WORKTREE"
 echo "==> Preparing gh-pages worktree at $WORKTREE"
 git worktree add --detach "$WORKTREE" gh-pages >/dev/null
 cleanup() { git worktree remove --force "$WORKTREE" >/dev/null 2>&1 || true; }
