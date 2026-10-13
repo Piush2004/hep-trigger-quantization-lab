@@ -3,22 +3,24 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const bg = Color(0xFF0B1020);
-  static const panel = Color(0xFF111A2E);
-  static const panel2 = Color(0xFF0F1728);
-  static const line = Color(0xFF22304D);
-  static const text = Color(0xFFE6ECF7);
-  static const muted = Color(0xFF93A3BF);
-  static const accent = Color(0xFF5EEAD4); // teal
-  static const accent2 = Color(0xFF7DD3FC); // cyan
-  static const warn = Color(0xFFFBBF24);
-  static const bad = Color(0xFFF87171);
-  static const ok = Color(0xFF34D399);
-  static const mixed = Color(0xFFC4B5FD);
+  static const bg = Color(0xFF0A0D17);
+  static const panel = Color(0xFF131826); // --surface
+  static const panel2 = Color(0xFF0E1220); // --surface-sunken
+  static const line = Color(0xFF262E42); // --border
+  static const lineStrong = Color(0xFF3A4560); // --border-strong
+  static const text = Color(0xFFEDF1F9);
+  static const muted = Color(0xFF93A1BD);
+  static const accent = Color(0xFF4FA6FF); // signal blue — the one action color
+  static const accentInk = Color(0xFF071022); // text set on top of accent fills
+  static const accent2 = Color(0xFFB9A6F7); // data-violet — secondary chart series only, never a control
+  static const warn = Color(0xFFD9A441); // ESTIMATED: desaturated brass, not SaaS warning-yellow
+  static const bad = Color(0xFFE2645C); // NOT AVAILABLE / error
+  static const ok = Color(0xFF3BC48D); // MEASURED
+  static const mixed = Color(0xFFB9A6F7); // same as accent2 — SIMULATED tier shares the data-violet hue
 
   static const tierColors = {
     'MEASURED': ok,
-    'SIMULATED': accent2,
+    'SIMULATED': mixed, // off cyan, onto violet — see reports/design_brief.md
     'ESTIMATED': warn,
     'NOT AVAILABLE': bad,
   };
@@ -67,7 +69,7 @@ ThemeData buildAppTheme() {
         backgroundColor: WidgetStateProperty.resolveWith((states) =>
             states.contains(WidgetState.selected) ? AppColors.accent : AppColors.panel2),
         foregroundColor: WidgetStateProperty.resolveWith((states) =>
-            states.contains(WidgetState.selected) ? const Color(0xFF04211C) : AppColors.muted),
+            states.contains(WidgetState.selected) ? AppColors.accentInk : AppColors.muted),
         side: WidgetStateProperty.all(const BorderSide(color: AppColors.line)),
       ),
     ),

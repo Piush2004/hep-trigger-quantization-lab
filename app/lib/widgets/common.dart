@@ -16,18 +16,22 @@ class TierBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = AppColors.tierColors[tier] ?? AppColors.muted;
+    // Tinted-fill chip (tier color at low alpha, a brighter tint for the border, a near-white blend
+    // for the text) rather than an outline/currentColor chip — matches the website's badge styling.
+    final tint = AppColors.tierColors[tier] ?? AppColors.muted;
+    final fg = Color.lerp(tint, Colors.white, 0.15)!;
     return Tooltip(
       message: _descriptions[tier] ?? tier,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
         decoration: BoxDecoration(
-          border: Border.all(color: color),
+          color: tint.withValues(alpha: 0.14),
+          border: Border.all(color: tint.withValues(alpha: 0.4)),
           borderRadius: BorderRadius.circular(999),
         ),
         child: Text(tier,
             style: TextStyle(
-                color: color, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 0.6)),
+                color: fg, fontSize: 10.5, fontWeight: FontWeight.w500, letterSpacing: 0.5)),
       ),
     );
   }
@@ -46,12 +50,15 @@ class SectionHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(eyebrow.toUpperCase(),
+          // Sentence case, quiet tracking — numbered section eyebrows are earned (the content is a
+          // genuine sequence), but the ALL-CAPS/heavy-tracking treatment itself was the generic tell.
+          Text(eyebrow,
               style: const TextStyle(
-                  color: AppColors.accent,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.2)),
+                  color: AppColors.muted,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.3,
+                  fontFamily: 'monospace')),
           const SizedBox(height: 4),
           Text(title,
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, height: 1.15)),

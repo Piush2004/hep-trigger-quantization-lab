@@ -75,7 +75,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 onPressed: _busy || !AuthService.isConfigured ? null : _signIn,
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.accent,
-                  foregroundColor: const Color(0xFF04211C),
+                  foregroundColor: AppColors.accentInk,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
@@ -83,7 +83,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     ? const SizedBox(
                         width: 18,
                         height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF04211C)))
+                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.accentInk))
                     : const Icon(Icons.login_rounded),
                 label: Text(_busy ? 'Signing in…' : 'Sign in with Google'),
               ),

@@ -79,7 +79,7 @@ class _ArchitectureTabState extends State<ArchitectureTab> {
                     const SizedBox(height: 14),
                   ],
                   Callout(
-                    borderColor: AppColors.warn.withValues(alpha: 0.5),
+                    borderColor: AppColors.line,
                     child: Text.rich(TextSpan(children: [
                       const TextSpan(text: 'Observational comparison.  ', style: TextStyle(fontWeight: FontWeight.w800)),
                       TextSpan(text: caveat),
@@ -122,7 +122,7 @@ class _ArchCard extends StatelessWidget {
             Text(panel.label, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
             const SizedBox(height: 2),
             Text('device: ${panel.device} · ${panel.parameters} parameters',
-                style: const TextStyle(color: AppColors.warn, fontSize: 11, fontFamily: 'monospace')),
+                style: const TextStyle(color: AppColors.muted, fontSize: 11, fontFamily: 'monospace')),
             const SizedBox(height: 10),
             SizedBox(
               height: 160,
@@ -149,7 +149,7 @@ class _ArchCard extends StatelessWidget {
                           toY: rows[i].rocAucMean ?? 0,
                           width: 22,
                           borderRadius: BorderRadius.circular(3),
-                          color: labelOf(rows[i]) == chosen ? AppColors.accent : const Color(0xFF334766),
+                          color: labelOf(rows[i]) == chosen ? AppColors.accent : AppColors.lineStrong,
                         ),
                       ]),
                   ],
