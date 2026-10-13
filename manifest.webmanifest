@@ -7,8 +7,8 @@
   "id": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#0b1020",
-  "theme_color": "#0b1020",
+  "background_color": "#0A0D17",
+  "theme_color": "#0A0D17",
   "lang": "en",
   "categories": ["education", "science"],
   "icons": [

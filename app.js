@@ -13,7 +13,7 @@
   };
   const PRECISIONS = ["FP32", "INT8", "INT6", "INT4"];
   const ARCH_CONFIGS = ["FP32", "INT8 PTQ", "INT6 PTQ", "INT4 PTQ", "INT4 QAT"];
-  const COLORS = { cuda: "#5eead4", cpu: "#7dd3fc", b: "#fbbf24", mixed: "#c4b5fd", grid: "#22304d", text: "#e6ecf7", muted: "#93a3bf" };
+  const COLORS = { cuda: "#4FA6FF", cpu: "#B9A6F7", b: "#D9A441", mixed: "#B9A6F7", grid: "#262E42", text: "#EDF1F9", muted: "#93A1BD" };
 
   const $ = (sel) => document.querySelector(sel);
   // All data comes from this app's own exported JSON (never third-party or user input), but values
@@ -46,12 +46,15 @@
 
   const baseLayout = (extra) => Object.assign({
     paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
-    font: { family: "system-ui, Segoe UI, Roboto, sans-serif", color: COLORS.text, size: 12 },
+    font: { family: "IBM Plex Sans, Segoe UI, Roboto, sans-serif", color: COLORS.text, size: 12 },
     margin: { l: 64, r: 24, t: 24, b: 56 },
     xaxis: { gridcolor: COLORS.grid, zerolinecolor: COLORS.grid, linecolor: COLORS.grid },
     yaxis: { gridcolor: COLORS.grid, zerolinecolor: COLORS.grid, linecolor: COLORS.grid },
     legend: { bgcolor: "rgba(0,0,0,0)", font: { color: COLORS.muted } },
-    hoverlabel: { bgcolor: "#0b1020", bordercolor: COLORS.cuda, font: { family: "ui-monospace, Menlo, monospace", color: COLORS.text } },
+    hoverlabel: { bgcolor: "#1A2133", bordercolor: COLORS.cuda, font: { family: "IBM Plex Mono, Menlo, monospace", color: COLORS.text } },
+    // Named motion: chart-state transitions answer the user's own action (segmented control /
+    // select change) rather than decorating — see reports/design_brief.md §4.
+    transition: { duration: 250, easing: "cubic-in-out" },
   }, extra || {});
   const plotCfg = { responsive: true, displayModeBar: false };
   const plot = (id, traces, layout, ariaLabel) => {
@@ -61,7 +64,9 @@
       el.setAttribute("role", "note");
       return;
     }
-    window.Plotly.newPlot(id, traces, baseLayout(layout), plotCfg).then(() => {
+    // Plotly.react diffs against the existing plot (and is a safe no-op on first render), which is
+    // what lets layout.transition above animate marker/bar moves instead of hard-redrawing.
+    window.Plotly.react(id, traces, baseLayout(layout), plotCfg).then(() => {
       el.setAttribute("role", "img");
       if (ariaLabel) el.setAttribute("aria-label", ariaLabel);
     });
@@ -218,7 +223,7 @@
         plot(`arch-chart-${i}`, [{
           type: "bar", x: rows.map((r) => label(r)), y: rows.map((r) => r.roc_auc_mean),
           error_y: { type: "data", array: rows.map((r) => r.roc_auc_sd), color: COLORS.muted },
-          marker: { color: rows.map((r) => (label(r) === chosen ? COLORS.cuda : "#334766")) },
+          marker: { color: rows.map((r) => (label(r) === chosen ? COLORS.cuda : "#3A4560")) },
           hovertemplate: "<b>%{x}</b><br>%{y:.4f}<extra></extra>",
         }], {
           margin: { l: 56, r: 12, t: 12, b: 70 },

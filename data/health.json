@@ -3,5 +3,5 @@
   "missing_data_files": [],
   "data_dir": "demo/data",
   "training_at_runtime": false,
-  "uptime_seconds": 0.2
+  "uptime_seconds": 0.1
 }
