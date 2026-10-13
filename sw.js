@@ -6,9 +6,10 @@
  * silently showing old numbers as if they were current. Bump CACHE_VERSION to force clients to refresh
  * the cached shell after a deploy (do this whenever index.html/app.js/styles.css change).
  */
-const CACHE_VERSION = "shell-v1";
+const CACHE_VERSION = "shell-v2";
 const SHELL_ASSETS = [
-  "./", "./styles.css", "./app.js",
+  "./", "./results.html", "./architecture.html", "./hardware.html", "./methodology.html", "./research.html",
+  "./styles.css", "./app.js",
   "./icons/favicon.svg", "./icons/icon-192.png", "./icons/icon-512.png",
   "./manifest.webmanifest",
 ];
@@ -46,15 +47,17 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin || false) return;
 
   if (req.mode === "navigate") {
-    // Network-first for the page itself, so an online visitor always gets the latest shell.
+    // Network-first for the page itself, so an online visitor always gets the latest shell. The site
+    // is multiple pages now (one per feature), so each is cached and matched under its OWN request —
+    // not a single hardcoded "/", which would serve the home page's content for every other URL.
     event.respondWith(
       fetch(req).then((res) => {
         if (isCacheable(res)) {
           const copy = res.clone();
-          caches.open(CACHE_VERSION).then((c) => c.put("./", copy));
+          caches.open(CACHE_VERSION).then((c) => c.put(req, copy));
         }
         return res;
-      }).catch(() => caches.match("./"))
+      }).catch(() => caches.match(req).then((cached) => cached || caches.match("./")))
     );
     return;
   }
