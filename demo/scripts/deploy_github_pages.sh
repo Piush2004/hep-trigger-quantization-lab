@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Rebuild and redeploy the static GitHub Pages mirror from demo/web-release.
+# Usage: bash demo/scripts/deploy_github_pages.sh
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+
+echo "==> Rebuilding static site from demo/data (run demo/scripts/export_results.py first if research results changed)"
+python demo/scripts/build_static_site.py
+
+WORKTREE=/tmp/gh-pages-deploy-$$
+echo "==> Preparing gh-pages worktree at $WORKTREE"
+git worktree add --detach "$WORKTREE" gh-pages >/dev/null
+cleanup() { git worktree remove --force "$WORKTREE" >/dev/null 2>&1 || true; }
+trap cleanup EXIT
+
+# Overwrite in place rather than rm -rf: avoids a WSL<->NTFS permission quirk seen during development,
+# and the file set here is fully deterministic from the build step above.
+cp -r demo/static-site/* "$WORKTREE"/
+touch "$WORKTREE"/.nojekyll
+
+cd "$WORKTREE"
+git add -A
+if git diff --cached --quiet; then
+  echo "==> No changes to deploy (static site output is identical to what's already live)."
+else
+  git commit -q -m "Rebuild static site from demo/web-release"
+  git push origin gh-pages
+  echo "==> Pushed. Live at https://piush2004.github.io/hep-trigger-quantization-lab/ (allow a minute for GitHub Pages to rebuild)"
+fi

@@ -34,6 +34,12 @@
     if (!r.ok) throw new Error(url + " → " + r.status);
     return r.json();
   });
+  // Same app.js serves two deployments: the live FastAPI app (/api/<name>) and a static mirror for
+  // GitHub Pages, which has no backend and instead ships pre-rendered ./data/<name>.json snapshots
+  // (built by demo/scripts/build_static_site.py, which calls the exact same server-side route
+  // functions so the two are byte-identical in shape and filtering). window.STATIC_MODE is injected
+  // by the static build only.
+  const apiUrl = (name) => (window.STATIC_MODE ? `./data/${name}.json` : `/api/${name}`);
 
   // Label a row the same way across the CUDA (baseline) and CPU (architecture) sources.
   const label = (r) => r.configuration || (r.method === "none" ? r.precision : `${r.precision} ${r.method}`);
@@ -330,15 +336,11 @@
     renderLegend();
     // allSettled: one failing endpoint (e.g. offline) degrades only its own section, never blanks the page —
     // the static Methodology/Reproducibility/Research text below always stays readable.
-    const endpoints = [
-      ["metadata", "/api/metadata"], ["results", "/api/results"], ["quantization", "/api/quantization"],
-      ["architecture-comparison", "/api/architecture-comparison"], ["calibration-sensitivity", "/api/calibration-sensitivity"],
-      ["hls4ml", "/api/hls4ml"],
-    ];
-    Promise.allSettled(endpoints.map(([, url]) => getJSON(url))).then((outcomes) => {
+    const endpoints = ["metadata", "results", "quantization", "architecture-comparison", "calibration-sensitivity", "hls4ml"];
+    Promise.allSettled(endpoints.map((name) => getJSON(apiUrl(name)))).then((outcomes) => {
       const data = {};
       outcomes.forEach((o, i) => {
-        const [name] = endpoints[i];
+        const name = endpoints[i];
         if (o.status === "fulfilled") data[name] = o.value;
         else showLoadError(name, o.reason);
       });
@@ -360,7 +362,8 @@
   function registerServiceWorker() {
     if (!("serviceWorker" in navigator)) return;
     // Secure-context only by browser rule (localhost is exempt); fails silently and harmlessly elsewhere.
-    navigator.serviceWorker.register("/sw.js").catch(() => { /* offline support is a progressive enhancement */ });
+    const swPath = window.STATIC_MODE ? "./sw.js" : "/sw.js";
+    navigator.serviceWorker.register(swPath).catch(() => { /* offline support is a progressive enhancement */ });
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);

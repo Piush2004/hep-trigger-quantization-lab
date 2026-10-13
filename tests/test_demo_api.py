@@ -138,6 +138,34 @@ def test_no_permissive_cors_header_on_api():
     assert "access-control-allow-origin" not in {k.lower() for k in r.headers.keys()}
 
 
+def test_static_site_build_produces_all_data_files():
+    """Regression test: build_static_site.py once had an ordering bug where build_assets() deleted
+    the output directory AFTER build_data() had already written into it, silently dropping every
+    data/*.json file. Runs the real build script end-to-end and checks every expected file exists
+    and is non-trivial JSON, matching live /api/* route names 1:1."""
+    import subprocess
+
+    script = ROOT / "demo" / "scripts" / "build_static_site.py"
+    result = subprocess.run([sys.executable, str(script)], capture_output=True, text=True, cwd=ROOT)
+    assert result.returncode == 0, result.stderr
+
+    site = ROOT / "demo" / "static-site"
+    for name in ["metadata", "results", "configurations", "quantization", "pareto",
+                "architecture-comparison", "calibration-sensitivity", "hls4ml", "health"]:
+        f = site / "data" / f"{name}.json"
+        assert f.exists(), f"missing {f}"
+        payload = json.loads(f.read_text(encoding="utf-8"))
+        assert payload, f"{f} is empty"
+
+    for asset in ["index.html", "styles.css", "app.js", "sw.js", "manifest.webmanifest", "favicon.ico"]:
+        assert (site / asset).exists(), f"missing {asset}"
+
+    # Every reference must be relative (no leading "/"), so the site works at a GitHub Pages subpath.
+    html = (site / "index.html").read_text(encoding="utf-8")
+    assert 'href="/' not in html and 'src="/' not in html
+    assert "window.STATIC_MODE = true" in html
+
+
 def test_no_obvious_secrets_committed_in_demo_tree():
     patterns = ["AKIA", "-----BEGIN PRIVATE KEY-----", "sk-proj-", "ghp_", "hf_", "xox"]
     offenders = []

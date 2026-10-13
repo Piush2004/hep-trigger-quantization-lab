@@ -23,6 +23,9 @@ experiments/checkpoints/*
 experiments/checkpoints_phase6_*/
 # Per-experiment diagnostic figures written by the runner (regenerable; not the final figure set)
 reports/figures/EXP_P6*.png
+# Static-site build output (regenerable via demo/scripts/build_static_site.py; deployed to the
+# separate gh-pages branch via demo/scripts/deploy_github_pages.sh, never committed here)
+demo/static-site/
 experiments/logs/*
 !experiments/logs/.gitkeep
 
