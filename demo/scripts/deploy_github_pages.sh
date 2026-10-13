@@ -29,6 +29,9 @@ if git diff --cached --quiet; then
   echo "==> No changes to deploy (static site output is identical to what's already live)."
 else
   git commit -q -m "Rebuild static site from demo/web-release"
-  git push origin gh-pages
+  # The worktree is a detached-HEAD checkout (see `git worktree add --detach` above), so the local
+  # gh-pages branch ref never moves when we commit here. Push HEAD explicitly to the remote branch
+  # instead of `git push origin gh-pages`, which would push the unmoved local ref and silently no-op.
+  git push origin HEAD:gh-pages
   echo "==> Pushed. Live at https://piush2004.github.io/hep-trigger-quantization-lab/ (allow a minute for GitHub Pages to rebuild)"
 fi
