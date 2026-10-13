@@ -78,6 +78,11 @@ Current evidence and classification: **Reproducible Benchmark** (not a publicati
 An installable (PWA) web dashboard visualizes these frozen results — no training or experiments run in it; see [demo/README.md](demo/README.md) for what it does and does not demonstrate, and [reports/deployment_report.md](reports/deployment_report.md) for whether it is currently deployed and at what URL.
 - Run it locally: `pip install -r demo/requirements.txt && cd demo/app && uvicorn main:app --reload` then open http://127.0.0.1:7860/.
 - Live Space: see `reports/deployment_report.md` for the current status (deployment requires a Hugging Face account, which is outside this repository's control).
+- Live website (static mirror, same data, deployed from this repo): https://piush2004.github.io/hep-trigger-quantization-lab/
+
+## Android app
+
+A native Flutter companion app with the same four sections as the website (Overview, Precision, Architecture, Hardware), fetching the same live JSON snapshot. See [app/README.md](app/README.md) for how to build, run and test it, and what Google Sign-In does and doesn't gate (nothing — there's no private content yet; it demonstrates a working auth integration).
 
 ## Dataset
 
