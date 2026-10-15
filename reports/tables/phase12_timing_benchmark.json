@@ -1,0 +1,9 @@
+{
+  "avg_seconds_per_eval": 0.10683866025028692,
+  "n_sampled": 20,
+  "seed": 42,
+  "n_layouts": 2187,
+  "estimated_full_grid_hours": 0.32452243051024654,
+  "cuda_available": false,
+  "device": "cpu"
+}
