@@ -143,6 +143,29 @@ Software latency is emulation overhead (FP32 < PTQ < QAT) and not hardware laten
 
 Earlier single-seed numbers (INT4 PTQ "−9.9 points, QAT recovers most") came from one CPU run and are superseded by the table above.
 
+### Phases 11–13: exhaustive mixed precision, an independent hardware estimate, and non-NN baselines
+
+The uniform-precision table above and Phase 5/5B's 9-candidate mixed-precision search left
+three open questions, each addressed in its own phase report:
+
+- **Does a true (not hand-picked) mixed-precision search change the "no advantage over INT6"
+  conclusion?** Yes. A near-exhaustive search (2,187 layouts, all 5 seeds) finds a QAT-fine-tuned
+  layout using **2,916 B — less storage than uniform INT6 PTQ's 3,724 B** — that **reliably beats
+  uniform INT6 PTQ** (95% CI entirely positive, all 5 seeds) and is statistically indistinguishable
+  from FP32. Details: [reports/phase12_exhaustive_mixed_precision_pareto.md](reports/phase12_exhaustive_mixed_precision_pareto.md).
+- **Can the LUT/DSP/BRAM/FF heuristic be grounded in real synthesis data, without Vivado?** An
+  ML surrogate trained on 43k+ real hls4ml synthesis records (public `wa-hls4ml` dataset)
+  generalizes well for latency/II, but — a limitation found and disclosed, not hidden — currently
+  gives essentially zero importance to bit-width, so its LUT/DSP/FF/BRAM numbers cannot
+  distinguish precisions of the same architecture; the original heuristic remains the more useful
+  of the two for that specific comparison. Details: [reports/phase11_surrogate_hardware_validation.md](reports/phase11_surrogate_hardware_validation.md).
+- **Does the MLP's complexity earn its keep over a standard, untuned baseline?** No — a
+  gradient-boosted-tree baseline (`HistGradientBoostingClassifier`, default hyperparameters)
+  **reliably beats the FP32 MLP** on ROC-AUC (+0.0030, 95% CI entirely positive, all 5 seeds) and
+  on background rejection at fixed signal efficiency. The case for the quantized MLP specifically
+  is deployability on an FPGA trigger path via hls4ml, not raw accuracy — reported plainly rather
+  than spun. Details: [reports/phase13_baselines_and_efficiency.md](reports/phase13_baselines_and_efficiency.md).
+
 ### Synthetic development dataset (pipeline validation only — no physics meaning)
 
 | Precision | Method | Accuracy | Model size (MB) | Latency (ms/sample, software) |
@@ -181,6 +204,7 @@ uv venv .venv --python 3.11
 uv pip install --python .venv -r requirements.txt
 uv pip install --python .venv torch --index-url https://download.pytorch.org/whl/cu128  # or /cpu
 uv pip install --python .venv -e .
+uv pip install --python .venv -e ".[surrogate]"  # optional: Phase 11's ML hardware surrogate (huggingface_hub, ijson)
 
 # Validate the data pipeline
 python -m hep_quant validate-data --config configs/fp32.yaml
@@ -200,7 +224,7 @@ python -m hep_quant report
 pytest -q
 ```
 
-90+ tests across environment, data pipeline, schema enforcement, models, training, PTQ/QAT (including equivalence of the study builder), hardware abstraction, reporting and full-pipeline reproducibility
+130+ tests across environment, data pipeline, schema enforcement, models, training, PTQ/QAT (including equivalence of the study builder and the mixed-precision/QAT-variant builders), hardware abstraction (including the wa-hls4ml-trained surrogate), the background-rejection metric, reporting and full-pipeline reproducibility
 (a few network/CUDA-dependent tests are opt-in or auto-skipped). Every gate in this project's build was
 run twice (two-test rule) before moving to the next — see
 [reports/experiment_log.md](reports/experiment_log.md) for the full build log,
@@ -221,19 +245,30 @@ Known provenance gap: the 21 frozen runs recorded commit `4e9b673` while the wor
 
 ## Limitations
 
-- The dataset is simulated particle-level MC (not detector-level, not recorded data); one dataset, one 4,389-parameter MLP, 5 seeds.
+- The dataset is simulated particle-level MC (not detector-level, not recorded data); one
+  dataset; three MLP shapes tested (4,389 / 16,837 params, plus the quantization-matrix
+  architecture above), 5 seeds.
 - Quantization is simulated (fake-quantization), not real bit-packed integer kernels
   — see [docs/quantization.md](docs/quantization.md).
 - No FPGA synthesis numbers (Vivado not installed in this environment) — see
   [docs/hardware.md](docs/hardware.md) for exactly what the hardware-aware analysis
-  does and doesn't measure.
+  does and doesn't measure, including the Phase 11 ML-surrogate alternative and its
+  own found-and-disclosed limitation (bit-width insensitivity).
+- A standard gradient-boosted-tree baseline beats the FP32 MLP on raw accuracy (Phase 13) —
+  the case for the MLP is FPGA deployability via hls4ml, not accuracy; this project does not
+  claim the neural network is the best available model for this task.
 
 ## Future work
 
-- Percentile/MSE calibration for INT4 PTQ; mixed precision under QAT.
-- A second architecture and dataset, only if a generality claim is wanted.
+- Percentile/MSE calibration for INT4 PTQ.
+- ~~Mixed precision under QAT~~ — done, see Phase 12 above.
+- ~~A second architecture~~ — done (Phase 6: two additional MLP shapes); a second *dataset*
+  remains undone, only if a generality claim beyond jet tagging is wanted.
 - Run real hls4ml synthesis on a machine with Vivado installed, to replace the
-  "unavailable"/"csim" hardware fields with actual LUT/DSP/BRAM/FF numbers.
+  "unavailable"/"csim" hardware fields with actual LUT/DSP/BRAM/FF numbers — or, short of that,
+  fix the Phase 11 surrogate's bit-width-insensitivity (normalize targets by parameter count, or
+  add an explicit bits×params interaction feature) so it can at least validate precision-driven
+  resource comparisons, which it currently cannot.
 
 ## License
 

@@ -36,9 +36,12 @@ Recorded in each run: `utils/system.py` writes the environment hash, package ver
 All commands are run from the repository root inside the WSL virtualenv. On Windows PowerShell, prefix with `wsl -d Ubuntu -e bash -c "cd /mnt/d/Projects/CERN && ..."`.
 
 ```bash
-# environment (once)
+# environment (once) -- needs uv installed first: curl -LsSf https://astral.sh/uv/install.sh | sh
 uv venv .venv-wsl --python 3.11
-uv pip install --python .venv-wsl -r requirements-lock.txt
+# requirements-lock.txt pins a CUDA build of torch (cu128); the extra-index-url is required
+# or `uv pip install` fails with "No solution found" (verified: omitting it does fail outright).
+# On a CPU-only machine, edit the torch==... line in requirements-lock.txt to the CPU wheel first.
+uv pip install --python .venv-wsl --extra-index-url https://download.pytorch.org/whl/cu128 -r requirements-lock.txt
 
 # tests (full suite; ~3 minutes; network tests are opt-in)
 .venv-wsl/bin/python -m pytest -q
@@ -76,6 +79,19 @@ uv pip install --python .venv-wsl -r requirements-lock.txt
 
 # single-experiment reproduction (isolated re-run, bit-compare)
 .venv-wsl/bin/python -m hep_quant reproduce --experiment EXP_S42_JET_INT4_QAT
+
+# Phase 11 surrogate hardware validation (one-time training; large download, needs
+# `pip install -e ".[surrogate]"` and ~700MB from Hugging Face -- see the phase report)
+.venv-wsl/bin/python scripts/phase11_train_surrogate.py
+.venv-wsl/bin/python scripts/phase11_apply_surrogate_hardware.py
+
+# Phase 12 near-exhaustive mixed-precision search (PTQ: ~20 min full grid on CPU;
+# QAT frontier fine-tuning: ~15-20 min for 23 layouts x 5 seeds)
+.venv-wsl/bin/python scripts/phase12_exhaustive_mixed_precision_pareto.py
+.venv-wsl/bin/python scripts/phase12_qat_frontier.py
+
+# Phase 13 non-NN baselines + background rejection at fixed efficiency (a few minutes)
+.venv-wsl/bin/python scripts/phase13_baselines_and_efficiency.py
 ```
 
 ## 5. What is deterministic
@@ -99,6 +115,7 @@ uv pip install --python .venv-wsl -r requirements-lock.txt
 | MEASURED | actual software measurement (PyTorch accuracy, ROC-AUC, timings in emulation) | all accuracy and ROC-AUC numbers |
 | SIMULATED | hls4ml C-simulation (fixed-point arithmetic, no hardware) | `reports/numerical_consistency.json`, figure 07 |
 | ESTIMATED | heuristic resource estimate (linear software model) | `hardware_summary` tables |
+| SURROGATE | ML regressor trained on real external hls4ml synthesis records (fastmachinelearning/wa-hls4ml), with its own held-out error reported alongside every number | `reports/tables/phase11_surrogate_hardware.csv`, `reports/phase11_surrogate_hardware_validation.md` |
 | SYNTHESIZED | actual HLS synthesis | **not available** |
 | PHYSICAL | actual FPGA measurement | **not available** |
 
