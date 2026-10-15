@@ -99,3 +99,45 @@ def pr_curve_points(y_true: np.ndarray, y_prob: np.ndarray) -> tuple[np.ndarray,
 
 def confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
     return sk_confusion_matrix(y_true, y_pred)
+
+
+def background_rejection_at_efficiency(
+    y_true_binary: np.ndarray, y_score: np.ndarray, efficiency: float = 0.70
+) -> float:
+    """1 / FPR at the given signal efficiency (TPR) working point, binary-only.
+
+    Standard HEP convention: at a fixed signal efficiency, how much background is
+    rejected. `np.interp` on the ROC curve's (TPR -> FPR) gives the FPR at exactly
+    `efficiency` (ROC curves are monotonically non-decreasing in both axes as the
+    threshold sweeps, so interpolation is well-defined); returns `inf` if FPR is 0
+    at that efficiency (perfect rejection — reported as-is, not silently capped).
+    """
+    if not 0 < efficiency < 1:
+        raise ValueError(f"efficiency must be in (0, 1), got {efficiency}")
+    fpr, tpr, _ = roc_curve(y_true_binary, y_score)
+    fpr_at_eff = float(np.interp(efficiency, tpr, fpr))
+    return float("inf") if fpr_at_eff == 0 else 1.0 / fpr_at_eff
+
+
+def macro_background_rejection_at_efficiency(
+    y_true: np.ndarray, y_prob: np.ndarray, efficiency: float = 0.70
+) -> dict:
+    """One-vs-rest background rejection at a fixed signal efficiency, per class and macro-averaged.
+
+    This is a one-vs-rest *adaptation* of a concept defined for binary signal-vs-
+    background searches: this is a 5-way jet-tagging task with no single "signal"
+    class, so each class is treated as signal against the other four as background
+    in turn, and the macro mean is reported alongside the per-class breakdown so the
+    adaptation is visible, not hidden behind one averaged number.
+    """
+    classes = np.unique(y_true)
+    if len(classes) < 3:
+        raise ValueError("macro_background_rejection_at_efficiency assumes a multiclass (>=3 class) "
+                          "task; for a true binary problem, call background_rejection_at_efficiency directly")
+    y_true_bin = label_binarize(y_true, classes=classes)  # (n_samples, n_classes) one-hot, unambiguous for >=3 classes
+    per_class = {}
+    for i, c in enumerate(classes):
+        per_class[int(c)] = background_rejection_at_efficiency(y_true_bin[:, i], y_prob[:, i], efficiency)
+    finite = [v for v in per_class.values() if np.isfinite(v)]
+    macro = float(np.mean(finite)) if finite else float("inf")
+    return {"efficiency": efficiency, "per_class": per_class, "macro": macro, "n_classes_finite": len(finite), "n_classes_total": len(classes)}
