@@ -6,9 +6,10 @@ import torch
 from hep_quant.data.loader import load_synthetic
 from hep_quant.data.preprocessing import Preprocessor
 from hep_quant.data.splits import split_dataset
+from hep_quant.models.cnn import JetImageCNN
 from hep_quant.models.mlp import MLPClassifier
 from hep_quant.quantization.analysis import count_parameters, estimate_model_size
-from hep_quant.quantization.qat import QATActivation, QATLinear, prepare_qat_model
+from hep_quant.quantization.qat import QATActivation, QATConv2d, QATLinear, prepare_qat_model
 from hep_quant.training.evaluation import evaluate_model
 from hep_quant.training.trainer import Trainer
 from hep_quant.utils.seeds import set_seed
@@ -94,3 +95,39 @@ def test_qat_activation_tracks_range_only_in_training_mode():
     act.eval()
     act(torch.tensor([[100.0]]))  # should NOT update range in eval mode
     assert act.running_max.item() == recorded_max
+
+
+@pytest.mark.parametrize("precision", ["int8", "int6", "int4"])
+def test_prepare_qat_model_works_for_cnn_two_block_structure(precision):
+    """prepare_qat_model previously only handled a single flat model.net Sequential --
+    JetImageCNN has two separate blocks (model.conv, model.classifier). This is the Phase 14
+    generalization, via QUANT_BLOCKS, mirrored from the equivalent ptq.py fix."""
+    set_seed(42)
+    model = JetImageCNN(image_size=8, in_channels=1, conv_channels=[4, 8], n_classes=3)
+    qat_model = prepare_qat_model(model, precision)
+
+    conv_qat_layers = [m for m in qat_model.conv if isinstance(m, QATConv2d)]
+    classifier_qat_layers = [m for m in qat_model.classifier if isinstance(m, QATLinear)]
+    orig_convs = [m for m in model.conv if isinstance(m, torch.nn.Conv2d)]
+    orig_linears = [m for m in model.classifier if isinstance(m, torch.nn.Linear)]
+
+    assert len(conv_qat_layers) == len(orig_convs) == 2
+    assert len(classifier_qat_layers) == len(orig_linears) == 2
+    for orig, qat in zip(orig_convs, conv_qat_layers):
+        assert torch.allclose(orig.weight, qat.weight)
+
+    x = torch.randn(3, 1, 8, 8)
+    out = qat_model(x)
+    assert out.shape == (3, 3)
+    assert torch.isfinite(out).all()
+
+
+def test_prepare_qat_model_mlp_path_unchanged_after_cnn_generalization():
+    """Regression guard: generalizing prepare_qat_model for JetImageCNN's QUANT_BLOCKS must not
+    change behavior for MLPClassifier (QUANT_BLOCKS=("net",) should reduce to the original
+    single-block logic exactly)."""
+    model, *_ = _make_trained_model_and_data()
+    qat_model = prepare_qat_model(model, "int8")
+    qat_linears = [m for m in qat_model.net if isinstance(m, QATLinear)]
+    orig_linears = [m for m in model.net if isinstance(m, torch.nn.Linear)]
+    assert len(qat_linears) == len(orig_linears)

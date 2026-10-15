@@ -127,12 +127,10 @@ class Trainer:
         return self.history
 
     def save_checkpoint(self, path: str | Path, extra: dict | None = None) -> None:
-        checkpoint = {
-            "model_state_dict": self.model.state_dict(),
-            "input_dim": self.model.input_dim,
-            "hidden_dims": self.model.hidden_dims,
-            "n_classes": self.model.n_classes,
-        }
+        # Writes model.get_config()'s keys at the top level (not nested under a
+        # "model_config" key) so the on-disk format is unchanged for MLPClassifier --
+        # every existing frozen checkpoint stays loadable by this same code path.
+        checkpoint = {"model_state_dict": self.model.state_dict(), **self.model.get_config()}
         if extra:
             checkpoint.update(extra)
         torch.save(checkpoint, path)
@@ -140,11 +138,8 @@ class Trainer:
     @staticmethod
     def load_checkpoint(path: str | Path, model_cls, device: str = "cpu"):
         checkpoint = torch.load(path, map_location=device, weights_only=False)
-        model = model_cls(
-            input_dim=checkpoint["input_dim"],
-            hidden_dims=checkpoint["hidden_dims"],
-            n_classes=checkpoint["n_classes"],
-        )
+        cfg = {k: checkpoint[k] for k in model_cls.CONFIG_KEYS if k in checkpoint}
+        model = model_cls.from_config(cfg)
         model.load_state_dict(checkpoint["model_state_dict"])
         model.eval()
         return model

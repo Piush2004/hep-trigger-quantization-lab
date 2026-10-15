@@ -118,6 +118,24 @@ def test_hls_backend_converts_and_csims_real_model():
 
 
 @pytest.mark.skipif(not _hls4ml_usable(), reason="hls4ml and/or a C++ toolchain not available")
+def test_hls_csim_predict_converts_cnn_conv2d_end_to_end():
+    """Phase 14: hls4ml_input_shape generalization -- hls_csim.py previously hardcoded
+    input_shape=(model.input_dim,), which JetImageCNN doesn't have and is the wrong shape for
+    an image anyway. Exercises the real (not mocked) Conv2D/MaxPooling2D/Reshape/Dense
+    conversion path hls4ml's own PyTorch frontend provides for a 2D conv model."""
+    import numpy as np
+
+    from hep_quant.hardware.hls_csim import csim_predict
+    from hep_quant.models.cnn import JetImageCNN
+
+    model = JetImageCNN(image_size=25, in_channels=1, conv_channels=[4, 8], n_classes=5)
+    X = np.random.default_rng(0).random((5, 1, 25, 25)).astype(np.float32)
+    out = csim_predict(model, X, total_bits=16, int_bits=6)
+    assert out.shape == (5, 5)
+    assert np.isfinite(out).all()
+
+
+@pytest.mark.skipif(not _hls4ml_usable(), reason="hls4ml and/or a C++ toolchain not available")
 @pytest.mark.skipif(
     not __import__("torch").cuda.is_available(), reason="no CUDA device to test the GPU-model conversion path"
 )

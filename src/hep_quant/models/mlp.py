@@ -13,6 +13,14 @@ _ACTIVATIONS = {"relu": nn.ReLU, "tanh": nn.Tanh, "leaky_relu": nn.LeakyReLU}
 
 
 class MLPClassifier(nn.Module):
+    # Keys Trainer.save_checkpoint/load_checkpoint read/write generically via
+    # get_config()/from_config() -- unchanged from the original top-level checkpoint
+    # keys, so every existing frozen checkpoint on disk stays loadable as-is.
+    CONFIG_KEYS = ("input_dim", "hidden_dims", "n_classes")
+    # Attribute names of the Sequential blocks hep_quant.quantization.ptq's
+    # _insert_activation_fake_quant walks when inserting fake-quant activations.
+    QUANT_BLOCKS = ("net",)
+
     def __init__(
         self,
         input_dim: int,
@@ -46,3 +54,16 @@ class MLPClassifier(nn.Module):
 
     def num_parameters(self) -> int:
         return sum(p.numel() for p in self.parameters())
+
+    def get_config(self) -> dict:
+        return {"input_dim": self.input_dim, "hidden_dims": self.hidden_dims, "n_classes": self.n_classes}
+
+    @property
+    def hls4ml_input_shape(self) -> tuple[int, ...]:
+        """The `input_shape` kwarg hls4ml.utils.config_from_pytorch_model expects --
+        generalizes hep_quant.hardware.hls_csim's previous `(model.input_dim,)` hardcode."""
+        return (self.input_dim,)
+
+    @classmethod
+    def from_config(cls, cfg: dict) -> "MLPClassifier":
+        return cls(input_dim=cfg["input_dim"], hidden_dims=cfg["hidden_dims"], n_classes=cfg["n_classes"])

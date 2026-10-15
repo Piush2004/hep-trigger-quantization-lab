@@ -31,6 +31,7 @@ import copy
 import math
 import shutil
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import torch.nn as nn
 
@@ -154,7 +155,7 @@ class HLSBackend(HardwareBackend):
             precision_str = f"ap_fixed<{bits + 6},{6}>" if precision != "fp32" else "ap_fixed<32,16>"
             config = hls4ml.utils.config_from_pytorch_model(
                 cpu_model,
-                input_shape=(cpu_model.input_dim,),
+                input_shape=cpu_model.hls4ml_input_shape,
                 default_precision=precision_str,
                 default_reuse_factor=hardware_cfg.get("reuse_factor", 1),
             )
@@ -275,6 +276,83 @@ class SoftwareEstimateBackend(HardwareBackend):
         )
 
 
+class SurrogateEstimateBackend(HardwareBackend):
+    """ML-surrogate resource/latency estimate, trained on fastmachinelearning/wa-hls4ml.
+
+    Unlike `SoftwareEstimateBackend`'s hand-derived arithmetic heuristic, this loads a trained
+    sklearn regressor (see hep_quant.hardware.surrogate) and reports its own held-out error
+    (measured on wa-hls4ml's own test split, plus separately on its Jet-family exemplar slice)
+    alongside every prediction, so a consumer can judge how much to trust the number -- never
+    presented as validated against THIS project's own real synthesis, only against wa-hls4ml's.
+    """
+
+    name = "surrogate"
+
+    def __init__(self, model_dir: Path | str | None = None):
+        self.model_dir = Path(model_dir) if model_dir is not None else Path("experiments/surrogate_models/v1")
+        self._bundle = None
+        self._load_error: str | None = None
+        try:
+            from hep_quant.hardware.surrogate import load_surrogate
+
+            self._bundle = load_surrogate(self.model_dir)
+        except Exception as exc:
+            self._load_error = str(exc)
+
+    def is_available(self) -> bool:
+        return self._bundle is not None
+
+    def analyze(self, model: nn.Module, precision: str, hardware_cfg: dict) -> HardwareReport:
+        if not self.is_available():
+            return HardwareReport(
+                backend=self.name,
+                status="unavailable",
+                resource_source=f"surrogate model unavailable: {self._load_error}",
+                measurement_tier="unavailable",
+                notes=[self._load_error or "surrogate model not found"],
+                source="SurrogateEstimateBackend",
+            )
+
+        from hep_quant.hardware.surrogate import features_from_pytorch_model, predict_resources
+
+        bits = _BITS_MAP.get(precision, 16)
+        weight_bits = {i: bits for i in range(sum(1 for m in model.net if isinstance(m, nn.Linear)))}
+        feats = features_from_pytorch_model(model, weight_bits, hardware_cfg)
+        pred = predict_resources(feats, self._bundle)
+        held_out = self._bundle.get("held_out", {})
+        jet_held_out = self._bundle.get("jet_exemplar_held_out", {})
+
+        notes = [
+            f"Held-out (wa-hls4ml test split) {t}: R2={m['r2']:.3f}, MAE={m['mae']:.1f} (n={m['n']})"
+            for t, m in held_out.items()
+        ]
+        notes.append("Training data license: CC-BY-NC-4.0 (non-commercial).")
+        notes.append("NOT validated against this project's own real synthesis -- only against "
+                      "wa-hls4ml's held-out split and its Jet-family exemplar slice.")
+
+        return HardwareReport(
+            backend=self.name,
+            status="surrogate",
+            resource_source="ML surrogate (sklearn) trained on fastmachinelearning/wa-hls4ml "
+                             "(resource/latency fully-connected splits); not hls4ml or Vivado output",
+            measurement_tier="surrogate",
+            lut=int(round(pred["lut"])), dsp=int(round(pred["dsp"])),
+            bram=int(round(pred["bram"])), ff=int(round(pred["ff"])),
+            latency_estimate_ns=pred["latency_ns"], initiation_interval=int(round(pred["ii"])),
+            notes=notes,
+            source="SurrogateEstimateBackend",
+            tool="sklearn surrogate trained on wa-hls4ml",
+            tool_version=self._bundle.get("sklearn_version"),
+            configuration={
+                "feature_spec_version": self._bundle.get("feature_spec_version"),
+                "held_out_metrics": held_out,
+                "jet_exemplar_held_out": jet_held_out,
+                "trained_on": self._bundle.get("trained_on"),
+                "validated_against_this_projects_own_synthesis": False,
+            },
+        )
+
+
 def get_hardware_backend(hardware_cfg: dict) -> HardwareBackend:
     requested = hardware_cfg.get("backend", "unavailable")
     if requested == "unavailable":
@@ -290,6 +368,15 @@ def get_hardware_backend(hardware_cfg: dict) -> HardwareBackend:
         # Per project policy: if hls4ml isn't usable, fall back to an honest
         # heuristic estimate rather than giving up outright — never fabricate
         # hls4ml/Vivado-attributed numbers, but a labeled estimate is fine.
+        return SoftwareEstimateBackend()
+
+    if requested == "surrogate":
+        backend = SurrogateEstimateBackend()
+        if backend.is_available():
+            return backend
+        # Same honest-fallback policy as the hls4ml branch above: no trained
+        # surrogate on disk -> fall back to the heuristic, never silently to
+        # UnavailableBackend and never fabricate surrogate-attributed numbers.
         return SoftwareEstimateBackend()
 
     return UnavailableBackend(reason=f"unknown backend '{requested}'")

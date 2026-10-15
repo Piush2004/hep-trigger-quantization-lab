@@ -21,6 +21,9 @@ experiments/checkpoints/*
 !experiments/checkpoints/.gitkeep
 # Phase 6 checkpoints (regenerable; 50 files per run-tag)
 experiments/checkpoints_phase6_*/
+# Phase 11 surrogate model artifacts (regenerable via scripts/phase11_train_surrogate.py;
+# ~1.2GB of joblib-dumped sklearn models -- held-out metrics are in the phase report, not here)
+experiments/surrogate_models/
 # Per-experiment diagnostic figures written by the runner (regenerable; not the final figure set)
 reports/figures/EXP_P6*.png
 experiments/logs/*
@@ -41,3 +44,9 @@ Thumbs.db
 .env
 *.key
 hls4ml_csim/
+
+# The Flutter/Android companion app and the demo website's static-site build output live on
+# demo/web-release, not this research branch -- ignored wholesale here (not just build
+# artifacts) so they never get accidentally re-staged from this working directory again.
+app/
+demo/static-site/

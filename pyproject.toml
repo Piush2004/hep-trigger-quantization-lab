@@ -20,6 +20,10 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest", "pytest-cov"]
 hardware = ["hls4ml"]
+surrogate = ["huggingface_hub", "ijson"]
+# paper/build.sh also needs `pandoc` on PATH (not pip-installable; see paper/build.sh's own
+# comment for why a standalone binary is used instead of a system package in this environment)
+paper = ["weasyprint"]
 
 [build-system]
 requires = ["setuptools>=68", "wheel"]

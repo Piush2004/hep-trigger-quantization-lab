@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="Piush Kole" />
+  <meta name="dcterms.date" content="2026-10-15" />
+  <title>Benchmarking Quantization for Real-Time HEP Trigger Classifiers</title>
+  <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for citations */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+      margin-bottom: 0em;
+    }
+    .hanging-indent div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }  </style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Benchmarking Quantization for Real-Time HEP Trigger
+Classifiers</h1>
+<p class="author">Piush Kole</p>
+<p class="date">2026-10-15</p>
+</header>
+<h2 id="abstract">Abstract</h2>
+<p>Real-time Level-1 trigger systems at the LHC must classify jets
+within microseconds on FPGA hardware with hard resource ceilings, making
+neural-network quantization a practical necessity rather than an
+optimization. We present a benchmarking study of post-training
+quantization (PTQ) and quantization-aware training (QAT) for a
+jet-tagging classifier, extending a uniform-precision baseline with (1)
+a near-exhaustive per-unit mixed-precision search that finds a layout
+reliably beating uniform INT6 PTQ at lower storage, (2) an independent
+hardware-resource estimate trained on real external synthesis data
+rather than a hand-derived heuristic alone, (3) a systematic comparison
+against non-neural-network baselines, and (4) a cross-architecture,
+cross-dataset generality check using a convolutional network on
+pixelated calorimeter images instead of hand-engineered tabular
+features. We report what each result does and does not support,
+including two findings that run against the simplest narrative: a
+gradient-boosted-tree baseline matches or exceeds both neural
+architectures tried, and post-training quantization — reliable for the
+tabular MLP — catastrophically fails for the CNN even at INT8, while
+quantization-aware training recovers gracefully in both cases.</p>
+<h2 id="introduction-and-motivation">1. Introduction and Motivation</h2>
+<p>At the Large Hadron Collider, the Level-1 trigger must decide, within
+microseconds, which of ~40 million collisions per second are worth
+recording <span class="citation" data-cites="duarte2018fast">(Duarte et
+al. 2018)</span>. Machine-learned classifiers increasingly replace or
+augment hand-written trigger logic, but any such model must fit within
+an FPGA’s fixed timing and resource budget — making quantization
+(reducing numeric precision from FP32 to INT8/INT6/INT4) a deployment
+necessity, not a convenience.</p>
+<p>The central empirical question this work asks is simple to state and
+not simple to answer cleanly: <strong>how much precision can be removed
+before physics performance becomes unacceptable, and does the answer
+depend on the quantization strategy, the search granularity, the
+measurement method used to validate the hardware cost, or the model
+architecture itself?</strong> Each of these axes turns out to matter,
+and the honest answer to “does X help” is more often “it depends, and
+here is exactly how” than a clean yes or no.</p>
+<h2 id="related-work">2. Related Work</h2>
+<p>This project sits in a well-established HEP-ML lineage. The
+jet-tagging benchmark used throughout (Section 3) is the hls4ml LHC jet
+dataset of Duarte et al. <span class="citation"
+data-cites="duarte2018fast">(Duarte et al. 2018)</span>, the same group
+behind <code>hls4ml</code> itself <span class="citation"
+data-cites="hls4ml">(hls4ml collaboration 2024)</span>, the
+FPGA-deployment toolchain this work targets. The particle-level image
+companion dataset used for the generality check (Section 7) supplements
+Moreno et al.’s JEDI-net work <span class="citation"
+data-cites="moreno2020jedinet">(Moreno et al. 2020)</span>. Automatic
+mixed-precision quantization for this exact niche has advanced
+substantially in the broader field: QKeras/AutoQKeras <span
+class="citation" data-cites="coelho2021automatic">(Coelho et al.
+2021)</span> pioneered gradient-free per-layer mixed precision validated
+against real synthesis, and HGQ/HGQ2 <span class="citation"
+data-cites="sun2024hgq">(Sun et al. 2024)</span> is the current state of
+the art, using a gradient-based, per-parameter bit-width search via a
+differentiable resource proxy. More recent architecture-side work has
+pushed hls4ml-deployable models beyond MLPs toward GNNs and transformers
+for jet tagging <span class="citation"
+data-cites="sun2025jedilinear">(Sun et al. 2025)</span>, and CMS’s
+WOMBAT system <span class="citation"
+data-cites="moreno2025wombat">(Moreno et al. 2025)</span> demonstrates a
+Master/Apprentice (full-precision teacher, quantized FPGA-deployable
+student) design for a real Phase-2-trigger use case. Most relevant to
+the hardware-validation thread of this work, wa-hls4ml <span
+class="citation" data-cites="hawks2025wahls4ml">(Hawks et al.
+2025)</span> is a very recent (November 2025) public dataset of ~680,000
+real hls4ml-synthesized networks with pretrained surrogate models — this
+project trains its own, smaller surrogate on the same public data rather
+than adopting the authors’ own model directly, for reasons discussed in
+Section 6.</p>
+<p>This project’s own contribution is not a new quantization method — it
+uses standard uniform affine fake-quantization (PTQ) and
+straight-through-estimator training (QAT), the same mechanisms
+underlying most of the literature above. The contribution is
+<strong>benchmarking methodology and rigor</strong>: a near-exhaustive
+(not hand-picked) mixed-precision search at full statistical power, an
+independently-trained hardware-cost check rather than a single
+heuristic, systematic non-neural baselines, and an explicit test of
+whether conclusions drawn from one architecture and dataset transfer to
+another.</p>
+<h2 id="data">3. Data</h2>
+<p><strong>Primary (tabular) dataset</strong>: the hls4ml LHC
+jet-tagging benchmark <span class="citation"
+data-cites="duarte2018fast">(Duarte et al. 2018)</span> (OpenML
+<code>hls4ml_lhc_jets_hlf</code> v1, DOI 10.5281/zenodo.3602260) — 16
+hand-engineered high-level substructure features (energy-correlation
+functions, N-subjettiness ratios, jet mass variants) per jet, 5-class
+label (gluon/quark/top/W/Z), near-balanced (19.4-20.2% per class,
+confirmed by direct count, not assumed). 100,000-jet stratified
+subsample, 70/15/15 train/val/test split, 5 seeds
+<code>{42, 123, 2026, 7, 99}</code>.</p>
+<p><strong>Generality-check (image) dataset</strong>: a particle-level
+companion to the same benchmark (Zenodo 10.5281/zenodo.3601436, CC BY
+4.0, supplement to <span class="citation"
+data-cites="duarte2018fast">(Duarte et al. 2018)</span> and <span
+class="citation" data-cites="moreno2020jedinet">(Moreno et al.
+2020)</span>) — the same underlying Pythia8 simulation and 5-class
+label, but with pre-rendered 100×100 calorimeter-energy images per jet
+instead of hand-engineered features. Confirmed by direct inspection of
+the downloaded HDF5 schema (not assumed): a single combined
+calorimeter-energy channel is used (separate ECAL/HCAL channels exist,
+but ECAL is ~4e-6 nonzero for these hadronic jets, confirmed directly —
+a near-empty second channel would add nothing). Official
+<code>train</code>/<code>val</code> split used as shipped (not
+re-split): <code>train</code> subsampled to 100,000 jets and further
+split 85/15 internally; the full 270,000-jet <code>val</code> split held
+out entirely as test, touched once.</p>
+<h2 id="method">4. Method</h2>
+<h3 id="quantization-mechanism">4.1 Quantization mechanism</h3>
+<p>Both PTQ and QAT use uniform affine fake-quantization
+(quantize-then-dequantize, computed in float32) rather than real
+bit-packed integer kernels, since PyTorch’s native quantized kernels
+only support INT8, not INT6/INT4 — this is a standard, technically valid
+research methodology (the same mechanism underlies most QAT literature)
+but does not produce a packed artifact; model size is computed
+analytically. QAT uses a straight-through estimator so gradients flow
+through the non-differentiable rounding operation, with activation
+ranges tracked via an exponential moving average observer during
+training — the standard QAT recipe.</p>
+<h3 id="architectures">4.2 Architectures</h3>
+<p><strong>MLP</strong> (primary): <code>16 → [hidden] → 5</code>, three
+configurations tested across the project (a <code>[128,64,32]</code>
+base architecture plus two further shapes for an
+architecture-generalization check, 4,389–16,837 parameters).
+<strong>CNN</strong> (generality check, Section 7): 3 convolutional
+blocks (16→32→64 channels, 3×3 kernels, 2×2 max-pool) over 25×25
+downsampled images, followed by a small fully-connected classifier head,
+~90,000 parameters.</p>
+<h3 id="experimental-discipline">4.3 Experimental discipline</h3>
+<p>Every result in this work follows the same discipline: a selection
+rule (which configuration “wins”) is written to disk <em>before</em> the
+test split is touched, non-NN baselines are trained before any neural
+result is presented as the headline, every reported number is tagged
+with a measurement tier (measured / simulated / estimated / surrogate /
+unavailable) so a reader never has to guess how trustworthy it is, and
+every deterministic result is verified by running the same code twice
+and diffing the output byte-for-byte (the project’s “two-test
+rule”).</p>
+<h2
+id="core-result-1-a-near-exhaustive-mixed-precision-search-changes-the-conclusion">5.
+Core Result 1: A Near-Exhaustive Mixed-Precision Search Changes the
+Conclusion</h2>
+<p>An earlier, smaller search over only 9 hand-picked per-unit bit-width
+layouts (varying each of the model’s 7 quantizable units — 4 weight
+tensors, 3 activation tensors — individually and in two combinations)
+concluded there was “no advantage over uniform INT6 PTQ.” That search
+could not have found the result below, because its candidate set did not
+include it.</p>
+<p><strong>A true near-exhaustive search</strong> — all 3⁷ = 2,187
+per-unit bit-width combinations ({INT4, INT6, INT8} per unit), evaluated
+at full 5-seed statistical power (confirmed computationally cheap enough
+— 0.3 estimated hours — to run directly rather than needing a staged
+screening shortcut) — finds a genuine Pareto frontier of 23
+non-dominated layouts, not a single point. The frontier’s QAT-fine-tuned
+selection (storage <strong>2,916 bytes</strong>, picked by a
+pre-registered rule: highest mean validation ROC-AUC among layouts at or
+under uniform INT6’s storage budget) <strong>reliably beats uniform INT6
+PTQ</strong> (storage 3,724 bytes) by +0.0013 mean ROC-AUC, 95% CI
+[0.0011, 0.0015] entirely positive across all 5 seeds, while using
+<strong>22% less storage</strong> — and is statistically
+indistinguishable from the FP32 baseline. This revises, rather than
+confirms, the earlier 9-candidate search’s conclusion.</p>
+<table>
+<thead>
+<tr class="header">
+<th>configuration</th>
+<th>storage (B)</th>
+<th>mean test ROC-AUC</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>FP32</td>
+<td>17,556</td>
+<td>0.9343</td>
+</tr>
+<tr class="even">
+<td>INT8 PTQ</td>
+<td>4,788</td>
+<td>0.9342</td>
+</tr>
+<tr class="odd">
+<td>INT6 PTQ</td>
+<td>3,724</td>
+<td>0.9329</td>
+</tr>
+<tr class="even">
+<td>INT4 PTQ</td>
+<td>2,660</td>
+<td>0.8813</td>
+</tr>
+<tr class="odd">
+<td>INT4 QAT</td>
+<td>2,660</td>
+<td>0.9246</td>
+</tr>
+<tr class="even">
+<td>Mixed PTQ (this search)</td>
+<td>2,996</td>
+<td>0.9321</td>
+</tr>
+<tr class="odd">
+<td><strong>Mixed QAT (this search)</strong></td>
+<td><strong>2,916</strong></td>
+<td><strong>0.9342</strong></td>
+</tr>
+</tbody>
+</table>
+<p>A genuine engineering reproducibility gap was found and fixed in the
+course of this work: the per-unit QAT fine-tuning builder did not pin a
+random seed, causing a small (~3×10⁻⁴ ROC-AUC) but real run-to-run drift
+inconsistent with the project’s reproducibility discipline. Fixed by
+seeding before fine-tuning, re-verified to byte-identical reruns.</p>
+<h2
+id="core-result-2-an-independent-hardware-estimate-and-its-own-found-limitation">6.
+Core Result 2: An Independent Hardware Estimate, and Its Own Found
+Limitation</h2>
+<p>The project’s only prior hardware-resource estimate was a
+hand-derived analytical heuristic (parameter count × bit-width × reuse
+factor), explicitly never validated against real synthesis (no
+Vivado/Vitis HLS license available in this environment). To ground at
+least one estimate in real synthesis data without requiring local Vivado
+access, a small sklearn surrogate regressor was trained on
+<code>fastmachinelearning/wa-hls4ml</code> <span class="citation"
+data-cites="hawks2025wahls4ml">(Hawks et al. 2025)</span>, a public
+dataset of ~680,000 real hls4ml-synthesized networks (training
+restricted to its <code>resource</code>/<code>latency</code>
+fully-connected splits, excluding splits the dataset’s own card flags as
+unrepresentative).</p>
+<p>The surrogate generalizes well for latency/II (R² up to 0.996 on
+held-out data) but — a limitation found and disclosed, not hidden —
+<strong>gives essentially zero feature importance to bit-width or layer
+width</strong>, for every target, under both a random-forest and a
+gradient-boosted model (verified, not assumed, by inspecting feature
+importances directly and by confirming two feature vectors differing
+only in precision get identical predictions). Two models of the same
+architecture at different precisions receive the same surrogate
+LUT/DSP/FF/BRAM estimate. The likely cause: <code>total_params</code>
+and <code>reuse_factor</code> alone explain most resource variance
+across the training data’s extremely heterogeneous architecture mix,
+leaving too little residual signal for a tree ensemble to bother
+splitting on bit-width. <strong>The original heuristic — cruder, but
+explicitly bit-width-sensitive — remains the more useful of the two for
+precision comparisons</strong>; the surrogate’s validated latency/II
+numbers are its genuine contribution.</p>
+<h2 id="core-result-3-does-the-neural-network-earn-its-keep">7. Core
+Result 3: Does the Neural Network Earn Its Keep?</h2>
+<p>A question nothing in this project asked until explicitly tested: is
+a neural network actually the best available model for this task? Two
+default-hyperparameter (no tuning) baselines were trained on the
+identical splits as the MLP: logistic regression and
+<code>HistGradientBoostingClassifier</code> (GBM).</p>
+<p><strong>The GBM baseline reliably beats the FP32 MLP</strong> on
+ROC-AUC (+0.0030, 95% CI [0.0018, 0.0041] entirely positive, all 5
+seeds) and on background rejection at 70% signal efficiency. Logistic
+regression, as expected, is clearly worse than either nonlinear model.
+<strong>This finding is replicated independently on the image/CNN
+generality check</strong> (Section 8): a GBM trained on hand-engineered
+image features (total energy, centroid, spread, nonzero-pixel count)
+reliably beats the CNN (-0.0044, 95% CI entirely negative, 0/3 seeds,
+n=3) while the CNN in turn reliably beats a flattened-pixel
+logistic-regression control (+0.1255, 3/3 seeds). Across two independent
+architectures and two independent data representations, a simple
+gradient-boosted-tree baseline on hand-engineered features matches or
+exceeds the neural network. <strong>Neither result claims the relevant
+neural network is the best available model for its task</strong> — the
+case for the quantized MLP specifically is FPGA deployability via
+<code>hls4ml</code>, a path a
+<code>HistGradientBoostingClassifier</code> is not built to use; the
+honest conclusion is that the case for the neural network is
+deployability on the target hardware path, not raw accuracy.</p>
+<h2
+id="generality-check-a-cnn-on-a-different-architecture-and-dataset">8.
+Generality Check: A CNN on a Different Architecture and Dataset</h2>
+<p>A second architecture family (CNN, not MLP) on a second data
+representation (pixelated calorimeter images, not hand-engineered
+features) was built to test whether this project’s methodology — and the
+quantization behavior observed for the MLP — transfer. This is reported
+as a secondary generality check, not a second headline result: the
+quantization/mixed-precision work above remains this project’s core,
+tightly-scoped contribution.</p>
+<p><strong>Baseline comparison</strong> (Section 7) showed the CNN sits
+between the two baselines, as described above. <strong>Quantization
+behavior diverges sharply from the MLP’s</strong>, and this divergence
+is itself the generality check’s most important finding:</p>
+<table>
+<thead>
+<tr class="header">
+<th>config</th>
+<th>ROC-AUC</th>
+<th>accuracy</th>
+<th>note</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>FP32</td>
+<td>0.8836</td>
+<td>0.6246</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td>INT8 PTQ</td>
+<td>0.7323</td>
+<td><strong>0.2016</strong></td>
+<td>collapsed (5-class random ≈ 0.20)</td>
+</tr>
+<tr class="odd">
+<td>INT8 QAT</td>
+<td>0.8812</td>
+<td>0.6272</td>
+<td>within noise of FP32</td>
+</tr>
+<tr class="even">
+<td>INT6 PTQ</td>
+<td>0.7161</td>
+<td><strong>0.2015</strong></td>
+<td>collapsed</td>
+</tr>
+<tr class="odd">
+<td>INT6 QAT</td>
+<td>0.8597</td>
+<td>0.5904</td>
+<td>graceful degradation</td>
+</tr>
+<tr class="even">
+<td>INT4 PTQ</td>
+<td>0.6270</td>
+<td><strong>0.2015</strong></td>
+<td>collapsed</td>
+</tr>
+<tr class="odd">
+<td>INT4 QAT</td>
+<td>0.8234</td>
+<td>0.5282</td>
+<td>graceful degradation</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Post-training quantization catastrophically fails for the CNN
+at every precision tried, including INT8</strong> — accuracy collapses
+to ~0.20 (random-chance level for 5 near-balanced classes) and macro-F1
+to ~0.067, a pattern closely matching a degenerate “always predicts one
+class” collapse. Notably, <strong>ROC-AUC stays well above random
+(0.63-0.73)</strong> even as the argmax decision collapses, meaning the
+underlying probability scores retain real ranking signal — consistent
+with PTQ distorting the decision <em>scale</em> (e.g. one class’s logit
+dominating after quantization) while leaving relative ordering partially
+intact. <strong>Quantization-aware training recovers gracefully</strong>
+in every case, the way QAT is designed to.</p>
+<p>On the tabular MLP, by contrast, INT8 PTQ was <em>practically
+lossless</em> (Section 1 table) and only INT4 PTQ showed real
+instability. <strong>This is a genuine, substantive generality finding:
+PTQ reliability is not architecture-independent.</strong> A conclusion
+drawn from the MLP work alone — “INT8 PTQ is usually safe for this kind
+of model” — does not transfer to the CNN on this task. A candidate
+explanation (Conv2D weight-range outliers dominating the naive min/max
+calibration, or an insufficient activation-calibration sample size for a
+spatially-extended feature map) is stated as a hypothesis in the
+underlying phase report, not confirmed by further investigation —
+disclosed as exactly that, an open question this work surfaces rather
+than resolves.</p>
+<p>This generality check also required (and delivered, as a secondary
+infrastructure contribution) extending the project’s PTQ/QAT machinery,
+previously hardcoded to the MLP’s flat single-<code>Sequential</code>
+structure, to a model with two separate <code>Sequential</code> blocks
+(convolutional and classifier) and <code>Conv2D</code> layers — a
+generalization verified not to change the existing MLP code path’s
+behavior (regression-tested), and verified to work end-to-end against
+the real (not mocked) <code>hls4ml</code> PyTorch-to-HLS conversion path
+for <code>Conv2D</code>/<code>MaxPooling2D</code> layers.</p>
+<h2 id="discussion-and-limitations">9. Discussion and Limitations</h2>
+<p><strong>What this work supports</strong>: that a near-exhaustive
+mixed-precision search materially changes conclusions a smaller
+hand-picked search reaches; that an externally-trained hardware estimate
+can be a genuine, if imperfect, complement to a hand-derived heuristic,
+with its own limitations disclosed rather than hidden; that the case for
+a quantized neural network on this task is deployability, not accuracy,
+on both datasets tried; and that quantization reliability is not
+guaranteed to transfer across architectures even on the same underlying
+physics task.</p>
+<p><strong>What this work does not support</strong>: any claim of a
+novel quantization <em>method</em> (standard PTQ/ QAT mechanisms
+throughout); any physical FPGA latency or resource claim (no
+Vivado/Vitis HLS synthesis was performed — every hardware number is
+simulated, estimated, or a trained surrogate, never measured on real
+hardware); a confirmed mechanism for the CNN’s PTQ collapse (stated as
+an open hypothesis); or statistical significance in the formal sense for
+comparisons at n=3 seeds (the CNN quantization sweep itself, Section 8,
+used a single seed, disclosed as such given the CNN’s measured per-seed
+training cost).</p>
+<p><strong>Honesty discipline throughout</strong>: every number in this
+work is tagged with how it was obtained (measured in software, simulated
+via hls4ml C-simulation, an analytical estimate, a trained surrogate
+with its own held-out error, or genuinely unavailable), and every
+comparison’s selection rule was fixed before the test split was
+examined. Where a result ran against the simplest or most flattering
+narrative — a baseline beating the neural network, a found
+reproducibility bug, a surrogate model’s blind spot, quantization
+collapsing on the second architecture — it is reported as found, not
+reframed or omitted.</p>
+<h2 id="conclusion">10. Conclusion</h2>
+<p>This work set out to benchmark quantization for a real-time HEP
+trigger classifier with the rigor the deployment stakes warrant: a true
+search instead of a hand-picked one, an independent hardware check
+instead of a single heuristic, honest baselines instead of an assumed
+neural- network advantage, and an explicit test of whether any of this
+generalizes. Each of these axes surfaced a result worth reporting
+precisely because it was not the simplest possible outcome:
+mixed-precision QAT beats uniform INT6 at lower storage; the
+externally-trained hardware surrogate cannot currently see precision at
+all; a gradient-boosted-tree baseline matches or beats both neural
+architectures tried; and PTQ’s reliability, solid for the MLP, collapses
+for the CNN. Together, these support a central, generalizable practical
+claim for anyone quantizing a model for FPGA trigger deployment:
+<strong>validate the specific method, the specific search granularity,
+and the specific architecture together</strong> — conclusions from any
+one of these axes in isolation do not reliably transfer to the
+others.</p>
+<h2 id="reproducibility">Reproducibility</h2>
+<p>Every result in this paper traces to a specific phase report and
+reproduction command in the accompanying repository
+(<code>hep-trigger-quantization-lab</code>): Section 5 to
+<code>reports/phase12_exhaustive_mixed_precision_pareto.md</code>,
+Section 6 to
+<code>reports/phase11_surrogate_hardware_validation.md</code>, Section 7
+to <code>reports/phase13_baselines_and_efficiency.md</code> and
+<code>reports/phase14_cnn_jet_images.md</code>, and Section 8 to
+<code>reports/phase14_cnn_jet_images.md</code> and
+<code>reports/phase14_cnn_quantization.md</code>. Pinned dependencies,
+exact reproduction commands, and the full two-test-rule verification
+record for every result are in <code>docs/REPRODUCIBILITY.md</code>.</p>
+<h2 class="unnumbered" id="references">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent"
+data-entry-spacing="0" role="list">
+<div id="ref-coelho2021automatic" class="csl-entry" role="listitem">
+Coelho, Claudionor N. et al. 2021. <span>“Automatic Heterogeneous
+Quantization of Deep Neural Networks for Low-Latency Inference on the
+Edge for Particle Detectors.”</span> <em>Nature Machine
+Intelligence</em> 3: 675–86. <a
+href="https://arxiv.org/abs/2006.10159">https://arxiv.org/abs/2006.10159</a>.
+</div>
+<div id="ref-duarte2018fast" class="csl-entry" role="listitem">
+Duarte, Javier et al. 2018. <span>“Fast Inference of Deep Neural
+Networks in FPGAs for Particle Physics.”</span> <em>Journal of
+Instrumentation</em> 13: P07027. <a
+href="https://arxiv.org/abs/1804.06913">https://arxiv.org/abs/1804.06913</a>.
+</div>
+<div id="ref-hawks2025wahls4ml" class="csl-entry" role="listitem">
+Hawks, Ben et al. 2025. <span>“Wa-Hls4ml: A Public Dataset of Real
+Hls4ml Synthesis Results for Surrogate Resource Modeling.”</span> <a
+href="https://arxiv.org/abs/2511.05615">https://arxiv.org/abs/2511.05615</a>.
+</div>
+<div id="ref-hls4ml" class="csl-entry" role="listitem">
+hls4ml collaboration. 2024. <span>“Hls4ml: FPGA Deployment Toolchain for
+Machine Learning in High-Energy Physics.”</span> <a
+href="https://fastmachinelearning.org/hls4ml/"
+class="uri">https://fastmachinelearning.org/hls4ml/</a>.
+</div>
+<div id="ref-moreno2020jedinet" class="csl-entry" role="listitem">
+Moreno, Eric A. et al. 2020. <span>“JEDI-Net: A Jet Identification
+Algorithm Based on Interaction Networks.”</span> <em>European Physical
+Journal C</em> 80: 58. <a
+href="https://arxiv.org/abs/1908.05318">https://arxiv.org/abs/1908.05318</a>.
+</div>
+<div id="ref-moreno2025wombat" class="csl-entry" role="listitem">
+——— et al. 2025. <span>“WOMBAT: A Trigger-Level Jet-Substructure Tagging
+System.”</span> <a
+href="https://arxiv.org/abs/2505.05532">https://arxiv.org/abs/2505.05532</a>.
+</div>
+<div id="ref-sun2024hgq" class="csl-entry" role="listitem">
+Sun, Chang et al. 2024. <span>“HGQ2: Gradient-Based Mixed-Precision
+Quantization for Hardware-Efficient Neural Networks.”</span> <a
+href="https://arxiv.org/abs/2405.00645">https://arxiv.org/abs/2405.00645</a>.
+</div>
+<div id="ref-sun2025jedilinear" class="csl-entry" role="listitem">
+——— et al. 2025. <span>“JEDI-Linear: Jet Identification via Linear
+Interaction Networks.”</span> <a
+href="https://arxiv.org/abs/2508.15468">https://arxiv.org/abs/2508.15468</a>.
+</div>
+</div>
+</body>
+</html>
