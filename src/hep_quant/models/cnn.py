@@ -72,3 +72,9 @@ class JetImageCNN(nn.Module):
             image_size=cfg["image_size"], in_channels=cfg.get("in_channels", 1),
             conv_channels=cfg.get("conv_channels"), n_classes=cfg["n_classes"],
         )
+
+    @property
+    def hls4ml_input_shape(self) -> tuple[int, ...]:
+        """The `input_shape` kwarg hls4ml.utils.config_from_pytorch_model expects for a 2D
+        conv input -- (channels, height, width), not a flat (features,) tuple like the MLP's."""
+        return (self.in_channels, self.image_size, self.image_size)

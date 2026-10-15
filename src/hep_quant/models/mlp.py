@@ -58,6 +58,12 @@ class MLPClassifier(nn.Module):
     def get_config(self) -> dict:
         return {"input_dim": self.input_dim, "hidden_dims": self.hidden_dims, "n_classes": self.n_classes}
 
+    @property
+    def hls4ml_input_shape(self) -> tuple[int, ...]:
+        """The `input_shape` kwarg hls4ml.utils.config_from_pytorch_model expects --
+        generalizes hep_quant.hardware.hls_csim's previous `(model.input_dim,)` hardcode."""
+        return (self.input_dim,)
+
     @classmethod
     def from_config(cls, cfg: dict) -> "MLPClassifier":
         return cls(input_dim=cfg["input_dim"], hidden_dims=cfg["hidden_dims"], n_classes=cfg["n_classes"])

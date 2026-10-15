@@ -155,7 +155,7 @@ class HLSBackend(HardwareBackend):
             precision_str = f"ap_fixed<{bits + 6},{6}>" if precision != "fp32" else "ap_fixed<32,16>"
             config = hls4ml.utils.config_from_pytorch_model(
                 cpu_model,
-                input_shape=(cpu_model.input_dim,),
+                input_shape=cpu_model.hls4ml_input_shape,
                 default_precision=precision_str,
                 default_reuse_factor=hardware_cfg.get("reuse_factor", 1),
             )

@@ -53,6 +53,16 @@ def test_trainer_checkpoint_roundtrip(tmp_path):
     assert torch.allclose(original_out, reloaded_out, atol=1e-6)
 
 
+def test_hls4ml_input_shape_mlp_is_flat_tuple():
+    model = MLPClassifier(input_dim=16, hidden_dims=[8], n_classes=5)
+    assert model.hls4ml_input_shape == (16,)
+
+
+def test_hls4ml_input_shape_cnn_is_chw_tuple():
+    model = JetImageCNN(image_size=25, in_channels=1, conv_channels=[4], n_classes=5)
+    assert model.hls4ml_input_shape == (1, 25, 25)
+
+
 def test_trainer_checkpoint_roundtrip_generalizes_to_cnn(tmp_path):
     """Trainer.save_checkpoint/load_checkpoint must work for any model exposing
     get_config()/from_config()/CONFIG_KEYS, not just MLPClassifier -- this is the
