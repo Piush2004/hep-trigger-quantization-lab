@@ -38,10 +38,16 @@ All commands are run from the repository root inside the WSL virtualenv. On Wind
 ```bash
 # environment (once) -- needs uv installed first: curl -LsSf https://astral.sh/uv/install.sh | sh
 uv venv .venv-wsl --python 3.11
-# requirements-lock.txt pins a CUDA build of torch (cu128); the extra-index-url is required
-# or `uv pip install` fails with "No solution found" (verified: omitting it does fail outright).
-# On a CPU-only machine, edit the torch==... line in requirements-lock.txt to the CPU wheel first.
-uv pip install --python .venv-wsl --extra-index-url https://download.pytorch.org/whl/cu128 -r requirements-lock.txt
+# requirements-lock.txt pins a CUDA build of torch (cu128); both --extra-index-url AND
+# --index-strategy unsafe-best-match are required, verified directly: --extra-index-url alone
+# still fails ("No solution found... certifi was found on <cu128 index>, but not at the
+# requested version") because uv's default dependency-confusion protection restricts every
+# package to versions on the FIRST index that has it, once one package needs a non-default
+# index. unsafe-best-match lifts that restriction (safe here since both indices are
+# first-party: pypi.org and PyTorch's own wheel host). On a CPU-only machine, edit the
+# torch==... line in requirements-lock.txt to the CPU wheel first instead.
+uv pip install --python .venv-wsl --extra-index-url https://download.pytorch.org/whl/cu128 \
+  --index-strategy unsafe-best-match -r requirements-lock.txt
 
 # tests (full suite; ~3 minutes; network tests are opt-in)
 .venv-wsl/bin/python -m pytest -q
