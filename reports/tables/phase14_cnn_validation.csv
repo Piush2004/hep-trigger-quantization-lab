@@ -1,0 +1,4 @@
+label,roc_auc,f1,accuracy,bkg_rejection_at_70pct_eff_macro,seed_rationale
+CNN_S42_val,0.8827608519009967,0.6186778139076804,0.6273333333333333,11.417944612672203,seed 42 took 1884.9s (31.4 min); full 5-seed cost would be ~157.1 min -- using the project's existing 3-seed precedent instead
+CNN_S123_val,0.8848021483178179,0.6333568881322237,0.6347333333333334,11.691357811636005,seed 42 took 1884.9s (31.4 min); full 5-seed cost would be ~157.1 min -- using the project's existing 3-seed precedent instead
+CNN_S2026_val,0.88395169655203,0.632102975511301,0.6332,11.55730546674634,seed 42 took 1884.9s (31.4 min); full 5-seed cost would be ~157.1 min -- using the project's existing 3-seed precedent instead

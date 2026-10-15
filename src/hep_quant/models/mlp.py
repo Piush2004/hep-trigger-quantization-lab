@@ -17,6 +17,9 @@ class MLPClassifier(nn.Module):
     # get_config()/from_config() -- unchanged from the original top-level checkpoint
     # keys, so every existing frozen checkpoint on disk stays loadable as-is.
     CONFIG_KEYS = ("input_dim", "hidden_dims", "n_classes")
+    # Attribute names of the Sequential blocks hep_quant.quantization.ptq's
+    # _insert_activation_fake_quant walks when inserting fake-quant activations.
+    QUANT_BLOCKS = ("net",)
 
     def __init__(
         self,

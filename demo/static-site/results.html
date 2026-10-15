@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Results &amp; explorer · HEP-Trigger Quantization Lab</title>
+  <meta name="description" content="Headline accuracy-vs-storage result, an interactive precision/method explorer, and PTQ vs QAT recovery — frozen research results for HEP jet classification quantization.">
+  <meta name="theme-color" content="#0A0D17">
+  <meta name="color-scheme" content="dark">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="./icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="HEP Quant Lab">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js" defer
+          integrity="sha384-cCVCZkAjYNxaYKbM8lsArLznDF/SvMFr1jcZrvOpSTCa0W40ZAdLzHCEulnUa5i7" crossorigin="anonymous"></script>
+  <script src="./app.js" defer></script>
+  <script>window.STATIC_MODE = true;</script>
+</head>
+<body data-page="results">
+<a class="skip-link" href="#top">Skip to main content</a>
+<header class="topbar">
+  <a class="brand" href="./">HEP-Trigger <span>Quantization Lab</span></a>
+  <nav aria-label="Primary">
+    <a href="./" data-page="home">Home</a>
+    <a href="./results.html" data-page="results">Results</a>
+    <a href="./architecture.html" data-page="architecture">Architecture</a>
+    <a href="./hardware.html" data-page="hardware">Hardware</a>
+    <a href="./methodology.html" data-page="methodology">Methodology</a>
+    <a href="./research.html" data-page="research">Research</a>
+    <a id="nav-github" class="ext" href="#" hidden>GitHub</a>
+  </nav>
+</header>
+
+<main id="top">
+  <section class="hero" style="padding: 40px 0 8px;">
+    <p class="eyebrow">Results &amp; explorer</p>
+    <h1 style="font-size: clamp(1.8rem, 1.4rem + 2vw, 2.5rem);">Accuracy against theoretical weight storage</h1>
+    <p class="lede">The headline result, an interactive per-configuration explorer, and how much of the INT4 loss quantization-aware training recovers.</p>
+  </section>
+
+  <section id="results" class="panel">
+    <header class="section-head">
+      <p class="eyebrow">01 · Main result</p>
+      <h2>Accuracy vs theoretical weight storage</h2>
+      <p class="muted">Test macro ROC-AUC, mean ± SD over five seeds, against analytical weight storage (bytes, log scale). Hover for values.</p>
+    </header>
+    <div class="chart-wrap tall"><div id="chart-main" class="chart"></div></div>
+    <div class="callout" id="headline"></div>
+    <p class="fineprint">Storage is theoretical (weights at their bit-width, biases at 4 bytes); checkpoints are float32 and no packed artifact exists. Primary architecture rows are the CUDA-era frozen records.</p>
+  </section>
+
+  <section class="panel">
+    <header class="section-head">
+      <p class="eyebrow">02 · Precision explorer</p>
+      <h2>Inspect one configuration</h2>
+    </header>
+    <div class="controls">
+      <div class="ctrl"><span class="ctrl-label">Precision</span><div class="seg" id="seg-precision"></div></div>
+      <div class="ctrl"><span class="ctrl-label">Method</span><div class="seg" id="seg-method"></div></div>
+    </div>
+    <div class="explorer">
+      <dl class="metrics" id="metrics"></dl>
+      <div class="chart-wrap"><div id="chart-seeds" class="chart"></div></div>
+    </div>
+    <p class="fineprint" id="explorer-note"></p>
+  </section>
+
+  <section class="panel">
+    <header class="section-head">
+      <p class="eyebrow">03 · PTQ vs QAT</p>
+      <h2>Quantization-aware training recovers most of the INT4 loss</h2>
+    </header>
+    <div class="chart-wrap"><div id="chart-ptq-qat" class="chart"></div></div>
+    <div class="callout" id="recovery"></div>
+  </section>
+</main>
+
+<footer class="footer">
+  <p>Independent research project. Not an official or CERN-affiliated project. Visualization of frozen results; no training runs at request time.</p>
+</footer>
+</body>
+</html>

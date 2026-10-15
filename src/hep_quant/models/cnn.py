@@ -13,6 +13,9 @@ class JetImageCNN(nn.Module):
     # Keys Trainer.save_checkpoint/load_checkpoint read/write generically via
     # get_config()/from_config() -- see MLPClassifier.CONFIG_KEYS for the same contract.
     CONFIG_KEYS = ("image_size", "in_channels", "conv_channels", "n_classes")
+    # Two Sequential blocks (not one flat "net" like MLPClassifier) -- see
+    # MLPClassifier.QUANT_BLOCKS for the same contract.
+    QUANT_BLOCKS = ("conv", "classifier")
 
     def __init__(
         self,

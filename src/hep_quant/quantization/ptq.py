@@ -59,7 +59,7 @@ class FakeQuantActivation(nn.Module):
 def _quantize_weights_in_place(model: nn.Module, bits: int) -> None:
     with torch.no_grad():
         for module in model.modules():
-            if isinstance(module, nn.Linear):
+            if isinstance(module, (nn.Linear, nn.Conv2d)):
                 w = module.weight.data
                 min_val, max_val = w.min().item(), w.max().item()
                 module.weight.data = fake_quantize_tensor(w, bits, min_val, max_val)
@@ -68,15 +68,22 @@ def _quantize_weights_in_place(model: nn.Module, bits: int) -> None:
 def _insert_activation_fake_quant(
     model: nn.Module, bits: int, activation_ranges: dict[str, tuple[float, float]]
 ) -> None:
-    """Rebuild `model.net` inserting a FakeQuantActivation after each activation module."""
-    new_layers = []
-    for name, module in model.net.named_children():
-        new_layers.append(module)
-        if isinstance(module, _ACTIVATION_TYPES):
-            key = f"net.{name}"
-            lo, hi = activation_ranges.get(key, (-6.0, 6.0))
-            new_layers.append(FakeQuantActivation(bits, lo, hi))
-    model.net = nn.Sequential(*new_layers)
+    """Rebuild each of `model.QUANT_BLOCKS` (e.g. `("net",)` for MLPClassifier, `("conv",
+    "classifier")` for JetImageCNN), inserting a FakeQuantActivation after each activation
+    module within that block. Generalized from a single hardcoded `model.net` so this works for
+    any model exposing QUANT_BLOCKS, not just the MLP -- behaviorally identical to before for
+    MLPClassifier, since QUANT_BLOCKS=("net",) reduces to exactly the original logic.
+    """
+    for block_name in model.QUANT_BLOCKS:
+        block = getattr(model, block_name)
+        new_layers = []
+        for name, module in block.named_children():
+            new_layers.append(module)
+            if isinstance(module, _ACTIVATION_TYPES):
+                key = f"{block_name}.{name}"
+                lo, hi = activation_ranges.get(key, (-6.0, 6.0))
+                new_layers.append(FakeQuantActivation(bits, lo, hi))
+        setattr(model, block_name, nn.Sequential(*new_layers))
 
 
 def quantize_model_ptq(
