@@ -33,7 +33,10 @@ TAB = ROOT / "reports" / "tables"
 TARGET_SIZE = 25
 EFFICIENCY = 0.70
 TRAIN_SUBSET = 100_000
-SEED = 42
+# Same 3 seeds scripts/phase14_jet_image_cnn.py uses (measured-cost-justified 3-seed precedent,
+# see reports/tables/phase14_cnn_timing.json) -- for a fair, paired seed-by-seed comparison
+# rather than a single-point baseline vs. a multi-seed CNN.
+SEEDS = [42, 123, 2026]
 
 
 def score(y_true, y_pred, y_prob, label: str) -> dict:
@@ -50,44 +53,48 @@ def score(y_true, y_pred, y_prob, label: str) -> dict:
 def main() -> int:
     TAB.mkdir(parents=True, exist_ok=True)
 
-    print(f"loading official train/ (subsampled to {TRAIN_SUBSET} jets)...")
-    train_ds = load_and_downsample_jet_images(str(TRAIN_DIR), target_size=TARGET_SIZE, max_jets=TRAIN_SUBSET, seed=SEED)
+    print(f"loading official train/ (subsampled to {TRAIN_SUBSET} jets, fixed pool, seed=42)...")
+    # Subsample pool fixed once at seed=42, matching scripts/phase14_jet_image_cnn.py exactly --
+    # each seed below only varies the internal 85/15 split + model randomness, not which jets
+    # are in the 100,000-jet pool, for a fair comparison against what the CNN script actually ran.
+    train_ds = load_and_downsample_jet_images(str(TRAIN_DIR), target_size=TARGET_SIZE, max_jets=TRAIN_SUBSET, seed=42)
     print(f"  {len(train_ds.y)} jets loaded")
-
-    idx_train, idx_val = train_test_split(
-        range(len(train_ds.y)), test_size=0.15, random_state=SEED, stratify=train_ds.y
-    )
-    X_train_img, y_train = train_ds.images[idx_train], train_ds.y[idx_train]
-    # idx_val / internal val carve-out not used by these baselines (no early stopping / model
-    # selection needed for default-hyperparameter sklearn models) -- kept for parity with the
-    # CNN training script's split, which does use it.
 
     print("loading official val/ (held-out test, full 270,000 jets, touched once)...")
     test_ds = load_and_downsample_jet_images(str(VAL_DIR), target_size=TARGET_SIZE)
     X_test_img, y_test = test_ds.images, test_ds.y
+    Xte_feat = extract_image_features(X_test_img)
+    Xte_flat = X_test_img.reshape(len(y_test), -1)
     print(f"  {len(y_test)} test jets")
 
     rows = []
+    for seed in SEEDS:
+        print(f"=== seed {seed} ===")
+        idx_train, _idx_val = train_test_split(
+            range(len(train_ds.y)), test_size=0.15, random_state=seed, stratify=train_ds.y
+        )
+        X_train_img, y_train = train_ds.images[idx_train], train_ds.y[idx_train]
 
-    print("training baseline 1: hand-engineered image features + HistGradientBoostingClassifier...")
-    Xtr_feat = extract_image_features(X_train_img)
-    Xte_feat = extract_image_features(X_test_img)
-    gbm = HistGradientBoostingClassifier(random_state=SEED)
-    gbm.fit(Xtr_feat, y_train)
-    probs = gbm.predict_proba(Xte_feat)
-    rows.append(score(y_test, probs.argmax(1), probs, "ImageFeatures+GBM"))
+        Xtr_feat = extract_image_features(X_train_img)
+        gbm = HistGradientBoostingClassifier(random_state=seed)
+        gbm.fit(Xtr_feat, y_train)
+        probs = gbm.predict_proba(Xte_feat)
+        rows.append({"seed": seed, **score(y_test, probs.argmax(1), probs, "ImageFeatures+GBM")})
 
-    print("training baseline 2: flattened pixels + LogisticRegression...")
-    Xtr_flat = X_train_img.reshape(len(y_train), -1)
-    Xte_flat = X_test_img.reshape(len(y_test), -1)
-    lr = LogisticRegression(max_iter=1000, random_state=SEED)
-    lr.fit(Xtr_flat, y_train)
-    probs = lr.predict_proba(Xte_flat)
-    rows.append(score(y_test, probs.argmax(1), probs, "FlattenedPixels+LogReg"))
+        Xtr_flat = X_train_img.reshape(len(y_train), -1)
+        lr = LogisticRegression(max_iter=1000, random_state=seed)
+        lr.fit(Xtr_flat, y_train)
+        probs = lr.predict_proba(Xte_flat)
+        rows.append({"seed": seed, **score(y_test, probs.argmax(1), probs, "FlattenedPixels+LogReg")})
 
     df = pd.DataFrame(rows)
     df.to_csv(TAB / "phase14_baselines.csv", index=False)
-    print(df.round(4).to_string(index=False))
+    summary = df.groupby("model").agg(
+        roc_auc_mean=("roc_auc", "mean"), roc_auc_sd=("roc_auc", "std"),
+        f1_mean=("f1", "mean"),
+        bkg_rejection_mean=(f"bkg_rejection_at_{int(EFFICIENCY * 100)}pct_eff_macro", "mean"),
+    ).round(4)
+    print(summary.to_string())
     return 0
 
 
