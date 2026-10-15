@@ -10,6 +10,10 @@ import torch.nn as nn
 
 
 class JetImageCNN(nn.Module):
+    # Keys Trainer.save_checkpoint/load_checkpoint read/write generically via
+    # get_config()/from_config() -- see MLPClassifier.CONFIG_KEYS for the same contract.
+    CONFIG_KEYS = ("image_size", "in_channels", "conv_channels", "n_classes")
+
     def __init__(
         self,
         image_size: int,
@@ -52,3 +56,16 @@ class JetImageCNN(nn.Module):
 
     def num_parameters(self) -> int:
         return sum(p.numel() for p in self.parameters())
+
+    def get_config(self) -> dict:
+        return {
+            "image_size": self.image_size, "in_channels": self.in_channels,
+            "conv_channels": self.conv_channels, "n_classes": self.n_classes,
+        }
+
+    @classmethod
+    def from_config(cls, cfg: dict) -> "JetImageCNN":
+        return cls(
+            image_size=cfg["image_size"], in_channels=cfg.get("in_channels", 1),
+            conv_channels=cfg.get("conv_channels"), n_classes=cfg["n_classes"],
+        )

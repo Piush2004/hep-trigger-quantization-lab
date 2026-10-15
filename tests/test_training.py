@@ -5,6 +5,7 @@ import torch
 from hep_quant.data.loader import load_synthetic
 from hep_quant.data.preprocessing import Preprocessor
 from hep_quant.data.splits import split_dataset
+from hep_quant.models.cnn import JetImageCNN
 from hep_quant.models.mlp import MLPClassifier
 from hep_quant.training.evaluation import evaluate_model
 from hep_quant.training.trainer import Trainer
@@ -50,6 +51,27 @@ def test_trainer_checkpoint_roundtrip(tmp_path):
         reloaded_out = reloaded(x)
 
     assert torch.allclose(original_out, reloaded_out, atol=1e-6)
+
+
+def test_trainer_checkpoint_roundtrip_generalizes_to_cnn(tmp_path):
+    """Trainer.save_checkpoint/load_checkpoint must work for any model exposing
+    get_config()/from_config()/CONFIG_KEYS, not just MLPClassifier -- this is the
+    Phase 14 generalization that lets the same Trainer serve JetImageCNN."""
+    set_seed(42)
+    model = JetImageCNN(image_size=8, in_channels=1, conv_channels=[4], n_classes=3)
+    ckpt_path = tmp_path / "cnn_model.pt"
+    Trainer(model, {}, tmp_path).save_checkpoint(ckpt_path)
+
+    reloaded = Trainer.load_checkpoint(ckpt_path, JetImageCNN, device="cpu")
+
+    model.eval()
+    with torch.no_grad():
+        x = torch.randn(4, 1, 8, 8)
+        original_out = model(x)
+        reloaded_out = reloaded(x)
+
+    assert torch.allclose(original_out, reloaded_out, atol=1e-6)
+    assert reloaded.get_config() == model.get_config()
 
 
 def test_evaluate_model_produces_finite_metrics():

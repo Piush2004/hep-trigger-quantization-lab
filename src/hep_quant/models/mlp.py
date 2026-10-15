@@ -13,6 +13,11 @@ _ACTIVATIONS = {"relu": nn.ReLU, "tanh": nn.Tanh, "leaky_relu": nn.LeakyReLU}
 
 
 class MLPClassifier(nn.Module):
+    # Keys Trainer.save_checkpoint/load_checkpoint read/write generically via
+    # get_config()/from_config() -- unchanged from the original top-level checkpoint
+    # keys, so every existing frozen checkpoint on disk stays loadable as-is.
+    CONFIG_KEYS = ("input_dim", "hidden_dims", "n_classes")
+
     def __init__(
         self,
         input_dim: int,
@@ -46,3 +51,10 @@ class MLPClassifier(nn.Module):
 
     def num_parameters(self) -> int:
         return sum(p.numel() for p in self.parameters())
+
+    def get_config(self) -> dict:
+        return {"input_dim": self.input_dim, "hidden_dims": self.hidden_dims, "n_classes": self.n_classes}
+
+    @classmethod
+    def from_config(cls, cfg: dict) -> "MLPClassifier":
+        return cls(input_dim=cfg["input_dim"], hidden_dims=cfg["hidden_dims"], n_classes=cfg["n_classes"])
