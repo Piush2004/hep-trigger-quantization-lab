@@ -45,8 +45,8 @@ Thumbs.db
 *.key
 hls4ml_csim/
 
-# Flutter/Android build artifacts (CERN demo app)
-app/build/
-app/.dart_tool/
-app/.idea/
-app/.flutter-plugins-dependencies
+# The Flutter/Android companion app and the demo website's static-site build output live on
+# demo/web-release, not this research branch -- ignored wholesale here (not just build
+# artifacts) so they never get accidentally re-staged from this working directory again.
+app/
+demo/static-site/
