@@ -50,13 +50,26 @@ def _check_schema(f: h5py.File, path: str) -> None:
         raise SchemaMismatchError(f"{path}: last 6 jetFeatureNames {names[-6:]} != expected {EXPECTED_LABEL_NAMES}")
 
 
-def load_jet_images(data_dir: str, max_jets: int | None = None, seed: int = 42) -> JetImageDataset:
+def load_jet_images(
+    data_dir: str,
+    max_jets: int | None = None,
+    seed: int = 42,
+    per_shard_transform=None,
+) -> JetImageDataset:
     """Load jet images + one-hot labels from every shard .h5 file under `data_dir`.
 
     Two-pass to stay cheap when subsampling: first reads only the small `jets` label array from
     every shard (global, unbiased random subsample indices are computed from this), then reads
     `jetImage` only for the selected rows -- never loads the (much larger) image array for a jet
     that would be discarded anyway. Without `max_jets`, every jet's image is read as normal.
+
+    `per_shard_transform`, if given, is applied to each shard's raw (n_shard, 100, 100) float32
+    image batch immediately after reading it, BEFORE accumulating into the final concatenated
+    array -- e.g. `load_and_downsample_jet_images` passes `sum_pool` here so peak memory is one
+    shard's worth of full-resolution images (~400MB for a 10,000-jet shard) plus the much
+    smaller accumulated downsampled result, rather than materializing every selected jet's full
+    100x100 image before downsampling (which, for the full 270,000-jet val split alone, would be
+    ~10.8GB -- confirmed too large for this environment's ~10GB available RAM, checked directly).
     """
     files = sorted(glob.glob(str(Path(data_dir) / "*.h5")))
     if not files:
@@ -92,7 +105,10 @@ def load_jet_images(data_dir: str, max_jets: int | None = None, seed: int = 42) 
         if len(rows) == 0:
             continue
         with h5py.File(fp, "r") as f:
-            images_list.append(f["jetImage"][rows].astype(np.float32))
+            batch = f["jetImage"][rows].astype(np.float32)
+        if per_shard_transform is not None:
+            batch = per_shard_transform(batch)
+        images_list.append(batch)
         y_list.append(all_y[offsets[file_i] + rows])
 
     images = np.concatenate(images_list, axis=0)
@@ -114,9 +130,11 @@ def load_and_downsample_jet_images(
     """
     if 100 % target_size != 0:
         raise ValueError(f"target_size={target_size} must evenly divide the raw 100x100 image size")
-    ds = load_jet_images(data_dir, max_jets=max_jets, seed=seed)
-    ds.images = sum_pool(ds.images, factor=100 // target_size)
-    return ds
+    factor = 100 // target_size
+    return load_jet_images(
+        data_dir, max_jets=max_jets, seed=seed,
+        per_shard_transform=lambda batch: sum_pool(batch, factor=factor),
+    )
 
 
 def sum_pool(images: np.ndarray, factor: int) -> np.ndarray:
