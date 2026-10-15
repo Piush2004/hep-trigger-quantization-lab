@@ -101,6 +101,24 @@ def load_jet_images(data_dir: str, max_jets: int | None = None, seed: int = 42) 
     return JetImageDataset(images=images, y=y, class_names=CLASS_NAMES, source_files=files)
 
 
+def load_and_downsample_jet_images(
+    data_dir: str, target_size: int, max_jets: int | None = None, seed: int = 42
+) -> JetImageDataset:
+    """Compose `load_jet_images` + `sum_pool`. Kept separate from the raw loader (rather than
+    baking downsampling in) so full-resolution 100x100 images stay available for anyone who
+    wants them later, e.g. a full-resolution ablation. `target_size` must evenly divide the raw
+    100x100 image size -- 25 (factor 4) and 20 (factor 5) are both clean and match the
+    literature-standard jet-image size (Cogan et al. 2015; de Oliveira et al. 2016, both cited
+    in this module's docstring); a target like 32 does NOT evenly divide 100 and is rejected by
+    `sum_pool`, not silently rounded or cropped.
+    """
+    if 100 % target_size != 0:
+        raise ValueError(f"target_size={target_size} must evenly divide the raw 100x100 image size")
+    ds = load_jet_images(data_dir, max_jets=max_jets, seed=seed)
+    ds.images = sum_pool(ds.images, factor=100 // target_size)
+    return ds
+
+
 def sum_pool(images: np.ndarray, factor: int) -> np.ndarray:
     """Downsample (N,H,W) images by summing factor x factor blocks.
 

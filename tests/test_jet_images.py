@@ -16,7 +16,13 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from hep_quant.data.jet_images import CLASS_NAMES, SchemaMismatchError, load_jet_images, sum_pool
+from hep_quant.data.jet_images import (
+    CLASS_NAMES,
+    SchemaMismatchError,
+    load_and_downsample_jet_images,
+    load_jet_images,
+    sum_pool,
+)
 
 FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures" / "jet_images"
 
@@ -95,6 +101,20 @@ def test_sum_pool_rejects_non_divisible_factor():
     images = np.zeros((2, 100, 100), dtype=np.float32)
     with pytest.raises(ValueError):
         sum_pool(images, factor=7)
+
+
+def test_load_and_downsample_produces_25x25_and_conserves_energy():
+    raw = load_jet_images(str(FIXTURE_DIR))
+    downsampled = load_and_downsample_jet_images(str(FIXTURE_DIR), target_size=25)
+    assert downsampled.images.shape[1:] == (25, 25)
+    np.testing.assert_allclose(
+        downsampled.images.sum(axis=(1, 2)), raw.images.sum(axis=(1, 2)), rtol=1e-4
+    )
+
+
+def test_load_and_downsample_rejects_non_divisor_target_size():
+    with pytest.raises(ValueError):
+        load_and_downsample_jet_images(str(FIXTURE_DIR), target_size=32)
 
 
 @pytest.mark.skipif(not os.environ.get("RUN_NETWORK_TESTS"), reason="requires the full downloaded dataset")
