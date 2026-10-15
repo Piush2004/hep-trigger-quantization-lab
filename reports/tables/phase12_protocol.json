@@ -1,0 +1,6 @@
+{
+  "path": "full_grid",
+  "reason": "estimated 0.32h <= 2.0h threshold; ran full 5-seed grid directly",
+  "cuda_available": false,
+  "device": "cpu"
+}
