@@ -5,7 +5,7 @@ authors:
   - name: "Piush Kole"
 date-released: 2026-10-01
 license: MIT
-repository-code: "local repository, not yet published"
+repository-code: "https://github.com/Piush2004/hep-trigger-quantization-lab"
 abstract: >
   A reproducible research platform investigating how post-training quantization
   and quantization-aware training affect the accuracy, model size, inference
