@@ -62,6 +62,10 @@ a:focus-visible, button:focus-visible, select:focus-visible, [tabindex]:focus-vi
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  /* .reveal's opacity/transform are set inline by JS logic, not just transitioned, so the wildcard
+     duration override above isn't enough on its own — force the resting state directly. */
+  .reveal { opacity: 1 !important; transform: none !important; }
+  #hero-canvas { display: none; }
 }
 
 body {
@@ -328,6 +332,58 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 20px 40px; }
   100% { left: calc(100% - 6px); opacity: 0; }
 }
 
+/* ---- loading screen ----
+   Pure CSS overlay + a tiny inline script (app.js:initPreloader) hides it on window `load`, with a
+   floor so it never flashes on a fast connection and a hard ceiling so it can never get stuck if a
+   resource stalls (e.g. the Plotly CDN or a font request). It never gates on the page's own data
+   fetch — a slow/offline /api or ./data/*.json call degrades its own section only, per boot(). */
+#preloader {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+  background: var(--bg); color: var(--text-primary);
+  transition: opacity 320ms var(--ease-out), visibility 320ms var(--ease-out);
+}
+#preloader.is-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+.preloader-mark { width: 52px; height: 52px; }
+.preloader-mark .bar { transform-origin: bottom; animation: bar-grow 480ms var(--ease-out) both; }
+.preloader-mark .bar-1 { fill: var(--accent); animation-delay: 0ms; }
+.preloader-mark .bar-2 { fill: color-mix(in srgb, var(--accent) 55%, var(--data-violet)); animation-delay: 90ms; }
+.preloader-mark .bar-3 { fill: var(--data-violet); animation-delay: 180ms; }
+.preloader-mark .bar-4 { fill: color-mix(in srgb, var(--data-violet) 60%, var(--tier-estimated)); animation-delay: 270ms; }
+.preloader-label { font-family: var(--mono); font-size: 0.8125rem; color: var(--text-secondary); letter-spacing: 0.02em; margin: 0; }
+.preloader-track { width: 160px; height: 2px; background: var(--border); border-radius: var(--radius-sm); position: relative; overflow: hidden; }
+.preloader-sweep {
+  position: absolute; top: 0; left: -40%; height: 100%; width: 40%;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation: preloader-sweep 1.1s var(--ease-out) infinite;
+}
+@keyframes preloader-sweep { from { left: -40%; } to { left: 100%; } }
+
+/* ---- hero particle field + ambient glow ----
+   A quiet Canvas 2D "detector event display" motif (drifting points, faint connecting lines when
+   close) behind the hero text — colors are read from the CSS tokens at runtime (app.js:initHeroCanvas),
+   never hardcoded, so it always matches --accent/--data-violet. Paused off-screen and under
+   prefers-reduced-motion via the media block above and the JS's own matchMedia gate. */
+.hero { position: relative; overflow: hidden; isolation: isolate; }
+.hero::before {
+  content: ""; position: absolute; z-index: 0; pointer-events: none;
+  inset: -15% -10% auto -10%; height: 320px;
+  background: radial-gradient(60% 100% at 28% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%);
+}
+#hero-canvas { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; opacity: 0.55; pointer-events: none; }
+.hero > * { position: relative; z-index: 1; }
+
+/* ---- scroll reveal ----
+   The .reveal class is added by JS only (app.js:initReveal), never present in the markup itself —
+   so a page with JS disabled or blocked renders every section at full opacity by default instead of
+   silently hiding content behind a class nothing ever adds. */
+.reveal { opacity: 0; transform: translateY(14px); transition: opacity 560ms var(--ease-out), transform 560ms var(--ease-out); }
+.reveal.is-visible { opacity: 1; transform: translateY(0); }
+
+/* ---- per-page eyebrow icon ---- */
+.eyebrow-icon { display: inline-flex; vertical-align: -3px; margin-right: 7px; color: var(--accent); }
+.eyebrow-icon svg { width: 15px; height: 15px; display: block; }
+
 .footer { max-width: 1180px; margin: 0 auto; padding: 24px 20px 48px; color: var(--text-tertiary); font-size: 13px; border-top: 1px solid var(--border); }
 
 /* ---- responsive ---- */
@@ -350,6 +406,7 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 20px 40px; }
   .pipeline-mini { flex-direction: column; gap: 8px; }
   .pipeline-mini-arrow { width: 2px; height: 20px; margin: 0 auto; }
   .pipeline-mini-arrow::after { top: 0; left: 50%; transform: translateX(-50%); animation: pulse-travel-v 3s linear infinite; }
+  .hero::before { height: 220px; }
 }
 @keyframes pulse-travel-v {
   0% { top: 0; opacity: 0; }

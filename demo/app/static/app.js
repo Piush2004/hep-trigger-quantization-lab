@@ -403,7 +403,152 @@
     navigator.serviceWorker.register(swPath).catch(() => { /* offline support is a progressive enhancement */ });
   }
 
+  /* ---------- loading screen ----------
+   * Never gates on the page's own data fetch (boot() already degrades a slow/offline endpoint to
+   * just its own section). Hides on window `load` with a minimum floor (no flash on a fast
+   * connection) and a hard ceiling (never stuck if a resource stalls) — both collapse to ~0 under
+   * prefers-reduced-motion so there's effectively no screen to see. */
+  function initPreloader() {
+    const el = $("#preloader");
+    if (!el) return;
+    const reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const floorMs = reduced ? 0 : 450;
+    const ceilingMs = 2500;
+    const start = Date.now();
+    let hidden = false;
+    const hide = () => {
+      if (hidden) return;
+      hidden = true;
+      const wait = Math.max(0, floorMs - (Date.now() - start));
+      setTimeout(() => {
+        el.classList.add("is-hidden");
+        setTimeout(() => el.remove(), reduced ? 0 : 400);
+      }, wait);
+    };
+    if (document.readyState === "complete") hide();
+    else window.addEventListener("load", hide);
+    setTimeout(hide, ceilingMs);
+  }
+
+  /* ---------- scroll reveal ----------
+   * .reveal is added here, by JS, and nowhere in the markup — so a page with JS disabled or
+   * blocked simply never gets the class and renders every section at full opacity. */
+  function initReveal() {
+    const targets = document.querySelectorAll(".panel, .feature-card, .arch-card");
+    if (!targets.length) return;
+    if (!("IntersectionObserver" in window) || (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) {
+      targets.forEach((el) => el.classList.add("reveal", "is-visible"));
+      return;
+    }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          io.unobserve(entry.target);
+        }
+      });
+      // Positive bottom margin expands the trigger zone *past* the viewport edge, so a panel
+      // finishes fading in before it's actually scrolled into view (no flash of a blank gap on a
+      // fast scroll/Page Down, since the reveal isn't still mid-transition when it arrives).
+    }, { threshold: 0, rootMargin: "0px 0px 200px 0px" });
+    targets.forEach((el) => { el.classList.add("reveal"); io.observe(el); });
+  }
+
+  /* ---------- hero particle field ----------
+   * A quiet "detector event display" motif: drifting points, faint connecting lines when close.
+   * Colors are read from the live CSS custom properties, never hardcoded, so it always matches
+   * --accent/--data-violet if the token system ever changes. Paused when the tab is hidden and
+   * skipped entirely under prefers-reduced-motion (styles.css also hides the canvas there as a
+   * belt-and-suspenders fallback for browsers that evaluate matchMedia differently mid-session). */
+  function initHeroCanvas() {
+    const canvas = $("#hero-canvas");
+    if (!canvas || !canvas.getContext) return;
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const ctx = canvas.getContext("2d");
+    const root = getComputedStyle(document.documentElement);
+    const accent = root.getPropertyValue("--accent").trim() || "#4FA6FF";
+    const violet = root.getPropertyValue("--data-violet").trim() || "#B9A6F7";
+    let w = 0, h = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let points = [];
+    let rafId = null;
+    let running = false;
+
+    const hexToRgb = (hex) => {
+      const v = hex.replace("#", "");
+      const n = parseInt(v.length === 3 ? v.split("").map((c) => c + c).join("") : v, 16);
+      return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    };
+    const [ar, ag, ab] = hexToRgb(accent);
+    const [vr, vg, vb] = hexToRgb(violet);
+
+    function resize() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      w = rect.width; h = rect.height;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const count = Math.max(18, Math.min(50, Math.round((w * h) / 22000)));
+      points = Array.from({ length: count }, () => ({
+        x: Math.random() * w, y: Math.random() * h,
+        vx: (Math.random() - 0.5) * 0.18, vy: (Math.random() - 0.5) * 0.14,
+        violet: Math.random() < 0.3,
+      }));
+    }
+
+    function tick() {
+      if (!running) return;
+      ctx.clearRect(0, 0, w, h);
+      points.forEach((p) => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > w) p.vx *= -1;
+        if (p.y < 0 || p.y > h) p.vy *= -1;
+      });
+      const linkDist = 110;
+      for (let i = 0; i < points.length; i++) {
+        for (let j = i + 1; j < points.length; j++) {
+          const dx = points[i].x - points[j].x, dy = points[i].y - points[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < linkDist) {
+            ctx.strokeStyle = `rgba(${ar}, ${ag}, ${ab}, ${0.14 * (1 - dist / linkDist)})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(points[i].x, points[i].y); ctx.lineTo(points[j].x, points[j].y); ctx.stroke();
+          }
+        }
+      }
+      points.forEach((p) => {
+        const [r, g, b] = p.violet ? [vr, vg, vb] : [ar, ag, ab];
+        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.7)`;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.violet ? 1.6 : 2, 0, Math.PI * 2); ctx.fill();
+      });
+      rafId = requestAnimationFrame(tick);
+    }
+
+    function start() {
+      if (running) return;
+      running = true;
+      rafId = requestAnimationFrame(tick);
+    }
+    function stop() {
+      running = false;
+      if (rafId) cancelAnimationFrame(rafId);
+    }
+
+    resize();
+    start();
+    let resizeTimer = null;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(resize, 200);
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) stop(); else start();
+    });
+  }
+
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
   else boot();
   window.addEventListener("load", registerServiceWorker);
+  initPreloader();
+  document.addEventListener("DOMContentLoaded", () => { initReveal(); initHeroCanvas(); });
+  if (document.readyState !== "loading") { initReveal(); initHeroCanvas(); }
 })();

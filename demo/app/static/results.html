@@ -23,6 +23,16 @@
   <script src="/static/app.js" defer></script>
 </head>
 <body data-page="results">
+<div id="preloader" role="status" aria-live="polite" aria-label="Loading">
+  <svg class="preloader-mark" viewBox="0 0 64 64" aria-hidden="true">
+    <rect x="10" y="14" width="9" height="40" rx="2" class="bar bar-1"/>
+    <rect x="23" y="23" width="9" height="31" rx="2" class="bar bar-2"/>
+    <rect x="36" y="30" width="9" height="24" rx="2" class="bar bar-3"/>
+    <rect x="49" y="36" width="9" height="18" rx="2" class="bar bar-4"/>
+  </svg>
+  <p class="preloader-label">HEP-Trigger Quantization Lab</p>
+  <div class="preloader-track"><span class="preloader-sweep"></span></div>
+</div>
 <a class="skip-link" href="#top">Skip to main content</a>
 <header class="topbar">
   <a class="brand" href="/">HEP-Trigger <span>Quantization Lab</span></a>
@@ -39,7 +49,8 @@
 
 <main id="top">
   <section class="hero" style="padding: 40px 0 8px;">
-    <p class="eyebrow">Results &amp; explorer</p>
+    <canvas id="hero-canvas" aria-hidden="true"></canvas>
+    <p class="eyebrow"><span class="eyebrow-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12 L6 8 L10 9 L14 3"/><circle cx="2" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="6" cy="8" r="1.1" fill="currentColor" stroke="none"/><circle cx="10" cy="9" r="1.1" fill="currentColor" stroke="none"/><circle cx="14" cy="3" r="1.1" fill="currentColor" stroke="none"/></svg></span>Results &amp; explorer</p>
     <h1 style="font-size: clamp(1.8rem, 1.4rem + 2vw, 2.5rem);">Accuracy against theoretical weight storage</h1>
     <p class="lede">The headline result, an interactive per-configuration explorer, and how much of the INT4 loss quantization-aware training recovers.</p>
   </section>

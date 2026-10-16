@@ -23,6 +23,16 @@
   <script src="/static/app.js" defer></script>
 </head>
 <body data-page="architecture">
+<div id="preloader" role="status" aria-live="polite" aria-label="Loading">
+  <svg class="preloader-mark" viewBox="0 0 64 64" aria-hidden="true">
+    <rect x="10" y="14" width="9" height="40" rx="2" class="bar bar-1"/>
+    <rect x="23" y="23" width="9" height="31" rx="2" class="bar bar-2"/>
+    <rect x="36" y="30" width="9" height="24" rx="2" class="bar bar-3"/>
+    <rect x="49" y="36" width="9" height="18" rx="2" class="bar bar-4"/>
+  </svg>
+  <p class="preloader-label">HEP-Trigger Quantization Lab</p>
+  <div class="preloader-track"><span class="preloader-sweep"></span></div>
+</div>
 <a class="skip-link" href="#top">Skip to main content</a>
 <header class="topbar">
   <a class="brand" href="/">HEP-Trigger <span>Quantization Lab</span></a>
@@ -39,7 +49,8 @@
 
 <main id="top">
   <section class="hero" style="padding: 40px 0 8px;">
-    <p class="eyebrow">Architecture generalization</p>
+    <canvas id="hero-canvas" aria-hidden="true"></canvas>
+    <p class="eyebrow"><span class="eyebrow-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M8 2 L14 5.5 L8 9 L2 5.5 Z"/><path d="M2 9.5 L8 13 L14 9.5" stroke-linecap="round"/></svg></span>Architecture generalization</p>
     <h1 style="font-size: clamp(1.8rem, 1.4rem + 2vw, 2.5rem);">Same pattern across two MLPs</h1>
     <p class="lede">Architecture A (CUDA-era and CPU) and Architecture B (CPU), side by side. Devices are not merged.</p>
   </section>

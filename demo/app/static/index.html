@@ -21,6 +21,16 @@
   <script src="/static/app.js" defer></script>
 </head>
 <body data-page="home">
+<div id="preloader" role="status" aria-live="polite" aria-label="Loading">
+  <svg class="preloader-mark" viewBox="0 0 64 64" aria-hidden="true">
+    <rect x="10" y="14" width="9" height="40" rx="2" class="bar bar-1"/>
+    <rect x="23" y="23" width="9" height="31" rx="2" class="bar bar-2"/>
+    <rect x="36" y="30" width="9" height="24" rx="2" class="bar bar-3"/>
+    <rect x="49" y="36" width="9" height="18" rx="2" class="bar bar-4"/>
+  </svg>
+  <p class="preloader-label">HEP-Trigger Quantization Lab</p>
+  <div class="preloader-track"><span class="preloader-sweep"></span></div>
+</div>
 <a class="skip-link" href="#top">Skip to main content</a>
 <header class="topbar">
   <a class="brand" href="/">HEP-Trigger <span>Quantization Lab</span></a>
@@ -37,7 +47,8 @@
 
 <main id="top">
   <section class="hero">
-    <p class="eyebrow">Reproducible benchmark · research release</p>
+    <canvas id="hero-canvas" aria-hidden="true"></canvas>
+    <p class="eyebrow"><span class="eyebrow-icon" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="8" cy="8" r="1.6" fill="currentColor" stroke="none"/><ellipse cx="8" cy="8" rx="7" ry="3"/><ellipse cx="8" cy="8" rx="3" ry="7" transform="rotate(60 8 8)"/></svg></span>Reproducible benchmark · research release</p>
     <h1>HEP-Trigger Quantization Lab</h1>
     <p class="lede">Exploring how aggressively neural networks for HEP jet classification can be quantized before physics performance breaks down.</p>
     <div class="actions">
