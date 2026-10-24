@@ -47,3 +47,8 @@ Thumbs.db
 .env
 *.key
 hls4ml_csim/
+
+# career/ holds personal CV/resume content (name, contact details, education, work history).
+# Not committed to the public repo by default -- see career/cv_fact_check.md for what's verified
+# and the open question of whether this directory should be published at all.
+career/
