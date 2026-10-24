@@ -2,35 +2,68 @@
 
 ## 1. Docker
 
-**Status: BLOCKED (NOT RUN).**
+**Status: BLOCKED (NOT RUN) — root cause found, not fully resolved.**
 
-- `docker` CLI is present on this machine (Docker Desktop 29.7.2, Windows), but the Docker Desktop **engine/backend is not running**: `docker ps` / `docker info` fail with `failed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine ... The system cannot find the file specified.`
-- I started Docker Desktop once (`Start-Process "Docker Desktop.exe"`) and waited roughly 30 minutes while completing other independent work; the engine never came up.
-- This matches a previously documented issue in this same project (`reports/experiment_log.md`, "Failure 2 — Docker Desktop backend crash on orphaned socket file"), where Docker Desktop's backend has failed to start reliably on this machine before, and the project's own standing guidance was explicitly **not** to spend further time troubleshooting Docker Desktop. I honored that rather than escalating into a repair attempt.
-- **No Docker build or container run was executed.** I am not claiming otherwise. `demo/Dockerfile` and `.dockerignore` were reviewed, hardened (non-root user, `HEALTHCHECK`, pinned `EXPOSE 7860`/`--host 0.0.0.0 --port 7860`), and are ready to build once the engine is available.
+- `docker` CLI is present (Docker Desktop 29.7.2 → 244472 after an auto-update mid-session), but the
+  backend repeatedly fails to start: `docker info` fails with
+  `failed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine ... The system
+  cannot find the file specified.`
+- Root cause identified directly from `%LOCALAPPDATA%\Docker\log\host\com.docker.backend.exe.log`
+  (not guessed): the backend crashes on startup trying to remove a stale Unix-socket file,
+  `sailor-ingest.sock`, in its runtime directory — `The file cannot be accessed by the system`. This
+  matches the same class of issue previously documented in `reports/experiment_log.md` ("orphaned
+  socket file").
+- Fix attempted: direct deletion of the stale socket failed with the identical OS-level error even
+  with the sandbox disabled (confirmed not a permission/sandbox artifact), but **renaming the parent
+  `run/` directory out of the way succeeded**, forcing Docker to recreate it fresh. Docker Desktop was
+  relaunched after this fix.
+- **Result: still did not come up cleanly.** After relaunch, `docker info` hung for several minutes
+  (a behavior change from the previous instant-fail, suggesting real progress) before ultimately
+  failing with the same pipe error. The underlying cause this time was not captured in detail — likely
+  a separate issue (e.g. the WSL2 `docker-desktop` backend distro itself, which `wsl -l -v` showed as
+  `Stopped`). **No Docker build or container run was executed.**
+- Per explicit user instruction, Docker was deprioritized in favor of Hugging Face deployment (§2),
+  which does not require a working local Docker daemon — Hugging Face builds Docker-SDK Spaces on
+  its own infrastructure. The Space actually deployed (§2) uses the `static` SDK instead, for a
+  separate reason (billing, see below), so this remains genuinely unverified.
 
-**Exact next action for the user:** restart Docker Desktop (or the machine) to clear the stuck backend, then run:
+**Exact next action for the user:** a full machine restart is the next reasonable step (clears both
+the Docker Desktop process state and the WSL2 `docker-desktop` distro state at once), then:
 ```bash
 docker build -f demo/Dockerfile -t hep-trigger-lab-demo .
 docker run -p 7860:7860 hep-trigger-lab-demo
 curl http://localhost:7860/health
 ```
-If the build/run succeeds, the health check, every `/api/*` endpoint, and the biased-result exclusion should be re-verified against the container (the same checks already passed against the local `uvicorn` run — see `reports/release_test_report.md`).
 
 ## 2. Hugging Face Space
 
-**Status: BLOCKED (credentials required).**
+**Status: DONE — live, static-SDK deployment.**
 
-- No `huggingface_hub` package, no `huggingface-cli`, and no cached token were found in this environment (`~/.cache/huggingface/token` does not exist; no `HF_TOKEN`/`HUGGINGFACE_*` environment variable is set).
-- I did not attempt to create an account, log in, or guess a token. Deployment to Hugging Face Spaces needs the user's own account.
+- Credentials: the user logged in locally via `hf auth login` (OAuth device flow, token never seen
+  or handled by this session — verified only via `whoami`, which doesn't expose the secret).
+- **Docker-SDK Space creation failed with `402 Payment Required`**: Hugging Face now requires a Pro
+  subscription to host Docker or Gradio Spaces even on free `cpu-basic` hardware (this account is
+  free-tier, confirmed via `whoami`'s `is_pro: false`). This is a real, current platform constraint,
+  not a bug — discovered by attempting the real API call, not assumed in advance.
+- **Deployed a `static`-SDK Space instead** (free for every account, no Docker involved on either
+  side): `piushk/hep-trigger-quantization-lab`, built from `demo/static-site/` (the project's existing
+  GitHub Pages mirror, already tested standalone). Required one content fix: the YAML front matter's
+  `short_description` exceeded Hugging Face's 60-character limit and was shortened.
+- Verified live, not just "pushed": `api.space_info(...).runtime.stage == "RUNNING"`, direct HTTP 200
+  on the Space's actual URL (`*.static.hf.space`, not the `*.hf.space` pattern Docker Spaces use —
+  found by inspecting the Space page's own rendered iframe `src`, since the naive URL guess 404'd),
+  and a full in-browser load confirming the hero particle animation, evidence-tier badges, and the
+  GitHub link (resolved from `/data/metadata.json`) all render correctly.
 
-**Exact next action for the user:**
-1. Create (or sign in to) a Hugging Face account at https://huggingface.co.
-2. Create a new Space: Settings → SDK → **Docker**. (`demo/README.md` already carries the required YAML front matter — `sdk: docker`, `app_port: 7860` — confirmed against the current Hugging Face Hub "Spaces Configuration Reference", 2026-10-13.)
-3. Either push the contents of this repository's `demo/` folder as the Space's repo root (so `demo/README.md` becomes the Space's `README.md`, `demo/Dockerfile` becomes the Space's `Dockerfile`, etc.), or connect the Space to a GitHub repository containing `demo/` at a path the Space's build picks up — either way, give me the Space's git remote URL (or a token with write access to it) and I will push and verify the build/runtime logs and the live endpoints.
-4. Alternatively, give me a Hugging Face access token with `write` scope (as an environment variable or via `huggingface-cli login`) and I will create the Space and push directly.
+**Live Space URL: https://huggingface.co/spaces/piushk/hep-trigger-quantization-lab**
+**Direct app URL: https://piushk-hep-trigger-quantization-lab.static.hf.space/**
 
-**Live Space URL: does not exist.** No Space has been created.
+**Known gap**: this is the static mirror, not the FastAPI app — no `/api/*` backend, no `/health`
+endpoint, no server-rendered PWA service-worker registration test on this specific host. The GitHub
+Pages mirror and this Space serve identical content from the same build script
+(`demo/scripts/build_static_site.py`), so the existing frontend verification in
+`reports/release_test_report.md` §C applies here too; the Docker-SDK FastAPI deployment (§1) remains
+the gap if a live backend API is ever needed.
 
 ## 3. GitHub
 
@@ -51,6 +84,7 @@ If the build/run succeeds, the health check, every `/api/*` endpoint, and the bi
 | Target | Status |
 |---|---|
 | Local app (`uvicorn`) | **DONE** — see `reports/release_test_report.md` |
-| Docker build/run | **BLOCKED (NOT RUN)** — Docker Desktop engine not starting on this machine |
-| Hugging Face Space (live) | **BLOCKED** — no account/token available in this environment |
+| Docker build/run | **BLOCKED (NOT RUN)** — Docker Desktop backend fails to start (root cause partially fixed; still not fully up) |
+| Hugging Face Space (live) | **DONE (static SDK)** — https://huggingface.co/spaces/piushk/hep-trigger-quantization-lab |
 | GitHub repository (public) | **DONE** — https://github.com/Piush2004/hep-trigger-quantization-lab |
+| GitHub Pages (live, FastAPI-equivalent static mirror) | **DONE** — https://piush2004.github.io/hep-trigger-quantization-lab/ |
