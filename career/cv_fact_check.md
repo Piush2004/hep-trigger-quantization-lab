@@ -1,8 +1,35 @@
 # CV fact-check — sources and verification status
 
-This file exists so every claim in `cv_research_ml.md` / `cv_cern_openlab.md` / `project_portfolio.md`
-traces to an actual source. Nothing below is invented; anything not verifiable is listed as missing,
-not guessed.
+This file exists so every claim in `cv_research_ml.md` / `cv_cern_openlab.md` /
+`cv_cern_short_term_internship.md` / `project_portfolio.md` traces to an actual source. Nothing
+below is invented; anything not verifiable is listed as missing, not guessed.
+
+## Which CV targets what
+
+- `cv_cern_short_term_internship.md` — **the actual submission target**, tailored to CERN's real,
+  currently-open posting: **Short-Term Internship (STAG 2026)**, field of work "Data Science, AI &
+  Analytics," https://careers.cern/jobs/short-term-internship/, deadline 01/11/2026 23:59 Geneva
+  time. Verified directly from CERN's own page (not a third-party repost) via browser, 2026-10-24.
+  Confirmed this is the *only* Short-Term Internship posting currently open — every "Short-Term
+  Internship" link across all field-of-work categories on careers.cern/jobs/ (Data Science AI &
+  Analytics, Civil Engineering, HR, Logistics, etc.) resolves to this same single generic listing;
+  it is not a data-science-specific role, the field-of-work tag is just how applicants indicate
+  interest within one shared application.
+- `cv_cern_openlab.md` — built earlier for a *different* CERN programme (the openlab/Summer Student
+  track), not this one. Kept for reference since the underlying research-alignment content (Next
+  Generation Triggers Task 1.3) may still be useful for that separate application, but it is **not**
+  tailored to the Short-Term Internship posting above and should not be submitted for it.
+- `cv_research_ml.md` — general ML-research CV, not CERN-specific.
+
+**Eligibility check for the Short-Term Internship, done directly from CERN's own page**: requires
+being a national of a CERN Member State or Associate Member State. India is listed as a CERN
+Associate Member State (agreement signed 2016); the posting's only named exclusions (quota ceiling
+reached) are Pakistan, Lithuania, Latvia, Cyprus, Croatia, and Turkey — India is not among them. Also
+requires current full-time enrollment in a technical/engineering/administrative post-secondary
+programme (Bachelor's/Master's/diploma; PhD students excluded) and good English or French — both
+satisfied by the verified facts below. Required documents: CV (English/French, PDF) and "any
+document you consider relevant" — no reference letter or transcript is required for this specific
+posting (unlike CERN's separate openlab programme, which does require those).
 
 ## Primary sources used
 

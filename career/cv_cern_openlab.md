@@ -17,9 +17,9 @@ pruning and NAS for FPGA-deployable trigger models) and openlab/NGT's existing `
 student projects, though this work is entirely independent and not CERN-affiliated. Experience
 spans experimental design, statistical rigor (pre-registered selection rules, multi-seed
 evaluation, leakage prevention), and reproducible software engineering (automated test suites,
-documented environments, byte-identical reproduction runs). Seeking a scientific-computing or
-ML-research internship (e.g. CERN openlab) to apply this experience to a real experiment's software
-stack — with an explicit interest in learning the HLS-synthesis step this project could not access.
+documented environments, byte-identical reproduction runs). Seeking a CERN openlab summer-student
+placement to apply this experience to a real experiment's software stack — with an explicit
+interest in learning the HLS-synthesis step this project could not access.
 
 ## Relevant technical skills
 
@@ -85,7 +85,3 @@ AWS Cloud Practitioner Essentials (AWS Academy, 2025) · Python for Data Science
 (Udemy, 2023) · IEEE Committee Member, CHRIST University (Dec 2025) — coordinated outreach to 10+
 industry companies for a 20-member student-conference committee.
 
----
-*This CV is scoped to the research and scientific-computing evidence most relevant to CERN/openlab-type
-roles. A broader software-engineering CV (including agentic-LLM application work) is available as
-`cv_research_ml.md` / on request.*
