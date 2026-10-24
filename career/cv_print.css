@@ -1,0 +1,38 @@
+@page { size: A4; margin: 14mm 16mm; }
+* { box-sizing: border-box; }
+body {
+  font-family: "Liberation Sans", Arial, Helvetica, sans-serif;
+  font-size: 9.6pt;
+  line-height: 1.32;
+  color: #171717;
+  max-width: 100%;
+}
+h1 {
+  font-size: 18pt;
+  margin: 0 0 2pt;
+  font-weight: 700;
+  color: #0b1f3a;
+}
+h1 + p {
+  margin: 0 0 8pt;
+  font-size: 10pt;
+  color: #3a4a63;
+}
+h2 {
+  font-size: 10.5pt;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #0b1f3a;
+  border-bottom: 1pt solid #0b1f3a;
+  margin: 10pt 0 4pt;
+  padding-bottom: 1pt;
+}
+h2:first-of-type { margin-top: 6pt; }
+h3 { font-size: 9.8pt; margin: 6pt 0 1pt; }
+p { margin: 2pt 0; }
+ul { margin: 2pt 0 4pt; padding-left: 13pt; }
+li { margin: 1pt 0; }
+hr { border: none; border-top: 0.5pt solid #ccc; margin: 6pt 0; }
+em { color: #444; font-style: italic; }
+a { color: #0b4fa0; text-decoration: none; }
+strong { color: #0b1f3a; }
