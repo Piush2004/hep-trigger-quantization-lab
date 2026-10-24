@@ -6,6 +6,13 @@ body {
   line-height: 1.32;
   color: #171717;
   max-width: 100%;
+  /* Without this, WeasyPrint's PDF text layer inserts a false word-break inside certain
+     camelCase terms (confirmed: "PyTorch" extracts as "PyT orch", "NumPy" extracts as just
+     "Py") -- a kerning/ligature-driven glyph-run split that would confuse real ATS keyword
+     matching on exactly the tech keywords recruiters search for. */
+  font-kerning: none;
+  font-variant-ligatures: none;
+  font-feature-settings: "kern" 0, "liga" 0, "clig" 0;
 }
 h1 {
   font-size: 18pt;
