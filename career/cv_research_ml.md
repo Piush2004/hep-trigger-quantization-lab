@@ -43,10 +43,13 @@ Monte Carlo dataset, not real detector data).
 - Benchmarked the quantized networks against non-neural baselines (logistic regression, gradient-boosted
   trees) and reported, rather than omitted, that a default-hyperparameter GBM beats the FP32 MLP on raw
   accuracy — framing the neural network's actual case as FPGA deployability, not accuracy.
-- Implemented and validated a PyTorch → fixed-point (`hls4ml`) C-simulation conversion path, and trained
-  a machine-learning surrogate for FPGA resource estimation on the public `wa-hls4ml` dataset —
-  explicitly labelling every number by evidence tier (measured / simulated / estimated / not available)
-  so simulated and measured results are never conflated.
+- Implemented a PyTorch → fixed-point (`hls4ml`) C-simulation conversion path and validated it against
+  the full-precision model: strong agreement at sufficient bit-width (≥97% class agreement, W≥14), and
+  a real accuracy collapse found at narrow width under default arithmetic — substantially mitigated by
+  rounding and saturation, reported as found rather than smoothed over. Trained a machine-learning
+  surrogate for FPGA resource estimation on the public `wa-hls4ml` dataset — explicitly labelling every
+  number by evidence tier (measured / simulated / estimated / not available) so simulated and measured
+  results are never conflated.
 - Built a FastAPI + Plotly research dashboard exposing the frozen results, covered by 14 automated API
   and security tests (biased-result exclusion, CORS/secret checks, device-separation invariants);
   packaged with Docker and a PWA manifest for public deployment.
@@ -55,6 +58,21 @@ Monte Carlo dataset, not real detector data).
   reproduction command and dataset fingerprint documented in `docs/REPRODUCIBILITY.md`.
 - Wrote up the full study as a research-style manuscript (methodology, statistics, limitations,
   reproducibility statement) — see `paper/` in the repository.
+
+## Second research project — Synthetic Silence
+
+*Independent research prototype, in progress — mapping information voids & epistemic risk in
+generative-AI responses*
+
+- Built a pipeline estimating epistemic risk in LLM responses: extracting atomic claims, retrieving
+  supporting literature live (OpenAlex), and combining evidence-density, sparse-autoencoder
+  reconstruction error, and linguistic specificity/uncertainty signals into a continuous,
+  explainable risk score — explicitly documented as a heuristic, not a calibrated truth classifier.
+- Iterated through three architecture versions after live multi-LLM validation surfaced real bugs
+  (false positives on true claims, a false negative on a fabricated one); each failure documented
+  and fixed rather than hidden, with before/after evidence in the repository's own validation report.
+- 100/100 backend tests and 15/15 extension tests passing; CI covers the test suite, an extension
+  syntax check, and a Docker build check.
 
 ## Education
 
@@ -71,7 +89,8 @@ Monte Carlo dataset, not real detector data).
 - Automated data-processing workflows in Python, reducing manual effort and improving delivery speed
   for cross-functional analytical projects.
 
-**Data Science Summer Intern — RemarkSkill (KSHITIJ, IIT Kharagpur)**, remote · *Jun 2024*
+**Data Science Trainee — RemarkSkill**, via KSHITIJ (IIT Kharagpur's techno-management festival),
+remote · *Jun 2024*
 
 - Built hands-on proficiency in Python (pandas, NumPy, Matplotlib) and Power BI through applied
   dataset projects and data-storytelling deliverables.

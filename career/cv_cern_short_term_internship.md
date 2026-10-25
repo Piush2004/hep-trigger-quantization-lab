@@ -42,11 +42,12 @@ breaks down, using a public physics dataset.
   *before* looking at the held-out test results — to avoid picking whichever number looked best after
   the fact.
 - Learned and applied `hls4ml`, a specialized toolchain used in HEP computing to convert a trained
-  PyTorch model into fixed-point arithmetic for hardware deployment, and validated that its output
-  numerically agreed with the original model.
+  PyTorch model into fixed-point arithmetic for hardware deployment, and validated it against the
+  original model: strong agreement at sufficient bit-width, and a real accuracy collapse found and
+  documented at narrow width — substantially mitigated by rounding and saturation.
 - Found and reported a result that didn't match the simplest expectation: a standard, non-neural
-  baseline model actually matched or beat the neural network on raw accuracy — reported plainly
-  rather than left out.
+  baseline model reliably beat the neural network on raw accuracy (+0.0030 ROC-AUC, 95% CI entirely
+  positive, 5/5 seeds) — reported plainly rather than left out.
 - Wrote 141 automated tests (run twice independently to confirm identical results) and full
   reproduction documentation, so every number in the project's reports can be independently checked.
 
@@ -64,7 +65,8 @@ breaks down, using a public physics dataset.
 - Owned the end-to-end data lifecycle (collection, cleaning, validation, reporting) for large-scale
   datasets, automating Python workflows that reduced manual effort for cross-functional analytics.
 
-**Data Science Summer Intern — RemarkSkill (KSHITIJ, IIT Kharagpur)**, remote · *Jun 2024*
+**Data Science Trainee — RemarkSkill**, via KSHITIJ (IIT Kharagpur's techno-management festival),
+remote · *Jun 2024*
 
 - Applied Python (pandas, NumPy, Matplotlib) and Power BI to real-world dataset projects.
 

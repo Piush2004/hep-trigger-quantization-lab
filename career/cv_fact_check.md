@@ -1,12 +1,18 @@
 # CV fact-check — sources and verification status
 
 This file exists so every claim in `cv_research_ml.md` / `cv_cern_openlab.md` /
-`cv_cern_short_term_internship.md` / `project_portfolio.md` traces to an actual source. Nothing
-below is invented; anything not verifiable is listed as missing, not guessed.
+`cv_cern_short_term_internship.md` / `cv_general_internship.md` / `project_portfolio.md` traces to
+an actual source. Nothing below is invented; anything not verifiable is listed as missing, not
+guessed. For the 2026-10-25 external-review correction pass (hls4ml wording precision, RemarkSkill
+role wording, Synthetic Silence added), see `CV_CHANGELOG.md` — that file has the line-by-line
+before/after and is not duplicated here.
 
 ## Which CV targets what
 
-- `cv_cern_short_term_internship.md` — **the actual submission target**, tailored to CERN's real,
+- `cv_general_internship.md` — **general-purpose CV**, not CERN-specific, for data science / ML /
+  applied-AI / analytics internships broadly. Includes both research projects (HEP-Trigger
+  Quantization Lab and Synthetic Silence). Use this as the default application document.
+- `cv_cern_short_term_internship.md` — **the actual CERN submission target**, tailored to CERN's real,
   currently-open posting: **Short-Term Internship (STAG 2026)**, field of work "Data Science, AI &
   Analytics," https://careers.cern/jobs/short-term-internship/, deadline 01/11/2026 23:59 Geneva
   time. Verified directly from CERN's own page (not a third-party repost) via browser, 2026-10-24.
@@ -46,6 +52,11 @@ posting (unlike CERN's separate openlab programme, which does require those).
    `career/cern_openlab_application_notes.md`. The CERN/NGT framing added to `cv_cern_openlab.md`'s
    summary (the "hardware-aware neural-network compression" phrasing, the Next Generation Triggers
    Task 1.3 mention) comes from this pass, not from assumption.
+4. **The `synthetic-silence` repository's own README**, read directly (`gh api
+   repos/Piush2004/synthetic-silence/readme`), 2026-10-25 — every Synthetic Silence claim in any CV
+   traces to this document, which is itself unusually rigorous about disclosing real vs. heuristic
+   components, calibration status, and verified vs. unverified code paths. See
+   `PROJECT_DESCRIPTIONS.md` for the full sourcing and what NOT to claim about this project.
 
 ## Verified facts (safe to state as-is)
 

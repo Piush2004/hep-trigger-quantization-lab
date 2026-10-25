@@ -75,7 +75,8 @@ and this distinction is preserved throughout the project rather than blurred).
 - Owned the end-to-end data lifecycle (collection, cleaning, validation, reporting) for large-scale
   datasets, automating Python workflows that reduced manual effort for cross-functional analytics.
 
-**Data Science Summer Intern — RemarkSkill (KSHITIJ, IIT Kharagpur)**, remote · *Jun 2024*
+**Data Science Trainee — RemarkSkill**, via KSHITIJ (IIT Kharagpur's techno-management festival),
+remote · *Jun 2024*
 
 - Applied Python (pandas, NumPy, Matplotlib) and Power BI to real-world dataset projects.
 
