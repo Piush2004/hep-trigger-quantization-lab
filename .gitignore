@@ -48,3 +48,8 @@ Thumbs.db
 *.key
 hls4ml_csim/
 
+
+# Final CV includes a phone number -- kept local, not published to this public repo.
+career/Piush_Kole_CV.*
+career/cv_final.css
+career/**/*.html

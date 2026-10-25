@@ -9,6 +9,17 @@ before/after and is not duplicated here.
 
 ## Which CV targets what
 
+**As of 2026-10-25 there is one CV: `Piush_Kole_CV.pdf` / `.docx` / `.md`** (kept local only —
+it includes a phone number, so it is gitignored rather than published to this public repo). It
+supersedes every variant below, which now live in `career/archive/` for reference only. Its claims
+are the same verified claims as `archive/cv_general_internship.md` (see `CV_CHANGELOG.md`), plus:
+LinkedIn URL `linkedin.com/in/piush-kole2004` (extracted from the hyperlink embedded in the original
+resume PDF), phone number (from the original resume), and project dates (HEP: first commit
+2026-10-01; Synthetic Silence: Jun 2026 per the original resume's entry for the same project under
+its earlier "TT-GAN" name).
+
+Archived variants (in `career/archive/`):
+
 - `cv_general_internship.md` — **general-purpose CV**, not CERN-specific, for data science / ML /
   applied-AI / analytics internships broadly. Includes both research projects (HEP-Trigger
   Quantization Lab and Synthetic Silence). Use this as the default application document.
