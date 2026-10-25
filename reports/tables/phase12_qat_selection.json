@@ -1,0 +1,29 @@
+{
+  "selection_rule": "among QAT-fine-tuned frontier layouts with theoretical_weight_storage_bytes <= size_limit_bytes, select highest mean validation macro ROC-AUC over the 5 seeds; ties within tie_eps broken by smaller storage, then layout name",
+  "size_limit_bytes": 3724.0,
+  "tie_eps": 0.001,
+  "candidate_count": 23,
+  "selection_inputs": "validation split only (QAT stage A, include_test=False)",
+  "selection_used_test_set": false,
+  "selected_layout": "L0-6_L1-4_L2-4_L3-4_A0-8_A1-8_A2-8",
+  "selected_storage_bytes": 2916.0,
+  "validation_mean": 0.9332831397225918,
+  "validation_sd": 0.0011553108899091263,
+  "indistinguishable_from_best": [
+    "L0-6_L1-4_L2-4_L3-4_A0-8_A1-8_A2-8",
+    "L0-6_L1-4_L2-4_L3-6_A0-8_A1-8_A2-8",
+    "L0-6_L1-4_L2-4_L3-8_A0-8_A1-8_A2-8",
+    "L0-8_L1-4_L2-4_L3-4_A0-8_A1-8_A2-8",
+    "L0-6_L1-4_L2-6_L3-6_A0-8_A1-8_A2-8",
+    "L0-6_L1-4_L2-6_L3-8_A0-8_A1-8_A2-8",
+    "L0-6_L1-6_L2-4_L3-4_A0-8_A1-8_A2-8",
+    "L0-6_L1-6_L2-4_L3-6_A0-8_A1-8_A2-8",
+    "L0-6_L1-6_L2-4_L3-8_A0-8_A1-8_A2-8",
+    "L0-8_L1-6_L2-4_L3-4_A0-8_A1-8_A2-8",
+    "L0-6_L1-6_L2-6_L3-6_A0-8_A1-8_A2-8"
+  ],
+  "status": "SELECTED",
+  "test_set_used_after_selection": null,
+  "cuda_available": false,
+  "device": "cpu"
+}

@@ -1,6 +1,6 @@
 # Hardware-Aware Analysis
 
-## Three backends, three measurement tiers
+## Four backends, four measurement tiers
 
 Every `HardwareReport` carries a `measurement_tier` field so a consumer never has to
 guess how trustworthy a number is:
@@ -9,11 +9,22 @@ guess how trustworthy a number is:
 |---|---|---|
 | `UnavailableBackend` | `"unavailable"` | Nothing — every field `None`. Used when `hardware.backend: unavailable` in config. |
 | `SoftwareEstimateBackend` | `"estimated"` | Pure arithmetic heuristic (parameter count × bit-width × reuse factor). No external tool, always available. See formula below. |
+| `SurrogateEstimateBackend` | `"surrogate"` | ML regressor trained on real hls4ml synthesis records from the public `fastmachinelearning/wa-hls4ml` dataset (see `reports/phase11_surrogate_hardware_validation.md`). Reports its own held-out error with every prediction. **Not validated against this project's own synthesis** — only against wa-hls4ml's held-out data. |
 | `HLSBackend` | `"simulated"` on success (`"unavailable"` if hls4ml itself fails) | Real hls4ml conversion + C-simulation. Would be `"measured"` if extended to run Vivado synthesis (see below) — not reachable in this environment. |
 
-`get_hardware_backend` requesting `hls4ml` but finding it unusable falls back to
-`SoftwareEstimateBackend`, not straight to `UnavailableBackend` — a labeled estimate is
-preferred over nothing, but it is never silently presented as hls4ml or Vivado output.
+`get_hardware_backend` requesting `hls4ml` (or `surrogate`) but finding it unusable falls
+back to `SoftwareEstimateBackend`, not straight to `UnavailableBackend` — a labeled estimate
+is preferred over nothing, but it is never silently presented as hls4ml, Vivado, or
+surrogate-model output it did not actually produce.
+
+**Important limitation disclosed in Phase 11's report:** the trained v1 surrogate gives
+essentially zero feature importance to per-layer bit-width or width/depth — its LUT/DSP/FF/
+BRAM/latency/II predictions are driven almost entirely by total parameter count and reuse
+factor, meaning two models that differ only in quantization precision currently get the
+**same** surrogate prediction. For precision-sensitive comparisons, `SoftwareEstimateBackend`'s
+cruder heuristic (which does scale with bit-width) remains the more informative of the two —
+use the surrogate for its validated latency/II numbers, not yet for precision-driven LUT/DSP/FF
+comparisons. See the phase report for the full feature-importance analysis.
 
 ## Current status
 
@@ -75,6 +86,7 @@ is everything short of synthesis:
 |---|---|---|---|
 | `unavailable` | hls4ml not usable, or backend explicitly disabled | `unavailable` | none (all `None`) |
 | `estimated` | `SoftwareEstimateBackend` heuristic | `estimated` | `lut`/`dsp`/`ff` (non-null), `bram=0` |
+| `surrogate` | `SurrogateEstimateBackend` ML regressor (wa-hls4ml-trained) | `surrogate` | `lut`/`dsp`/`bram`/`ff`/`latency_estimate_ns`/`initiation_interval` (non-null); `notes`/`configuration` carry the model's own held-out R²/MAE so trust is self-reported, not assumed |
 | `converted` | hls4ml accepted the model, no C++ toolchain for csim | `simulated` | none (all `None`), notes say conversion succeeded |
 | `csim` | hls4ml conversion + C-simulation both succeeded | `simulated` | none (all `None` — csim validates functional correctness, not resource usage); notes explain Vivado synthesis is still required for LUT/DSP/BRAM/FF |
 | `synthesized` | (not reachable in this environment — would require Vivado) | `measured` | would be populated from the Vivado HLS report |

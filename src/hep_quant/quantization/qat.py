@@ -50,6 +50,27 @@ class QATLinear(nn.Module):
         return nn.functional.linear(x, q_weight, self.bias)
 
 
+class QATConv2d(nn.Module):
+    """nn.Conv2d with fake-quantized weights -- the Conv2d analogue of QATLinear, same
+    fresh-range-each-forward STE mechanism, preserving the original layer's stride/padding/
+    dilation/groups so this is a drop-in structural replacement."""
+
+    def __init__(self, conv: nn.Conv2d, bits: int):
+        super().__init__()
+        self.weight = nn.Parameter(conv.weight.data.clone())
+        self.bias = nn.Parameter(conv.bias.data.clone()) if conv.bias is not None else None
+        self.stride = conv.stride
+        self.padding = conv.padding
+        self.dilation = conv.dilation
+        self.groups = conv.groups
+        self.bits = bits
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        min_val, max_val = self.weight.min().item(), self.weight.max().item()
+        q_weight = ste_fake_quantize(self.weight, self.bits, min_val, max_val)
+        return nn.functional.conv2d(x, q_weight, self.bias, self.stride, self.padding, self.dilation, self.groups)
+
+
 class QATActivation(nn.Module):
     """Wraps an activation module; fake-quantizes its output using an EMA-tracked range."""
 
@@ -87,15 +108,19 @@ def prepare_qat_model(model: nn.Module, precision: str) -> nn.Module:
     bits = SUPPORTED_PRECISIONS[precision]
 
     qat_model = copy.deepcopy(model)
-    new_layers = []
-    for module in qat_model.net:
-        if isinstance(module, nn.Linear):
-            new_layers.append(QATLinear(module, bits))
-        elif isinstance(module, _ACTIVATION_TYPES):
-            new_layers.append(QATActivation(module, bits))
-        else:
-            new_layers.append(module)
-    qat_model.net = nn.Sequential(*new_layers)
+    for block_name in qat_model.QUANT_BLOCKS:
+        block = getattr(qat_model, block_name)
+        new_layers = []
+        for module in block:
+            if isinstance(module, nn.Linear):
+                new_layers.append(QATLinear(module, bits))
+            elif isinstance(module, nn.Conv2d):
+                new_layers.append(QATConv2d(module, bits))
+            elif isinstance(module, _ACTIVATION_TYPES):
+                new_layers.append(QATActivation(module, bits))
+            else:
+                new_layers.append(module)
+        setattr(qat_model, block_name, nn.Sequential(*new_layers))
     qat_model.precision = precision
     qat_model.qat = True
     return qat_model

@@ -47,7 +47,7 @@ def csim_predict(
         extra = f",AP_TRN,{saturation}"  # ap_fixed template needs the rounding slot before the overflow slot
     config = hls4ml.utils.config_from_pytorch_model(
         cpu_model,
-        input_shape=(cpu_model.input_dim,),
+        input_shape=cpu_model.hls4ml_input_shape,
         default_precision=f"ap_fixed<{total_bits},{int_bits}{extra}>",
         default_reuse_factor=reuse_factor,
     )

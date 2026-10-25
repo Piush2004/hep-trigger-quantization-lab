@@ -1,0 +1,50 @@
+[
+  {
+    "meta_data": {"uuid": "fixture-0001", "model_name": "Jet_16b_1rf_R_fixture", "artifacts_file": "fixture-0001.tar.gz"},
+    "model_config": [
+      {"class_name": "Dense", "input_shape": [null, 16], "output_shape": [null, 32], "parameters": 544, "trainable_parameters": 544, "neurons": 32, "use_bias": true, "dtype": "float32", "reuse_factor": 1},
+      {"class_name": "Activation", "input_shape": [null, 32], "output_shape": [null, 32], "parameters": 0, "trainable_parameters": 0, "activation": "relu", "dtype": "float32", "reuse_factor": 1},
+      {"class_name": "Dense", "input_shape": [null, 32], "output_shape": [null, 5], "parameters": 165, "trainable_parameters": 165, "neurons": 5, "use_bias": true, "dtype": "float32", "reuse_factor": 1}
+    ],
+    "hls_config": {
+      "Model": {"Precision": "fixed<16, 6>", "ReuseFactor": 1, "Strategy": "Resource", "BramFactor": 1000000000, "TraceOutput": false},
+      "LayerName": {
+        "input_1": {"Trace": false, "Precision": {"result": "fixed<16,6>"}, "ReuseFactor": 1},
+        "dense": {"Trace": false, "Precision": {"result": "fixed<16,6>", "weight": "fixed<16,6>", "bias": "fixed<16,6>", "accum": "fixed<16,6>"}, "ReuseFactor": 1},
+        "activation": {"Trace": false, "Precision": {"result": "fixed<16,6>", "table": "fixed<18,8>"}, "ReuseFactor": 1, "TableSize": 1024},
+        "dense_1": {"Trace": false, "Precision": {"result": "fixed<16,6>", "weight": "fixed<16,6>", "bias": "fixed<16,6>", "accum": "fixed<16,6>"}, "ReuseFactor": 1}
+      }
+    },
+    "resource_report": {"bram": "1", "dsp": "320", "ff": "2100", "lut": "9800", "uram": "0"},
+    "latency_report": {"cycles_min": "18", "cycles_max": "18", "target_clock": "10.0", "estimated_clock": "6.8", "interval_min": "1.0", "interval_max": "1.0"},
+    "target_part": "xcu200-fsgd2104-2-e",
+    "vivado_version": "2019.1",
+    "hls4ml_version": "0.8.1"
+  },
+  {
+    "meta_data": {"uuid": "fixture-0002", "model_name": "Anomaly_8b_128rf_L_fixture", "artifacts_file": "fixture-0002.tar.gz"},
+    "model_config": [
+      {"class_name": "Dense", "input_shape": [null, 16], "output_shape": [null, 32], "parameters": 544, "trainable_parameters": 544, "neurons": 32, "use_bias": true, "dtype": "float32", "reuse_factor": 128},
+      {"class_name": "Activation", "input_shape": [null, 32], "output_shape": [null, 32], "parameters": 0, "trainable_parameters": 0, "activation": "relu", "dtype": "float32", "reuse_factor": 128},
+      {"class_name": "Dense", "input_shape": [null, 32], "output_shape": [null, 32], "parameters": 1056, "trainable_parameters": 1056, "neurons": 32, "use_bias": true, "dtype": "float32", "reuse_factor": 128},
+      {"class_name": "Activation", "input_shape": [null, 32], "output_shape": [null, 32], "parameters": 0, "trainable_parameters": 0, "activation": "relu", "dtype": "float32", "reuse_factor": 128},
+      {"class_name": "Dense", "input_shape": [null, 32], "output_shape": [null, 5], "parameters": 165, "trainable_parameters": 165, "neurons": 5, "use_bias": true, "dtype": "float32", "reuse_factor": 128}
+    ],
+    "hls_config": {
+      "Model": {"Precision": "fixed<8, 3>", "ReuseFactor": 128, "Strategy": "Latency", "BramFactor": 1000000000, "TraceOutput": false},
+      "LayerName": {
+        "input_1": {"Trace": false, "Precision": {"result": "fixed<8,3>"}, "ReuseFactor": 128},
+        "dense": {"Trace": false, "Precision": {"result": "fixed<8,3>", "weight": "fixed<8,3>", "bias": "fixed<8,3>", "accum": "fixed<8,3>"}, "ReuseFactor": 128},
+        "activation": {"Trace": false, "Precision": {"result": "fixed<8,3>", "table": "fixed<18,8>"}, "ReuseFactor": 128, "TableSize": 1024},
+        "dense_1": {"Trace": false, "Precision": {"result": "fixed<8,3>", "weight": "fixed<8,3>", "bias": "fixed<8,3>", "accum": "fixed<8,3>"}, "ReuseFactor": 128},
+        "activation_1": {"Trace": false, "Precision": {"result": "fixed<8,3>", "table": "fixed<18,8>"}, "ReuseFactor": 128, "TableSize": 1024},
+        "dense_2": {"Trace": false, "Precision": {"result": "fixed<8,3>", "weight": "fixed<8,3>", "bias": "fixed<8,3>", "accum": "fixed<8,3>"}, "ReuseFactor": 128}
+      }
+    },
+    "resource_report": {"bram": "0", "dsp": "60", "ff": "900", "lut": "3500", "uram": "0"},
+    "latency_report": {"cycles_min": "40", "cycles_max": "40", "target_clock": "10.0", "estimated_clock": "7.1", "interval_min": "4.0", "interval_max": "4.0"},
+    "target_part": "xcu250-figd2104-2L-e",
+    "vivado_version": "2019.1",
+    "hls4ml_version": "0.8.1"
+  }
+]

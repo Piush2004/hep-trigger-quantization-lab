@@ -65,12 +65,15 @@ Full detail in [docs/architecture.md](docs/architecture.md).
 
 ## Final status
 
-Current evidence and classification: **Reproducible Benchmark** (not a publication candidate).
+Current evidence and classification: **Reproducible Benchmark** (not a publication candidate
+in the formal peer-review sense — see the written-up paper below for the full synthesis, which
+makes the same disclosures).
+- **Paper**: [paper/paper.pdf](paper/paper.pdf) (source: [paper/paper.md](paper/paper.md)) synthesizes Phases 1-14 into a single writeup — three core results (exhaustive mixed precision, an independent hardware surrogate with its own found limitation, non-NN baselines matching/beating both neural architectures tried) plus the Phase 14 CNN generality check.
 - Start with [reports/final_results.md](reports/final_results.md) (summary) and [reports/final_statistical_audit.md](reports/final_statistical_audit.md) (statistics and leakage rules).
 - Architecture generalization: [reports/phase6_architecture_generalization.md](reports/phase6_architecture_generalization.md).
-- Mixed precision: the 0.9278 result is **exploratory and test-set selected (biased)**; the corrected result is in [reports/phase5b_size_constrained_gate.md](reports/phase5b_size_constrained_gate.md).
-- hls4ml numerical validation (SIMULATED C-simulation): [reports/phase7_hls_numerical_validation.md](reports/phase7_hls_numerical_validation.md).
-- Hardware: **no HLS synthesis or physical FPGA measurement exists**; all resource numbers are ESTIMATED.
+- Mixed precision: the 0.9278 result is **exploratory and test-set selected (biased)**; the corrected result is in [reports/phase5b_size_constrained_gate.md](reports/phase5b_size_constrained_gate.md); the near-exhaustive search in [reports/phase12_exhaustive_mixed_precision_pareto.md](reports/phase12_exhaustive_mixed_precision_pareto.md) revises this further.
+- hls4ml numerical validation (SIMULATED C-simulation): [reports/phase7_hls_numerical_validation.md](reports/phase7_hls_numerical_validation.md), extended to the CNN's `Conv2d`/`MaxPooling2D` path in Phase 14.
+- Hardware: **no HLS synthesis or physical FPGA measurement exists**; resource numbers are ESTIMATED (heuristic) or a trained SURROGATE (Phase 11), never MEASURED.
 - Reproduction: [docs/REPRODUCIBILITY.md](docs/REPRODUCIBILITY.md).
 
 ## Dataset
@@ -132,6 +135,53 @@ Software latency is emulation overhead (FP32 < PTQ < QAT) and not hardware laten
 
 Earlier single-seed numbers (INT4 PTQ "−9.9 points, QAT recovers most") came from one CPU run and are superseded by the table above.
 
+### Phases 11–13: exhaustive mixed precision, an independent hardware estimate, and non-NN baselines
+
+The uniform-precision table above and Phase 5/5B's 9-candidate mixed-precision search left
+three open questions, each addressed in its own phase report:
+
+- **Does a true (not hand-picked) mixed-precision search change the "no advantage over INT6"
+  conclusion?** Yes. A near-exhaustive search (2,187 layouts, all 5 seeds) finds a QAT-fine-tuned
+  layout using **2,916 B — less storage than uniform INT6 PTQ's 3,724 B** — that **reliably beats
+  uniform INT6 PTQ** (95% CI entirely positive, all 5 seeds) and is statistically indistinguishable
+  from FP32. Details: [reports/phase12_exhaustive_mixed_precision_pareto.md](reports/phase12_exhaustive_mixed_precision_pareto.md).
+- **Can the LUT/DSP/BRAM/FF heuristic be grounded in real synthesis data, without Vivado?** An
+  ML surrogate trained on 43k+ real hls4ml synthesis records (public `wa-hls4ml` dataset)
+  generalizes well for latency/II, but — a limitation found and disclosed, not hidden — currently
+  gives essentially zero importance to bit-width, so its LUT/DSP/FF/BRAM numbers cannot
+  distinguish precisions of the same architecture; the original heuristic remains the more useful
+  of the two for that specific comparison. Details: [reports/phase11_surrogate_hardware_validation.md](reports/phase11_surrogate_hardware_validation.md).
+- **Does the MLP's complexity earn its keep over a standard, untuned baseline?** No — a
+  gradient-boosted-tree baseline (`HistGradientBoostingClassifier`, default hyperparameters)
+  **reliably beats the FP32 MLP** on ROC-AUC (+0.0030, 95% CI entirely positive, all 5 seeds) and
+  on background rejection at fixed signal efficiency. The case for the quantized MLP specifically
+  is deployability on an FPGA trigger path via hls4ml, not raw accuracy — reported plainly rather
+  than spun. Details: [reports/phase13_baselines_and_efficiency.md](reports/phase13_baselines_and_efficiency.md).
+
+### Phase 14: a CNN on jet images — a generality check, not a second headline result
+
+Fulfills the "second dataset" item below (a real particle-image companion to the HLF dataset,
+same 5-class task, same underlying simulation) with a CNN instead of an MLP. Reported as a
+secondary generality check on this project's own methodology — the quantization work above
+remains the core contribution.
+
+- **Baseline comparison** (mirrors Phase 13 exactly, on independent data): the CNN reliably
+  beats a flattened-pixel logistic-regression control (+0.1255 ROC-AUC, 95% CI entirely positive,
+  3/3 seeds) but is reliably — if only slightly — below a hand-engineered-image-features GBM
+  baseline (-0.0044, 95% CI entirely negative, 0/3 seeds). Replicates Phase 13's finding on an
+  independent architecture and dataset. Details: [reports/phase14_cnn_jet_images.md](reports/phase14_cnn_jet_images.md).
+- **Quantization behavior does not transfer from the MLP.** On the tabular MLP, INT8 PTQ was
+  practically lossless. On the CNN, **PTQ collapses at every precision tried, including INT8**
+  (accuracy ~0.20, matching a 5-class random-chance/degenerate-collapse pattern), while **QAT
+  recovers gracefully** (INT8: 0.881, INT6: 0.860, INT4: 0.823 ROC-AUC vs. FP32's 0.884). A real
+  generality finding: PTQ reliability is not architecture-independent. Single-seed sweep,
+  disclosed as such given the CNN's measured per-seed training cost. Details:
+  [reports/phase14_cnn_quantization.md](reports/phase14_cnn_quantization.md).
+- Also extended, and verified end-to-end against the real (not mocked) `hls4ml` PyTorch
+  conversion path: `Conv2d` support in both PTQ and QAT, and a generalized `Trainer`
+  checkpoint format that works for any model exposing a `get_config()`/`from_config()` contract,
+  not just the MLP — regression-tested to confirm the MLP's own checkpoint format is unchanged.
+
 ### Synthetic development dataset (pipeline validation only — no physics meaning)
 
 | Precision | Method | Accuracy | Model size (MB) | Latency (ms/sample, software) |
@@ -170,6 +220,7 @@ uv venv .venv --python 3.11
 uv pip install --python .venv -r requirements.txt
 uv pip install --python .venv torch --index-url https://download.pytorch.org/whl/cu128  # or /cpu
 uv pip install --python .venv -e .
+uv pip install --python .venv -e ".[surrogate]"  # optional: Phase 11's ML hardware surrogate (huggingface_hub, ijson)
 
 # Validate the data pipeline
 python -m hep_quant validate-data --config configs/fp32.yaml
@@ -189,7 +240,7 @@ python -m hep_quant report
 pytest -q
 ```
 
-90+ tests across environment, data pipeline, schema enforcement, models, training, PTQ/QAT (including equivalence of the study builder), hardware abstraction, reporting and full-pipeline reproducibility
+147 tests (exact count via `pytest --collect-only`) across environment, data pipeline, schema enforcement, models, training, PTQ/QAT (including equivalence of the study builder, the mixed-precision/QAT-variant builders, and Conv2d/CNN support), hardware abstraction (including the wa-hls4ml-trained surrogate and the real end-to-end hls4ml Conv2d conversion), the background-rejection metric, reporting and full-pipeline reproducibility
 (a few network/CUDA-dependent tests are opt-in or auto-skipped). Every gate in this project's build was
 run twice (two-test rule) before moving to the next — see
 [reports/experiment_log.md](reports/experiment_log.md) for the full build log,
@@ -210,19 +261,43 @@ Known provenance gap: the 21 frozen runs recorded commit `4e9b673` while the wor
 
 ## Limitations
 
-- The dataset is simulated particle-level MC (not detector-level, not recorded data); one dataset, one 4,389-parameter MLP, 5 seeds.
+- The dataset is simulated particle-level MC (not detector-level, not recorded data); one
+  dataset; three MLP shapes tested (4,389 / 16,837 params, plus the quantization-matrix
+  architecture above), 5 seeds.
 - Quantization is simulated (fake-quantization), not real bit-packed integer kernels
   — see [docs/quantization.md](docs/quantization.md).
 - No FPGA synthesis numbers (Vivado not installed in this environment) — see
   [docs/hardware.md](docs/hardware.md) for exactly what the hardware-aware analysis
-  does and doesn't measure.
+  does and doesn't measure, including the Phase 11 ML-surrogate alternative and its
+  own found-and-disclosed limitation (bit-width insensitivity).
+- A standard gradient-boosted-tree baseline beats the FP32 MLP on raw accuracy (Phase 13),
+  and the same pattern repeats for the CNN on image data (Phase 14) — the case for either
+  neural network is FPGA deployability via hls4ml, not accuracy; this project does not claim
+  either neural network is the best available model for its task.
+- The Phase 14 CNN quantization sweep is single-seed, not this project's usual multi-seed
+  convention, disclosed given the CNN's measured per-seed training cost (8-30 min).
+- The Phase 14 CNN's PTQ-collapse finding (README above) names a candidate explanation
+  (Conv2D weight-range outliers, or an insufficient activation-calibration sample) that was
+  not traced to confirmation — stated as an open hypothesis, not an established cause.
 
 ## Future work
 
-- Percentile/MSE calibration for INT4 PTQ; mixed precision under QAT.
-- A second architecture and dataset, only if a generality claim is wanted.
+- Percentile/MSE calibration for INT4 PTQ.
+- ~~Mixed precision under QAT~~ — done, see Phase 12 above.
+- ~~A second architecture~~ — done (Phase 6: two additional MLP shapes; Phase 14: a CNN, a
+  genuinely different architecture *family*, not just another MLP shape).
+- ~~A second dataset~~ — done (Phase 14: the particle-image companion to the HLF dataset).
+- Trace the Phase 14 CNN PTQ-collapse finding to a confirmed mechanism (candidate hypotheses
+  above), and run the CNN quantization sweep at full multi-seed statistical power if the
+  per-seed training cost can be reduced.
 - Run real hls4ml synthesis on a machine with Vivado installed, to replace the
-  "unavailable"/"csim" hardware fields with actual LUT/DSP/BRAM/FF numbers.
+  "unavailable"/"csim" hardware fields with actual LUT/DSP/BRAM/FF numbers — or, short of that,
+  fix the Phase 11 surrogate's bit-width-insensitivity (normalize targets by parameter count, or
+  add an explicit bits×params interaction feature) so it can at least validate precision-driven
+  resource comparisons, which it currently cannot. A CNN-capable surrogate (trained on
+  wa-hls4ml's `conv2d` split) was deliberately not built this phase — that split is flagged by
+  the dataset's own card as weaker/less representative, making a quick add-on unlikely to be
+  worth the effort; left as a scoped future item rather than attempted and reported weak.
 
 ## License
 

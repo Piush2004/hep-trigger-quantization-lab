@@ -1,0 +1,8 @@
+{
+  "seed": 42,
+  "elapsed_s": 1884.921523813,
+  "n_epochs_run": 30,
+  "mean_epoch_duration_s": 61.67753522826654,
+  "cuda_available": false,
+  "device": "cpu"
+}
